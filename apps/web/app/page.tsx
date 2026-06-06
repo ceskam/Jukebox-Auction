@@ -1,23 +1,13 @@
 export default function HomePage() {
   return (
     <main style={{ padding: "2rem" }}>
-      <h1>🎵 Jukebox Auction</h1>
+      <h1>Jukebox Auction</h1>
 
-      <p>
-        Bid USDC for control of the next 15-minute playlist block.
-      </p>
+      <p>Current Auction: auction-1</p>
 
-      <button>
-        Connect Wallet
-      </button>
+      <p>Highest Bid: 0 USDC</p>
 
-      <hr />
-
-      <h2>Current Auction</h2>
-
-      <p>Highest Bid: $0.00</p>
-
-      <p>Time Remaining: 15:00</p>
+      <p>Winner: None</p>
     </main>
   );
 }
