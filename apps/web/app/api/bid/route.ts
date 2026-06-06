@@ -1,6 +1,8 @@
+import { currentAuction } from "@/lib/auction";
+
 export async function GET() {
   return Response.json({
-    status: "ok",
-    endpoint: "bid"
+    highestBid: currentAuction.highestBid,
+    winner: currentAuction.winner,
   });
 }
