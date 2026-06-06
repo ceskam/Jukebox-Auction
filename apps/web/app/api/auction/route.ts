@@ -1,6 +1,5 @@
+import { currentAuction } from "@/lib/auction";
+
 export async function GET() {
-  return Response.json({
-    status: "ok",
-    endpoint: "auction"
-  });
+  return Response.json(currentAuction);
 }
