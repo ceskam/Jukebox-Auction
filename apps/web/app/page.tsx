@@ -1,13 +1,23 @@
-export default function HomePage() {
+async function getAuction() {
+  const res = await fetch("http://localhost:3000/api/auction", {
+    cache: "no-store",
+  });
+
+  return res.json();
+}
+
+export default async function HomePage() {
+  const auction = await getAuction();
+
   return (
     <main style={{ padding: "2rem" }}>
       <h1>Jukebox Auction</h1>
 
-      <p>Current Auction: auction-1</p>
+      <p>Current Auction: {auction.id}</p>
 
-      <p>Highest Bid: 0 USDC</p>
+      <p>Highest Bid: {auction.highestBid} USDC</p>
 
-      <p>Winner: None</p>
+      <p>Winner: {auction.winner ?? "None"}</p>
     </main>
   );
 }
