@@ -1,3 +1,5 @@
+import BidButton from "./BidButton";
+
 async function getAuction() {
   const res = await fetch("http://localhost:3000/api/auction", {
     cache: "no-store",
@@ -18,6 +20,8 @@ export default async function HomePage() {
       <p>Highest Bid: {auction.highestBid} USDC</p>
 
       <p>Winner: {auction.winner ?? "None"}</p>
+
+      <BidButton />
     </main>
   );
 }
