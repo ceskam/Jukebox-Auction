@@ -1,4 +1,4 @@
-import BidButton from "./BidButton";
+import BidButton from "../BidButton";
 
 async function getAuction() {
   const res = await fetch("http://localhost:3000/api/auction", {
