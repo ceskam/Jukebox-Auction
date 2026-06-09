@@ -4,9 +4,12 @@ import { useState } from "react";
 
 export default function BidButton() {
   const [amount, setAmount] = useState("");
+  const [message, setMessage] = useState("");
 
   async function placeBid() {
-    await fetch("/api/bid", {
+    setMessage("");
+
+    const res = await fetch("/api/bid", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -16,6 +19,13 @@ export default function BidButton() {
         wallet: "demo-wallet",
       }),
     });
+
+    const result = await res.json();
+
+    if (!result.success) {
+      setMessage(result.message);
+      return;
+    }
 
     window.location.reload();
   }
@@ -29,9 +39,13 @@ export default function BidButton() {
         onChange={(e) => setAmount(e.target.value)}
       />
 
-      <button onClick={placeBid}>
-        Place Bid
-      </button>
+      <button onClick={placeBid}>Place Bid</button>
+
+      {message && (
+        <p style={{ color: "red" }}>
+          {message}
+        </p>
+      )}
     </div>
   );
 }
