@@ -1,9 +1,11 @@
 import { placeBid } from "../../../lib/auction";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const body = await request.json();
+
   const result = placeBid(
-    Math.floor(Math.random() * 100) + 1,
-    "demo-wallet"
+    Number(body.amount),
+    body.wallet || "demo-wallet"
   );
 
   return Response.json(result);
