@@ -16,7 +16,7 @@ export default function BidButton() {
       },
       body: JSON.stringify({
         amount: Number(amount),
-        wallet: "demo-wallet",
+        wallet: (window as any).phantom?.solana?.publicKey?.toString() || "demo-wallet",
       }),
     });
 
