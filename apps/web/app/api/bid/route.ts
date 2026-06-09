@@ -1,4 +1,4 @@
-import { placeBid } from "@/lib/auction";
+import { placeBid } from "../../../lib/auction";
 
 export async function POST() {
   const result = placeBid(
