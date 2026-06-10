@@ -1,9 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function WalletConnect() {
   const [wallet, setWallet] = useState("");
+
+  useEffect(() => {
+    async function autoConnectWallet() {
+      const provider = (window as any).phantom?.solana;
+
+      if (!provider?.isPhantom) {
+        return;
+      }
+
+      try {
+        const response = await provider.connect({
+          onlyIfTrusted: true,
+        });
+
+        setWallet(response.publicKey.toString());
+      } catch {
+        // User has not approved this site yet.
+      }
+    }
+
+    autoConnectWallet();
+  }, []);
 
   async function connectWallet() {
     const provider = (window as any).phantom?.solana;
