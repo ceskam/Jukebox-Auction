@@ -1,5 +1,5 @@
-import { currentAuction } from "../../../lib/auction";
+import { getCurrentAuction } from "../../../../lib/auction";
 
 export async function GET() {
-  return Response.json(currentAuction);
+  return Response.json(getCurrentAuction());
 }
