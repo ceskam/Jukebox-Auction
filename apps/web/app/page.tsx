@@ -15,7 +15,7 @@ export default async function HomePage() {
 
   return (
     <main style={{ padding: "2rem" }}>
-      <h1>Jukebox Auction</h1>
+     <h1>Global Attention Auction</h1>
 
       <CountdownTimer />
 
