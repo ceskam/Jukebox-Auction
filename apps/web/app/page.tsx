@@ -1,6 +1,7 @@
 import BidButton from "../BidButton";
 import WalletConnect from "../WalletConnect";
 import CountdownTimer from "../CountdownTimer";
+import AttentionOwner from "../AttentionOwner";
 
 async function getAuction() {
   const res = await fetch("http://localhost:3000/api/auction", {
@@ -15,9 +16,15 @@ export default async function HomePage() {
 
   return (
     <main style={{ padding: "2rem" }}>
-     <h1>Global Attention Auction</h1>
+      <h1>Global Attention Auction</h1>
 
       <CountdownTimer />
+
+      <AttentionOwner
+        winner={auction.winner}
+        highestBid={auction.highestBid}
+        auctionId={auction.id}
+      />
 
       <WalletConnect />
 
