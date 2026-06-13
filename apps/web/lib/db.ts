@@ -10,6 +10,16 @@ db.exec(`
     amount INTEGER NOT NULL,
     created_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS attention_content (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    auction_id TEXT NOT NULL UNIQUE,
+    wallet TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    url TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
 `);
 
 export default db;
