@@ -2,6 +2,7 @@ import BidButton from "../BidButton";
 import WalletConnect from "../WalletConnect";
 import CountdownTimer from "../CountdownTimer";
 import AttentionOwner from "../AttentionOwner";
+import AttentionEditor from "../AttentionEditor";
 
 async function getAuction() {
   const res = await fetch("http://localhost:3000/api/auction", {
@@ -35,6 +36,8 @@ export default async function HomePage() {
       <p>Winner: {auction.winner ?? "None"}</p>
 
       <BidButton />
+
+      <AttentionEditor />
     </main>
   );
 }
