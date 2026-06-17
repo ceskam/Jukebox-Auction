@@ -2,21 +2,22 @@
 
 import { useEffect, useState } from "react";
 
-export default function CountdownTimer() {
-  const [secondsLeft, setSecondsLeft] = useState(15 * 60);
+type Props = {
+  endsAt: number;
+};
+
+export default function CountdownTimer({ endsAt }: Props) {
+  const [secondsLeft, setSecondsLeft] = useState(
+    Math.max(0, Math.floor((endsAt - Date.now()) / 1000))
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          return 15 * 60;
-        }
-        return prev - 1;
-      });
+      setSecondsLeft(Math.max(0, Math.floor((endsAt - Date.now()) / 1000)));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [endsAt]);
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
