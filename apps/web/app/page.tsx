@@ -13,23 +13,26 @@ async function getAuction() {
   return res.json();
 }
 
-async function getAttention() {
-  const res = await fetch("http://localhost:3000/api/attention", {
-    cache: "no-store",
-  });
+async function getAttention(auctionId: string) {
+  const res = await fetch(
+    `http://localhost:3000/api/attention?auctionId=${auctionId}`,
+    {
+      cache: "no-store",
+    }
+  );
 
   return res.json();
 }
 
 export default async function HomePage() {
   const auction = await getAuction();
-  const attention = await getAttention();
+  const attention = await getAttention(auction.id);
 
   return (
     <main style={{ padding: "2rem" }}>
       <h1>Global Attention Auction</h1>
 
-     <CountdownTimer endsAt={auction.endsAt} />
+      <CountdownTimer endsAt={auction.endsAt} />
 
       <AttentionDisplay
         title={attention?.title ?? ""}
