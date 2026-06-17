@@ -1,16 +1,23 @@
-import db from "../../../lib/db";
+import db from "../../../../lib/db";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const auctionId = searchParams.get("auctionId");
+
+  if (!auctionId) {
+    return Response.json(null);
+  }
+
   const content = db
     .prepare(
       `
       SELECT *
       FROM attention_content
-      ORDER BY id DESC
+      WHERE auction_id = ?
       LIMIT 1
-    `
+      `
     )
-    .get();
+    .get(auctionId);
 
   return Response.json(content ?? null);
 }
@@ -29,7 +36,13 @@ export async function POST(request: Request) {
       created_at
     )
     VALUES (?, ?, ?, ?, ?, ?)
-  `
+    ON CONFLICT(auction_id) DO UPDATE SET
+      wallet = excluded.wallet,
+      title = excluded.title,
+      description = excluded.description,
+      url = excluded.url,
+      created_at = excluded.created_at
+    `
   ).run(
     body.auctionId,
     body.wallet,
