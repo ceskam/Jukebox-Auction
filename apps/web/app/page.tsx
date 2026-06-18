@@ -56,7 +56,10 @@ export default async function HomePage() {
 
       <BidButton />
 
-      <AttentionEditor />
+      <AttentionEditor
+  auctionId={auction.id}
+  wallet={auction.winner ?? "demo-wallet"}
+/>
     </main>
   );
 }
