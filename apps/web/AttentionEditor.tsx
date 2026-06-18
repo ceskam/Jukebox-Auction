@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 
-export default function AttentionEditor() {
+type Props = {
+  auctionId: string;
+  wallet: string;
+};
+
+export default function AttentionEditor({ auctionId, wallet }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState("");
@@ -14,8 +19,8 @@ export default function AttentionEditor() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        auctionId: "current-auction",
-        wallet: "demo-wallet",
+        auctionId,
+        wallet,
         title,
         description,
         url,
@@ -23,6 +28,7 @@ export default function AttentionEditor() {
     });
 
     alert("Attention Block Saved");
+    window.location.reload();
   }
 
   return (
@@ -40,11 +46,7 @@ export default function AttentionEditor() {
         placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "10px",
-          marginBottom: "10px",
-        }}
+        style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
       />
 
       <textarea
@@ -63,20 +65,12 @@ export default function AttentionEditor() {
         placeholder="URL"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "10px",
-          marginBottom: "10px",
-        }}
+        style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
       />
 
       <button
         onClick={saveAttention}
-        style={{
-          padding: "12px 24px",
-          fontSize: "16px",
-          cursor: "pointer",
-        }}
+        style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer" }}
       >
         Save Attention Block
       </button>
