@@ -5,12 +5,31 @@ import { useState } from "react";
 type Props = {
   auctionId: string;
   wallet: string;
+  winner: string | null;
 };
 
-export default function AttentionEditor({ auctionId, wallet }: Props) {
+export default function AttentionEditor({ auctionId, wallet, winner }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState("");
+
+  const isWinner = winner && wallet === winner;
+
+  if (!isWinner) {
+    return (
+      <div
+        style={{
+          border: "2px solid #00ff99",
+          padding: "20px",
+          marginTop: "30px",
+          borderRadius: "12px",
+        }}
+      >
+        <h2>Create Attention Block</h2>
+        <p>You must win the current auction to control this attention block.</p>
+      </div>
+    );
+  }
 
   async function saveAttention() {
     await fetch("/api/attention", {
