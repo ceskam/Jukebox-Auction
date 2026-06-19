@@ -10,19 +10,19 @@ export interface Auction {
   endsAt: number;
 }
 
-function getCurrentAuctionId() {
-  const auctionNumber = Math.floor((Date.now() - START_TIME) / BLOCK_LENGTH_MS) + 1;
-  return `auction-${auctionNumber}`;
+function getAuctionNumber(offset = 0) {
+  return Math.floor((Date.now() - START_TIME) / BLOCK_LENGTH_MS) + 1 + offset;
 }
 
-function getCurrentAuctionEndTime() {
-  const auctionNumber = Math.floor((Date.now() - START_TIME) / BLOCK_LENGTH_MS) + 1;
-  return START_TIME + auctionNumber * BLOCK_LENGTH_MS;
+function getAuctionId(offset = 0) {
+  return `auction-${getAuctionNumber(offset)}`;
 }
 
-export function getCurrentAuction(): Auction {
-  const auctionId = getCurrentAuctionId();
+function getAuctionEndTime(offset = 0) {
+  return START_TIME + getAuctionNumber(offset) * BLOCK_LENGTH_MS;
+}
 
+function getAuctionById(auctionId: string): Auction {
   const highestBid = db
     .prepare(
       "SELECT wallet, amount FROM bids WHERE auction_id = ? ORDER BY amount DESC LIMIT 1"
@@ -33,28 +33,36 @@ export function getCurrentAuction(): Auction {
     id: auctionId,
     highestBid: highestBid?.amount ?? 0,
     winner: highestBid?.wallet ?? null,
-    endsAt: getCurrentAuctionEndTime(),
+    endsAt: getAuctionEndTime(auctionId === getAuctionId(1) ? 1 : 0),
   };
 }
 
-export function placeBid(amount: number, wallet: string) {
-  const currentAuction = getCurrentAuction();
+export function getCurrentAuction(): Auction {
+  return getAuctionById(getAuctionId(0));
+}
 
-  if (amount <= currentAuction.highestBid) {
+export function getNextAuction(): Auction {
+  return getAuctionById(getAuctionId(1));
+}
+
+export function placeBid(amount: number, wallet: string) {
+  const nextAuction = getNextAuction();
+
+  if (amount <= nextAuction.highestBid) {
     return {
       success: false,
       message: "Bid must be higher than current highest bid.",
-      auction: currentAuction,
+      auction: nextAuction,
     };
   }
 
   db.prepare(
     "INSERT INTO bids (auction_id, wallet, amount, created_at) VALUES (?, ?, ?, ?)"
-  ).run(currentAuction.id, wallet, amount, new Date().toISOString());
+  ).run(nextAuction.id, wallet, amount, new Date().toISOString());
 
   return {
     success: true,
-    message: "Bid accepted.",
-    auction: getCurrentAuction(),
+    message: "Bid accepted for next attention block.",
+    auction: getNextAuction(),
   };
 }
