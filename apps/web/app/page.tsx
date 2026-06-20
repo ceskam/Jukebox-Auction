@@ -4,14 +4,7 @@ import CountdownTimer from "../CountdownTimer";
 import AttentionOwner from "../AttentionOwner";
 import AttentionEditor from "../AttentionEditor";
 import AttentionDisplay from "../AttentionDisplay";
-
-async function getAuction() {
-  const res = await fetch("http://localhost:3000/api/auction", {
-    cache: "no-store",
-  });
-
-  return res.json();
-}
+import { getCurrentAuction, getNextAuction } from "../lib/auction";
 
 async function getAttention(auctionId: string) {
   const res = await fetch(
@@ -25,14 +18,16 @@ async function getAttention(auctionId: string) {
 }
 
 export default async function HomePage() {
-  const auction = await getAuction();
-  const attention = await getAttention(auction.id);
+  const currentAuction = getCurrentAuction();
+  const nextAuction = getNextAuction();
+
+  const attention = await getAttention(currentAuction.id);
 
   return (
     <main style={{ padding: "2rem" }}>
       <h1>Global Attention Auction</h1>
 
-      <CountdownTimer endsAt={auction.endsAt} />
+      <CountdownTimer endsAt={nextAuction.endsAt} />
 
       <AttentionDisplay
         title={attention?.title ?? ""}
@@ -40,27 +35,29 @@ export default async function HomePage() {
         url={attention?.url ?? ""}
       />
 
+      <h2>Next Attention Auction</h2>
+
       <AttentionOwner
-        winner={auction.winner}
-        highestBid={auction.highestBid}
-        auctionId={auction.id}
+        winner={nextAuction.winner}
+        highestBid={nextAuction.highestBid}
+        auctionId={nextAuction.id}
       />
 
       <WalletConnect />
 
-      <p>Current Auction: {auction.id}</p>
+      <p>Next Auction: {nextAuction.id}</p>
 
-      <p>Highest Bid: {auction.highestBid} USDC</p>
+      <p>Highest Bid: {nextAuction.highestBid} USDC</p>
 
-      <p>Winner: {auction.winner ?? "None"}</p>
+      <p>Leading Bidder: {nextAuction.winner ?? "None"}</p>
 
       <BidButton />
 
-     <AttentionEditor
-  auctionId={auction.id}
-  wallet={auction.winner ?? "demo-wallet"}
-  winner={auction.winner}
-/>
+      <AttentionEditor
+        auctionId={currentAuction.id}
+        wallet={currentAuction.winner ?? "demo-wallet"}
+        winner={currentAuction.winner}
+      />
     </main>
   );
 }
