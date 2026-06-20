@@ -54,9 +54,9 @@ export default async function HomePage() {
       <BidButton />
 
       <AttentionEditor
-        auctionId={currentAuction.id}
-        wallet={currentAuction.winner ?? "demo-wallet"}
-        winner={currentAuction.winner}
+        auctionId={nextAuction.id}
+        wallet={nextAuction.winner ?? "demo-wallet"}
+        winner={nextAuction.winner}
       />
     </main>
   );
