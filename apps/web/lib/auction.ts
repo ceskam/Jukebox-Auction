@@ -22,7 +22,7 @@ function getAuctionEndTime(offset = 0) {
   return START_TIME + getAuctionNumber(offset) * BLOCK_LENGTH_MS;
 }
 
-function getAuctionById(auctionId: string): Auction {
+function getAuctionById(auctionId: string, offset = 0): Auction {
   const highestBid = db
     .prepare(
       "SELECT wallet, amount FROM bids WHERE auction_id = ? ORDER BY amount DESC LIMIT 1"
@@ -33,16 +33,16 @@ function getAuctionById(auctionId: string): Auction {
     id: auctionId,
     highestBid: highestBid?.amount ?? 0,
     winner: highestBid?.wallet ?? null,
-    endsAt: getAuctionEndTime(auctionId === getAuctionId(1) ? 1 : 0),
+    endsAt: getAuctionEndTime(offset),
   };
 }
 
 export function getCurrentAuction(): Auction {
-  return getAuctionById(getAuctionId(0));
+  return getAuctionById(getAuctionId(0), 0);
 }
 
 export function getNextAuction(): Auction {
-  return getAuctionById(getAuctionId(1));
+  return getAuctionById(getAuctionId(1), 1);
 }
 
 export function placeBid(amount: number, wallet: string) {
