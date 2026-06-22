@@ -4,6 +4,11 @@ interface Props {
   auctionId: string;
 }
 
+function shortWallet(wallet: string | null) {
+  if (!wallet) return "No leading bidder yet";
+  return `${wallet.slice(0, 4)}...${wallet.slice(-5)}`;
+}
+
 export default function AttentionOwner({
   winner,
   highestBid,
@@ -16,13 +21,13 @@ export default function AttentionOwner({
         borderRadius: "12px",
         padding: "20px",
         marginBottom: "20px",
+        wordBreak: "break-word",
       }}
     >
-      <h2>Current Attention Owner</h2>
+      <h2>🏆 Leading Bidder</h2>
 
       <p>
-        <strong>Wallet:</strong>{" "}
-        {winner ? winner : "No winner yet"}
+        <strong>Wallet:</strong> {shortWallet(winner)}
       </p>
 
       <p>
