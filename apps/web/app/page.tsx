@@ -27,7 +27,7 @@ export default async function HomePage() {
     <main style={{ padding: "2rem" }}>
       <h1>Global Attention Auction</h1>
 
-      <CountdownTimer endsAt={nextAuction.endsAt} />
+   <CountdownTimer endsAt={currentAuction.endsAt} />
 
       <AttentionDisplay
         title={attention?.title ?? ""}
