@@ -5,7 +5,6 @@ import AttentionOwner from "../AttentionOwner";
 import AttentionEditor from "../AttentionEditor";
 import AttentionDisplay from "../AttentionDisplay";
 import { getCurrentAuction, getNextAuction } from "../lib/auction";
-import AutoRefresh from "../AutoRefresh";
 
 async function getAttention(auctionId: string) {
   const res = await fetch(
@@ -27,8 +26,6 @@ export default async function HomePage() {
   return (
     <main style={{ padding: "2rem" }}>
       <h1>Global Attention Auction</h1>
-
-      <AutoRefresh />
 
       <CountdownTimer endsAt={currentAuction.endsAt} />
 
@@ -57,9 +54,9 @@ export default async function HomePage() {
       <BidButton />
 
       <AttentionEditor
-        auctionId={nextAuction.id}
-        wallet={nextAuction.winner ?? "demo-wallet"}
-        winner={nextAuction.winner}
+        auctionId={currentAuction.id}
+        wallet={currentAuction.winner ?? "demo-wallet"}
+        winner={currentAuction.winner}
       />
     </main>
   );
