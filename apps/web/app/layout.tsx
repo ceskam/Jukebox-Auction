@@ -1,5 +1,10 @@
 import "./globals.css";
 
+export const metadata = {
+  title: "Attention Bid",
+  description: "Continuous 15-minute USDC auctions for public homepage attention.",
+};
+
 export default function RootLayout({
   children,
 }: {
