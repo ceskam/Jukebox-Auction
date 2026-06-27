@@ -1,98 +1,125 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getStoredWallet, subscribeToWallet } from "./WalletConnect";
 
 type Props = {
   auctionId: string;
-  wallet: string;
   winner: string | null;
+  initialTitle?: string;
+  initialDescription?: string;
+  initialUrl?: string;
 };
 
-export default function AttentionEditor({ auctionId, wallet, winner }: Props) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [url, setUrl] = useState("");
+export default function AttentionEditor({
+  auctionId,
+  winner,
+  initialTitle = "",
+  initialDescription = "",
+  initialUrl = "",
+}: Props) {
+  const [wallet, setWallet] = useState("");
+  const [title, setTitle] = useState(initialTitle);
+  const [description, setDescription] = useState(initialDescription);
+  const [url, setUrl] = useState(initialUrl);
+  const [message, setMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const isWinner = winner && wallet === winner;
+  useEffect(() => {
+    setWallet(getStoredWallet());
+    return subscribeToWallet(setWallet);
+  }, []);
+
+  const isWinner = Boolean(winner && wallet === winner);
 
   if (!isWinner) {
     return (
-      <div
-        style={{
-          border: "2px solid #00ff99",
-          padding: "20px",
-          marginTop: "30px",
-          borderRadius: "12px",
-        }}
-      >
-        <h2>Create Attention Block</h2>
-        <p>You must win the current auction to control this attention block.</p>
-      </div>
+      <section className="editor-card muted-card">
+        <span className="eyebrow">Create attention block</span>
+        <h2>Winner controls the live homepage</h2>
+        <p>
+          The winning wallet for the current block can add the headline,
+          description, and link shown in the public attention space.
+        </p>
+        {winner ? (
+          <p className="hint">Winning wallet: {winner.slice(0, 4)}...{winner.slice(-4)}</p>
+        ) : (
+          <p className="hint">No winner has been recorded for this block yet.</p>
+        )}
+      </section>
     );
   }
 
   async function saveAttention() {
-    await fetch("/api/attention", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        auctionId,
-        wallet,
-        title,
-        description,
-        url,
-      }),
-    });
+    setIsSaving(true);
+    setMessage("");
 
-    alert("Attention Block Saved");
-    window.location.reload();
+    try {
+      const res = await fetch("/api/attention", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          auctionId,
+          wallet,
+          title,
+          description,
+          url,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!result.success) {
+        setMessage(result.message);
+        return;
+      }
+
+      setMessage("Attention block saved. Refreshing...");
+      window.setTimeout(() => window.location.reload(), 500);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
-    <div
-      style={{
-        border: "2px solid #00ff99",
-        padding: "20px",
-        marginTop: "30px",
-        borderRadius: "12px",
-      }}
-    >
-      <h2>Create Attention Block</h2>
+    <section className="editor-card">
+      <span className="eyebrow">Create attention block</span>
+      <h2>You won this block</h2>
 
-      <input
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-      />
+      <label>
+        <span>Title</span>
+        <input
+          placeholder="What should everyone see?"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </label>
 
-      <textarea
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        style={{
-          width: "100%",
-          height: "100px",
-          padding: "10px",
-          marginBottom: "10px",
-        }}
-      />
+      <label>
+        <span>Description</span>
+        <textarea
+          placeholder="Add the short message for the public homepage."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </label>
 
-      <input
-        placeholder="URL"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-      />
+      <label>
+        <span>Link</span>
+        <input
+          placeholder="https://example.com"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+      </label>
 
-      <button
-        onClick={saveAttention}
-        style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer" }}
-      >
-        Save Attention Block
+      <button className="primary-button" onClick={saveAttention} disabled={isSaving}>
+        {isSaving ? "Saving..." : "Save attention block"}
       </button>
-    </div>
+
+      {message && <p className="form-message">{message}</p>}
+    </section>
   );
 }
