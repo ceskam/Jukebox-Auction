@@ -1,120 +1,62 @@
-# Jukebox Auction
+# Attention Bid
 
-A crypto-powered digital jukebox where 15-minute music blocks are auctioned off for USDC.
+Attention Bid is a continuous 15-minute attention auction powered by USDC on Solana.
 
-## Concept
+The highest verified USDC bidder wins the next attention block. When that block becomes live, the winning wallet can control the headline, description, and link shown on the public homepage.
 
-Users scan a QR code, connect a Solana wallet, bid in USDC, and compete for control of the next 15-minute music block.
+## MVP Goal
 
-The highest bidder wins the block and can choose the songs that play during that time.
+Ship a functional public auction loop:
 
-## Vision
+- Continuous 15-minute auction windows
+- Bids target the next attention block
+- The current block displays the previous winner's content
+- Bids are denominated in USDC
+- Demo payment verification is isolated so real Solana USDC verification can replace it later
+- Only the winning wallet can edit content for the block it won
+- Bid history, current high bid, countdown, and wallet state are visible on the homepage
 
-Transform music selection into a live marketplace.
+## Current Implementation
 
-Customers compete for control of the next 15-minute music block by bidding USDC. The highest bidder wins control of the playlist for that block.
+The app in `apps/web` uses:
 
-## MVP Features
+- Next.js App Router
+- SQLite via `better-sqlite3` for the local MVP database
+- Phantom browser wallet detection
+- Demo USDC verification in `apps/web/lib/payment.ts`
 
-- Venue creates a live jukebox auction
-- Customers scan a QR code
-- Users connect Phantom wallet
-- Users bid in USDC
-- Highest bidder wins the next 15-minute block
-- Winner selects songs
-- Admin/DJ can approve, reject, skip, or override songs
-- Venue screen displays current auction and winner
-
-## Tech Stack
-
-- Frontend: Next.js
-- Backend: Node.js / Express
-- Database: Supabase Postgres
-- Payments: Solana USDC
-- Wallet: Solana Wallet Adapter
-- Realtime Updates: Supabase Realtime or Socket.io
-- Music API: Spotify API
+The demo verifier accepts valid positive USDC bid amounts and records a demo signature. Real Solana USDC verification should be added behind the same interface.
 
 ## Auction Flow
 
-1. Venue starts an auction for the next 15-minute block.
-2. Customers scan the QR code.
-3. Users connect their wallet.
-4. Users select songs and place a USDC bid.
-5. Backend verifies payment on Solana.
-6. Highest valid bid wins.
-7. Winner controls the next 15-minute block.
-8. A new auction starts for the next block.
+1. A visitor opens the public homepage.
+2. The page shows the current attention block, the next auction countdown, the next block's high bid, and recent bids.
+3. A user connects Phantom.
+4. The user bids USDC for the next 15-minute attention block.
+5. The backend verifies the bid through the payment verification layer.
+6. The highest verified bid wins when the countdown ends.
+7. When that block becomes current, the winning wallet can publish or update the homepage attention content.
+8. The next auction continues automatically.
 
-## Revenue Model
+## Next Production Steps
 
-The venue keeps the winning USDC bid.
+- Replace demo verification with real Solana USDC transaction creation and backend confirmation
+- Move persistence from local SQLite to Supabase Postgres or another production database
+- Add realtime updates for bid history and current high bid
+- Add moderation/admin controls for published attention content
+- Deploy the web app to Vercel
+- Add production environment variables and observability
 
-Future options:
-
-- Split revenue with DJs
-- Reward token holders
-- Burn a project token
-- Add sponsor-funded blocks
-- Add livestream mode
-
-
-## Project Structure
+## Development
 
 ```txt
 apps/
-  web/              Customer app, venue screen, admin dashboard
-
-server/
-  api/              Backend API
-  workers/          Auction and payment jobs
-
-database/           Supabase schema
-
-docs/               Product specs and setup notes
+  web/              Attention Bid web app
 ```
-## Development Roadmap
 
-### Phase 1 - MVP
+From `apps/web`:
 
-- Create venue dashboard
-- Create auction system
-- Connect Phantom wallet
-- Accept USDC bids
-- Display highest bidder
-- Select auction winner
-- Manual song approval
-
-### Phase 2
-
-- Spotify integration
-- Automatic playlist control
-- Multiple venues
-- QR code generation
-
-### Phase 3
-
-- Livestream support
-- Revenue sharing
-- Mobile app
-- Advanced analytics
-- ## Auction Rules
-
-- Auctions run continuously in 15-minute blocks.
-- Each new bid must exceed the current highest bid.
-- Bids are paid in USDC on Solana.
-- Winning bids are non-refundable.
-- The highest bidder at auction close wins control of the next 15-minute block.
-- Winning users may queue up to X songs.
-- Venue admins can reject songs that violate venue policies.
-- The venue maintains final control over playback.
-- ## Future Enhancements
-
-- Dynamic bidding increments
-- NFT membership perks
-- Venue leaderboards
-- Multi-location support
-- Artist promotion campaigns
-- Sponsor-funded music blocks
-- Revenue sharing with DJs
-
+```bash
+npm install
+npm run dev
+```
