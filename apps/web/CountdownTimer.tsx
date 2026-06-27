@@ -12,8 +12,16 @@ export default function CountdownTimer({ endsAt }: Props) {
   );
 
   useEffect(() => {
+    let didRefresh = false;
+
     const interval = setInterval(() => {
-      setSecondsLeft(Math.max(0, Math.floor((endsAt - Date.now()) / 1000)));
+      const nextSecondsLeft = Math.max(0, Math.floor((endsAt - Date.now()) / 1000));
+      setSecondsLeft(nextSecondsLeft);
+
+      if (nextSecondsLeft === 0 && !didRefresh) {
+        didRefresh = true;
+        window.setTimeout(() => window.location.reload(), 900);
+      }
     }, 1000);
 
     return () => clearInterval(interval);
@@ -23,19 +31,15 @@ export default function CountdownTimer({ endsAt }: Props) {
   const seconds = secondsLeft % 60;
 
   return (
-    <div style={{ marginBottom: "20px" }}>
-      <h2>Next Attention Block</h2>
-
-      <div
-        style={{
-          fontSize: "48px",
-          fontWeight: "bold",
-          color: "#00ff99",
-        }}
-      >
-        {String(minutes).padStart(2, "0")}:
-        {String(seconds).padStart(2, "0")}
+    <section className="timer-panel" aria-label="Next auction countdown">
+      <span className="eyebrow">Auction ends in</span>
+      <strong className="timer-value">
+        {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+      </strong>
+      <div className="timer-bar">
+        <span style={{ width: `${Math.max(0, Math.min(100, (secondsLeft / 900) * 100))}%` }} />
       </div>
-    </div>
+      <p>{Math.ceil((secondsLeft / 900) * 100)}% of this block remaining</p>
+    </section>
   );
 }
