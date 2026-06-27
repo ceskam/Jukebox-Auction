@@ -1,12 +1,24 @@
-import { placeBid } from "../../../lib/auction";
+import { getBidHistory, getNextAuction, placeBid } from "../../../lib/auction";
+
+export async function GET() {
+  const nextAuction = getNextAuction();
+
+  return Response.json({
+    auction: nextAuction,
+    bids: getBidHistory(nextAuction.id),
+  });
+}
 
 export async function POST(request: Request) {
   const body = await request.json();
 
   const result = placeBid(
-    Number(body.amount),
-    body.wallet || "demo-wallet"
+    Number(body.amountUsdc ?? body.amount),
+    String(body.wallet ?? ""),
+    body.paymentSignature ?? null
   );
 
-  return Response.json(result);
+  return Response.json(result, {
+    status: result.success ? 200 : 400,
+  });
 }
