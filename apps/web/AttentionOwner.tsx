@@ -15,28 +15,19 @@ export default function AttentionOwner({
   auctionId,
 }: Props) {
   return (
-    <div
-      style={{
-        border: "2px solid #00ff99",
-        borderRadius: "12px",
-        padding: "20px",
-        marginBottom: "20px",
-        wordBreak: "break-word",
-      }}
-    >
-      <h2>🏆 Leading Bidder</h2>
-
-      <p>
-        <strong>Wallet:</strong> {shortWallet(winner)}
-      </p>
-
-      <p>
-        <strong>Winning Bid:</strong> {highestBid} USDC
-      </p>
-
-      <p>
-        <strong>Attention Block:</strong> {auctionId}
-      </p>
-    </div>
+    <section className="leader-card">
+      <span className="eyebrow">Next block leader</span>
+      <h2>{shortWallet(winner)}</h2>
+      <dl>
+        <div>
+          <dt>Current bid</dt>
+          <dd>{highestBid.toFixed(2)} USDC</dd>
+        </div>
+        <div>
+          <dt>Auction ID</dt>
+          <dd>{auctionId}</dd>
+        </div>
+      </dl>
+    </section>
   );
 }
