@@ -7,6 +7,7 @@ export type AttentionContent = {
   title: string;
   description: string;
   url: string;
+  imageUrl: string;
   createdAt: string;
   updatedAt: string | null;
 };
@@ -21,6 +22,7 @@ export function getAttentionContent(auctionId: string) {
         title,
         description,
         url,
+        image_url AS imageUrl,
         created_at AS createdAt,
         updated_at AS updatedAt
       FROM attention_content
@@ -48,12 +50,14 @@ export function saveAttentionContent({
   title,
   description,
   url,
+  imageUrl,
 }: {
   auctionId: string;
   wallet: string;
   title: string;
   description: string;
   url: string;
+  imageUrl: string;
 }) {
   const auction = getAuctionById(auctionId);
 
@@ -67,6 +71,7 @@ export function saveAttentionContent({
   const trimmedTitle = title.trim();
   const trimmedDescription = description.trim();
   const normalizedUrl = normalizeUrl(url.trim());
+  const normalizedImageUrl = normalizeUrl(imageUrl.trim());
 
   if (!trimmedTitle) {
     return {
@@ -85,15 +90,17 @@ export function saveAttentionContent({
       title,
       description,
       url,
+      image_url,
       created_at,
       updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(auction_id) DO UPDATE SET
       wallet = excluded.wallet,
       title = excluded.title,
       description = excluded.description,
       url = excluded.url,
+      image_url = excluded.image_url,
       updated_at = excluded.updated_at
     `
   ).run(
@@ -102,6 +109,7 @@ export function saveAttentionContent({
     trimmedTitle,
     trimmedDescription,
     normalizedUrl,
+    normalizedImageUrl,
     now,
     now
   );
