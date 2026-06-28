@@ -1,4 +1,10 @@
-import db from "../../../lib/db";
+import {
+  getAttentionContent,
+  saveAttentionContent,
+} from "../../../lib/attention";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -8,51 +14,21 @@ export async function GET(request: Request) {
     return Response.json(null);
   }
 
-  const content = db
-    .prepare(
-      `
-      SELECT *
-      FROM attention_content
-      WHERE auction_id = ?
-      LIMIT 1
-      `
-    )
-    .get(auctionId);
-
-  return Response.json(content ?? null);
+  return Response.json(getAttentionContent(auctionId) ?? null);
 }
 
 export async function POST(request: Request) {
   const body = await request.json();
 
-  db.prepare(
-    `
-    INSERT INTO attention_content (
-      auction_id,
-      wallet,
-      title,
-      description,
-      url,
-      created_at
-    )
-    VALUES (?, ?, ?, ?, ?, ?)
-    ON CONFLICT(auction_id) DO UPDATE SET
-      wallet = excluded.wallet,
-      title = excluded.title,
-      description = excluded.description,
-      url = excluded.url,
-      created_at = excluded.created_at
-    `
-  ).run(
-    body.auctionId,
-    body.wallet,
-    body.title,
-    body.description,
-    body.url,
-    new Date().toISOString()
-  );
+  const result = saveAttentionContent({
+    auctionId: String(body.auctionId ?? ""),
+    wallet: String(body.wallet ?? ""),
+    title: String(body.title ?? ""),
+    description: String(body.description ?? ""),
+    url: String(body.url ?? ""),
+  });
 
-  return Response.json({
-    success: true,
+  return Response.json(result, {
+    status: result.success ? 200 : 403,
   });
 }

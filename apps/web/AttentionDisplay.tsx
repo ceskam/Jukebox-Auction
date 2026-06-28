@@ -10,33 +10,21 @@ export default function AttentionDisplay({
   url,
 }: Props) {
   return (
-    <div
-      style={{
-        border: "3px solid #00ff99",
-        borderRadius: "16px",
-        padding: "24px",
-        marginBottom: "24px",
-      }}
-    >
-      <h2>Current Attention Block</h2>
-
-      <h3>{title || "No Attention Block Yet"}</h3>
-
-      <p>{description}</p>
+    <section className="attention-card">
+      <div>
+        <span className="eyebrow">Current attention</span>
+        <h2>{title || "The next winner controls this space"}</h2>
+        <p>
+          {description ||
+            "Bid in USDC for the next 15-minute block and put your link, launch, or message in front of everyone watching."}
+        </p>
+      </div>
 
       {url && (
-        <a
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            color: "#00ff99",
-            fontWeight: "bold",
-          }}
-        >
-          Visit Link →
+        <a className="primary-link" href={url} target="_blank" rel="noreferrer">
+          Visit link
         </a>
       )}
-    </div>
+    </section>
   );
 }
