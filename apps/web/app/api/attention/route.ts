@@ -26,6 +26,7 @@ export async function POST(request: Request) {
     title: String(body.title ?? ""),
     description: String(body.description ?? ""),
     url: String(body.url ?? ""),
+    imageUrl: String(body.imageUrl ?? ""),
   });
 
   return Response.json(result, {
