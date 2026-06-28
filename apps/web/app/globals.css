@@ -19,11 +19,13 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 20% 20%, rgba(255, 46, 213, 0.22), transparent 28rem),
     radial-gradient(circle at 80% 10%, rgba(27, 214, 255, 0.18), transparent 24rem),
@@ -65,7 +67,7 @@ textarea {
 }
 
 textarea {
-  min-height: 6.5rem;
+  min-height: 10rem;
   resize: vertical;
 }
 
@@ -188,7 +190,7 @@ textarea:focus {
 
 .auction-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
   gap: 1.4rem;
   align-items: start;
 }
@@ -197,6 +199,7 @@ textarea:focus {
 .side-column {
   display: grid;
   gap: 1rem;
+  min-width: 0;
 }
 
 .attention-card,
@@ -211,26 +214,41 @@ textarea:focus {
   border-radius: 8px;
   background: var(--panel);
   box-shadow: 0 0 28px rgba(255, 46, 213, 0.16);
+  min-width: 0;
 }
 
 .attention-card {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 1rem;
-  align-items: end;
-  min-height: 220px;
+  grid-template-columns: minmax(0, 0.95fr) minmax(220px, 0.65fr) auto;
+  gap: 1.25rem;
+  align-items: center;
+  min-height: 320px;
   padding: clamp(1.2rem, 3vw, 2rem);
   background:
     linear-gradient(135deg, rgba(255, 46, 213, 0.16), rgba(27, 214, 255, 0.08)),
     var(--panel-strong);
 }
 
+.attention-copy {
+  min-width: 0;
+}
+
+.attention-image {
+  width: 100%;
+  max-height: 300px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 0 30px rgba(27, 214, 255, 0.16);
+}
+
 .attention-card h2,
 .editor-card h2,
 .leader-card h2 {
   margin: 0.4rem 0;
-  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-size: clamp(1.8rem, 4.4vw, 3rem);
   line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .attention-card p,
@@ -239,6 +257,7 @@ textarea:focus {
 .hint {
   color: var(--muted);
   line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .timer-panel {
@@ -370,6 +389,7 @@ textarea:focus {
   color: var(--green);
   font-weight: 900;
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .section-heading {
@@ -418,6 +438,10 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
+  .attention-card {
+    min-height: 300px;
+  }
+
   .top-nav,
   .wallet-panel {
     justify-items: stretch;
@@ -435,7 +459,8 @@ textarea:focus {
   }
 
   .wallet-button,
-  .ghost-button {
+  .ghost-button,
+  .primary-link {
     width: 100%;
   }
 }
@@ -471,5 +496,15 @@ textarea:focus {
   .bid-history-card,
   .how-card {
     border-radius: 8px;
+  }
+
+  .attention-card h2,
+  .editor-card h2,
+  .leader-card h2 {
+    font-size: clamp(1.6rem, 12vw, 2.4rem);
+  }
+
+  .primary-link {
+    text-align: center;
   }
 }
