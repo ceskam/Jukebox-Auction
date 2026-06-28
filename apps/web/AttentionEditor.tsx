@@ -9,6 +9,7 @@ type Props = {
   initialTitle?: string;
   initialDescription?: string;
   initialUrl?: string;
+  initialImageUrl?: string;
 };
 
 export default function AttentionEditor({
@@ -17,11 +18,13 @@ export default function AttentionEditor({
   initialTitle = "",
   initialDescription = "",
   initialUrl = "",
+  initialImageUrl = "",
 }: Props) {
   const [wallet, setWallet] = useState("");
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [url, setUrl] = useState(initialUrl);
+  const [imageUrl, setImageUrl] = useState(initialImageUrl);
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -66,6 +69,7 @@ export default function AttentionEditor({
           title,
           description,
           url,
+          imageUrl,
         }),
       });
 
@@ -103,6 +107,15 @@ export default function AttentionEditor({
           placeholder="Add the short message for the public homepage."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+        />
+      </label>
+
+      <label>
+        <span>Image URL</span>
+        <input
+          placeholder="https://example.com/image.png"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
         />
       </label>
 

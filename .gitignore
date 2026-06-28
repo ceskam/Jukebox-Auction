@@ -1,0 +1,6 @@
+node_modules/
+.next/
+attention-bid.db
+attention-bid.db-shm
+attention-bid.db-wal
+npm-debug.log*

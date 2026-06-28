@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 
 const WALLET_STORAGE_KEY = "attention-bid-wallet";
+const WALLET_DISCONNECTED_KEY = "attention-bid-wallet-disconnected";
 const WALLET_EVENT = "attention-bid-wallet-change";
 
 function publishWallet(wallet: string) {
   localStorage.setItem(WALLET_STORAGE_KEY, wallet);
+  localStorage.removeItem(WALLET_DISCONNECTED_KEY);
   window.dispatchEvent(new CustomEvent(WALLET_EVENT, { detail: wallet }));
 }
 
@@ -32,6 +34,10 @@ export default function WalletConnect() {
     setWallet(getStoredWallet());
 
     async function autoConnectWallet() {
+      if (localStorage.getItem(WALLET_DISCONNECTED_KEY) === "true") {
+        return;
+      }
+
       const provider = (window as any).phantom?.solana;
 
       if (!provider?.isPhantom) {
@@ -70,7 +76,16 @@ export default function WalletConnect() {
     publishWallet(publicKey);
   }
 
-  function disconnectDemoWallet() {
+  async function disconnectWallet() {
+    const provider = (window as any).phantom?.solana;
+
+    try {
+      await provider?.disconnect?.();
+    } catch {
+      // Phantom may not expose disconnect in every environment.
+    }
+
+    localStorage.setItem(WALLET_DISCONNECTED_KEY, "true");
     localStorage.removeItem(WALLET_STORAGE_KEY);
     setWallet("");
     window.dispatchEvent(new CustomEvent(WALLET_EVENT, { detail: "" }));
@@ -86,7 +101,7 @@ export default function WalletConnect() {
               {wallet.slice(0, 4)}...{wallet.slice(-4)}
             </strong>
           </div>
-          <button className="ghost-button" onClick={disconnectDemoWallet}>
+          <button className="ghost-button" onClick={disconnectWallet}>
             Disconnect
           </button>
         </>

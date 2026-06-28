@@ -53,9 +53,10 @@ export default function HomePage() {
             title={currentAttention?.title ?? ""}
             description={currentAttention?.description ?? ""}
             url={currentAttention?.url ?? ""}
+            imageUrl={currentAttention?.imageUrl ?? ""}
           />
 
-          <CountdownTimer endsAt={nextAuction.endsAt} />
+          <CountdownTimer endsAt={currentAuction.endsAt} />
 
           <div className="stats-grid" id="leaderboard">
             <div>
@@ -80,6 +81,7 @@ export default function HomePage() {
             initialTitle={currentAttention?.title}
             initialDescription={currentAttention?.description}
             initialUrl={currentAttention?.url}
+            initialImageUrl={currentAttention?.imageUrl}
           />
         </div>
 

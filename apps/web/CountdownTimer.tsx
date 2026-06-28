@@ -29,17 +29,18 @@ export default function CountdownTimer({ endsAt }: Props) {
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
+  const percentRemaining = Math.max(0, Math.min(100, Math.ceil((secondsLeft / 900) * 100)));
 
   return (
-    <section className="timer-panel" aria-label="Next auction countdown">
-      <span className="eyebrow">Auction ends in</span>
+    <section className="timer-panel" aria-label="Current auction countdown">
+      <span className="eyebrow">Bidding closes in</span>
       <strong className="timer-value">
         {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
       </strong>
       <div className="timer-bar">
-        <span style={{ width: `${Math.max(0, Math.min(100, (secondsLeft / 900) * 100))}%` }} />
+        <span style={{ width: `${percentRemaining}%` }} />
       </div>
-      <p>{Math.ceil((secondsLeft / 900) * 100)}% of this block remaining</p>
+      <p>{percentRemaining}% of this block remaining</p>
     </section>
   );
 }

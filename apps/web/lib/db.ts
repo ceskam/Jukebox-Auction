@@ -1,8 +1,11 @@
 import Database from "better-sqlite3";
 
-const db = new Database("attention-bid.db");
+const db = new Database("attention-bid.db", {
+  timeout: 5000,
+});
 
 db.pragma("journal_mode = WAL");
+db.pragma("busy_timeout = 5000");
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS auctions (
@@ -34,6 +37,7 @@ db.exec(`
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     url TEXT NOT NULL,
+    image_url TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT,
     FOREIGN KEY (auction_id) REFERENCES auctions(id)
@@ -65,6 +69,7 @@ ensureColumn(
   "TEXT NOT NULL DEFAULT 'demo-solana-usdc'"
 );
 ensureColumn("attention_content", "updated_at", "TEXT");
+ensureColumn("attention_content", "image_url", "TEXT");
 
 db.exec(`
   UPDATE bids
