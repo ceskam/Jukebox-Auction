@@ -21,7 +21,7 @@ Ship a functional public auction loop:
 The app in `apps/web` uses:
 
 - Next.js App Router
-- SQLite via `better-sqlite3` for the local MVP database
+- Supabase Postgres for auctions, bids, and attention content
 - Phantom browser wallet detection
 - Demo USDC verification in `apps/web/lib/payment.ts`
 
@@ -41,7 +41,6 @@ The demo verifier accepts valid positive USDC bid amounts and records a demo sig
 ## Next Production Steps
 
 - Replace demo verification with real Solana USDC transaction creation and backend confirmation
-- Move persistence from local SQLite to Supabase Postgres or another production database
 - Add realtime updates for bid history and current high bid
 - Add moderation/admin controls for published attention content
 - Deploy the web app to Vercel
@@ -60,3 +59,20 @@ From `apps/web`:
 npm install
 npm run dev
 ```
+
+## Supabase Setup
+
+1. Create a Supabase project.
+2. Open the Supabase SQL editor and run `database/schema.sql`.
+3. Copy `apps/web/.env.example` to `apps/web/.env.local`.
+4. Fill in:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` is server-only. Do not expose it in browser code.
+
+The current app uses server-side Supabase helpers for reads and writes so the UI behavior stays the same while persistence moves from local files to Postgres.
