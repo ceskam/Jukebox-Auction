@@ -1,5 +1,5 @@
-import db from "./db";
 import { getAuctionById } from "./auction";
+import { createSupabaseServerClient } from "./supabase/server";
 
 export type AttentionContent = {
   auctionId: string;
@@ -12,25 +12,44 @@ export type AttentionContent = {
   updatedAt: string | null;
 };
 
-export function getAttentionContent(auctionId: string) {
-  return db
-    .prepare(
-      `
-      SELECT
-        auction_id AS auctionId,
-        wallet,
-        title,
-        description,
-        url,
-        image_url AS imageUrl,
-        created_at AS createdAt,
-        updated_at AS updatedAt
-      FROM attention_content
-      WHERE auction_id = ?
-      LIMIT 1
-      `
-    )
-    .get(auctionId) as AttentionContent | undefined;
+type AttentionContentRow = {
+  auction_id: string;
+  wallet: string;
+  title: string;
+  description: string;
+  url: string;
+  image_url: string | null;
+  created_at: string;
+  updated_at: string | null;
+};
+
+function mapAttentionContent(row: AttentionContentRow): AttentionContent {
+  return {
+    auctionId: row.auction_id,
+    wallet: row.wallet,
+    title: row.title,
+    description: row.description,
+    url: row.url,
+    imageUrl: row.image_url ?? "",
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function getAttentionContent(auctionId: string) {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("attention_content")
+    .select("auction_id, wallet, title, description, url, image_url, created_at, updated_at")
+    .eq("auction_id", auctionId)
+    .limit(1)
+    .maybeSingle<AttentionContentRow>();
+
+  if (error) {
+    throw new Error(`Could not load attention content for ${auctionId}: ${error.message}`);
+  }
+
+  return data ? mapAttentionContent(data) : undefined;
 }
 
 function normalizeUrl(url: string) {
@@ -44,7 +63,7 @@ function normalizeUrl(url: string) {
   }
 }
 
-export function saveAttentionContent({
+export async function saveAttentionContent({
   auctionId,
   wallet,
   title,
@@ -59,7 +78,7 @@ export function saveAttentionContent({
   url: string;
   imageUrl: string;
 }) {
-  const auction = getAuctionById(auctionId);
+  const auction = await getAuctionById(auctionId);
 
   if (!wallet || wallet !== auction.winner) {
     return {
@@ -82,40 +101,32 @@ export function saveAttentionContent({
 
   const now = new Date().toISOString();
 
-  db.prepare(
-    `
-    INSERT INTO attention_content (
-      auction_id,
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.from("attention_content").upsert(
+    {
+      auction_id: auction.id,
       wallet,
-      title,
-      description,
-      url,
-      image_url,
-      created_at,
-      updated_at
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(auction_id) DO UPDATE SET
-      wallet = excluded.wallet,
-      title = excluded.title,
-      description = excluded.description,
-      url = excluded.url,
-      image_url = excluded.image_url,
-      updated_at = excluded.updated_at
-    `
-  ).run(
-    auction.id,
-    wallet,
-    trimmedTitle,
-    trimmedDescription,
-    normalizedUrl,
-    normalizedImageUrl,
-    now,
-    now
+      title: trimmedTitle,
+      description: trimmedDescription,
+      url: normalizedUrl,
+      image_url: normalizedImageUrl,
+      created_at: now,
+      updated_at: now,
+    },
+    {
+      onConflict: "auction_id",
+    }
   );
+
+  if (error) {
+    return {
+      success: false,
+      message: `Could not save attention block: ${error.message}`,
+    };
+  }
 
   return {
     success: true,
-    content: getAttentionContent(auction.id),
+    content: await getAttentionContent(auction.id),
   };
 }

@@ -14,13 +14,13 @@ export async function GET(request: Request) {
     return Response.json(null);
   }
 
-  return Response.json(getAttentionContent(auctionId) ?? null);
+  return Response.json((await getAttentionContent(auctionId)) ?? null);
 }
 
 export async function POST(request: Request) {
   const body = await request.json();
 
-  const result = saveAttentionContent({
+  const result = await saveAttentionContent({
     auctionId: String(body.auctionId ?? ""),
     wallet: String(body.wallet ?? ""),
     title: String(body.title ?? ""),

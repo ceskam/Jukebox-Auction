@@ -4,3 +4,6 @@ attention-bid.db
 attention-bid.db-shm
 attention-bid.db-wal
 npm-debug.log*
+.env*
+!.env.example
+!apps/web/.env.example

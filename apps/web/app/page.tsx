@@ -18,11 +18,11 @@ function shortWallet(wallet: string) {
   return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
 }
 
-export default function HomePage() {
-  const currentAuction = getCurrentAuction();
-  const nextAuction = getNextAuction();
-  const currentAttention = getAttentionContent(currentAuction.id);
-  const liveBids = getBidHistory(nextAuction.id, 6);
+export default async function HomePage() {
+  const currentAuction = await getCurrentAuction();
+  const nextAuction = await getNextAuction();
+  const currentAttention = await getAttentionContent(currentAuction.id);
+  const liveBids = await getBidHistory(nextAuction.id, 6);
 
   return (
     <main className="page-shell">

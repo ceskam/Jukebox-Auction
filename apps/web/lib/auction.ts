@@ -1,5 +1,5 @@
-import db from "./db";
 import { verifyDemoUsdcPayment } from "./payment";
+import { createSupabaseServerClient } from "./supabase/server";
 
 const BLOCK_LENGTH_MS = 15 * 60 * 1000;
 const START_TIME = Date.UTC(2026, 0, 1, 0, 0, 0);
@@ -54,53 +54,76 @@ function getAuctionStatus(sequence: number): Auction["status"] {
   return "live";
 }
 
-function ensureAuction(sequence: number) {
+type HighestBidRow = {
+  wallet: string;
+  amount_usdc: number | string | null;
+};
+
+type BidRow = {
+  id: number;
+  auction_id: string;
+  wallet: string;
+  amount_usdc: number | string | null;
+  payment_status: string;
+  payment_signature: string | null;
+  verification_provider: string;
+  created_at: string;
+};
+
+async function ensureAuction(sequence: number) {
   const id = getAuctionIdFromSequence(sequence);
   const now = new Date().toISOString();
+  const supabase = createSupabaseServerClient();
 
-  db.prepare(
-    `
-    INSERT INTO auctions (id, sequence, starts_at, ends_at, status, created_at)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET
-      starts_at = excluded.starts_at,
-      ends_at = excluded.ends_at,
-      status = excluded.status
-    `
-  ).run(
-    id,
-    sequence,
-    getAuctionStartTime(sequence),
-    getAuctionEndTime(sequence),
-    getAuctionStatus(sequence),
-    now
+  const { error } = await supabase.from("auctions").upsert(
+    {
+      id,
+      sequence,
+      starts_at: getAuctionStartTime(sequence),
+      ends_at: getAuctionEndTime(sequence),
+      status: getAuctionStatus(sequence),
+      created_at: now,
+    },
+    {
+      onConflict: "id",
+    }
   );
+
+  if (error) {
+    throw new Error(`Could not ensure auction ${id}: ${error.message}`);
+  }
 
   return id;
 }
 
-function getHighestBid(auctionId: string) {
-  return db
-    .prepare(
-      `
-      SELECT wallet, COALESCE(amount_usdc, amount) AS amount_usdc
-      FROM bids
-      WHERE auction_id = ? AND payment_status = 'verified'
-      ORDER BY COALESCE(amount_usdc, amount) DESC, created_at ASC
-      LIMIT 1
-      `
-    )
-    .get(auctionId) as { wallet: string; amount_usdc: number } | undefined;
+async function getHighestBid(auctionId: string) {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("bids")
+    .select("wallet, amount_usdc")
+    .eq("auction_id", auctionId)
+    .eq("payment_status", "verified")
+    .order("amount_usdc", { ascending: false })
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle<HighestBidRow>();
+
+  if (error) {
+    throw new Error(`Could not load highest bid for ${auctionId}: ${error.message}`);
+  }
+
+  return data ?? undefined;
 }
 
-export function getAuctionBySequence(sequence: number): Auction {
-  const auctionId = ensureAuction(sequence);
-  const highestBid = getHighestBid(auctionId);
+export async function getAuctionBySequence(sequence: number): Promise<Auction> {
+  const auctionId = await ensureAuction(sequence);
+  const highestBid = await getHighestBid(auctionId);
+  const highestBidAmount = Number(highestBid?.amount_usdc ?? 0);
 
   return {
     id: auctionId,
     sequence,
-    highestBid: highestBid?.amount_usdc ?? 0,
+    highestBid: highestBidAmount,
     winner: highestBid?.wallet ?? null,
     startsAt: getAuctionStartTime(sequence),
     endsAt: getAuctionEndTime(sequence),
@@ -108,51 +131,53 @@ export function getAuctionBySequence(sequence: number): Auction {
   };
 }
 
-export function getAuctionById(auctionId: string): Auction {
+export function getAuctionById(auctionId: string): Promise<Auction> {
   return getAuctionBySequence(parseAuctionSequence(auctionId));
 }
 
-export function getCurrentAuction(): Auction {
+export function getCurrentAuction(): Promise<Auction> {
   return getAuctionBySequence(getAuctionNumber());
 }
 
-export function getNextAuction(): Auction {
+export function getNextAuction(): Promise<Auction> {
   return getAuctionBySequence(getAuctionNumber(1));
 }
 
-export function getBidHistory(auctionId: string, limit = 8): Bid[] {
-  return (
-    db
-      .prepare(
-        `
-        SELECT
-          id,
-          auction_id AS auctionId,
-          wallet,
-          COALESCE(amount_usdc, amount) AS amountUsdc,
-          payment_status AS paymentStatus,
-          payment_signature AS paymentSignature,
-          verification_provider AS verificationProvider,
-          created_at AS createdAt
-        FROM bids
-        WHERE auction_id = ? AND payment_status = 'verified'
-        ORDER BY created_at DESC
-        LIMIT ?
-        `
-      )
-      .all(auctionId, limit) as Bid[]
-  ).map((bid) => ({
-    ...bid,
-    amountUsdc: Number(bid.amountUsdc),
+export async function getBidHistory(auctionId: string, limit = 8): Promise<Bid[]> {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("bids")
+    .select(
+      "id, auction_id, wallet, amount_usdc, payment_status, payment_signature, verification_provider, created_at"
+    )
+    .eq("auction_id", auctionId)
+    .eq("payment_status", "verified")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+    .returns<BidRow[]>();
+
+  if (error) {
+    throw new Error(`Could not load bid history for ${auctionId}: ${error.message}`);
+  }
+
+  return (data ?? []).map((bid) => ({
+    id: bid.id,
+    auctionId: bid.auction_id,
+    wallet: bid.wallet,
+    amountUsdc: Number(bid.amount_usdc ?? 0),
+    paymentStatus: bid.payment_status,
+    paymentSignature: bid.payment_signature,
+    verificationProvider: bid.verification_provider,
+    createdAt: bid.created_at,
   }));
 }
 
-export function placeBid(
+export async function placeBid(
   amountUsdc: number,
   wallet: string,
   paymentSignature?: string | null
 ) {
-  const nextAuction = getNextAuction();
+  const nextAuction = await getNextAuction();
   const roundedAmount = Math.round(amountUsdc * 100) / 100;
 
   if (!Number.isFinite(roundedAmount) || roundedAmount <= 0) {
@@ -185,38 +210,32 @@ export function placeBid(
     };
   }
 
-  db.prepare(
-    `
-    INSERT INTO bids (
-      auction_id,
-      wallet,
-      amount,
-      amount_usdc,
-      payment_status,
-      payment_signature,
-      verification_provider,
-      created_at
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `
-  ).run(
-    nextAuction.id,
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.from("bids").insert({
+    auction_id: nextAuction.id,
     wallet,
-    Math.round(roundedAmount),
-    roundedAmount,
-    verification.status,
-    verification.signature,
-    verification.provider,
-    new Date().toISOString()
-  );
+    amount_usdc: roundedAmount,
+    payment_status: verification.status,
+    payment_signature: verification.signature,
+    verification_provider: verification.provider,
+    created_at: new Date().toISOString(),
+  });
 
-  const updatedAuction = getNextAuction();
+  if (error) {
+    return {
+      success: false,
+      message: `Could not save bid: ${error.message}`,
+      auction: nextAuction,
+    };
+  }
+
+  const updatedAuction = await getNextAuction();
 
   return {
     success: true,
     message: "Bid accepted for the next Attention Bid block.",
     auction: updatedAuction,
-    bidHistory: getBidHistory(updatedAuction.id),
+    bidHistory: await getBidHistory(updatedAuction.id),
   };
 }
 
