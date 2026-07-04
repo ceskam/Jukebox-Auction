@@ -16,7 +16,7 @@ create table if not exists public.bids (
   payment_status text not null default 'verified'
     check (payment_status in ('verified', 'failed', 'pending')),
   payment_signature text,
-  verification_provider text not null default 'demo-solana-usdc',
+  verification_provider text not null default 'solana-usdc',
   created_at timestamptz not null default now()
 );
 
@@ -37,6 +37,10 @@ create index if not exists bids_auction_highest_idx
 
 create index if not exists bids_auction_recent_idx
   on public.bids (auction_id, payment_status, created_at desc);
+
+create unique index if not exists bids_payment_signature_unique_idx
+  on public.bids (payment_signature)
+  where payment_signature is not null;
 
 create or replace function public.set_updated_at()
 returns trigger
