@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getStoredWallet, subscribeToWallet } from "./WalletConnect";
+import { sendUsdcBidPayment } from "./lib/solana-payment";
 
 type Props = {
   currentHighBid: number;
@@ -34,6 +35,13 @@ export default function BidButton({ currentHighBid }: Props) {
     setIsSubmitting(true);
 
     try {
+      setMessage("Approve the USDC transfer in Phantom...");
+      const paymentSignature = await sendUsdcBidPayment({
+        amountUsdc: bidAmount,
+        wallet,
+      });
+
+      setMessage("USDC sent. Verifying on Solana...");
       const res = await fetch("/api/bid", {
         method: "POST",
         headers: {
@@ -42,6 +50,7 @@ export default function BidButton({ currentHighBid }: Props) {
         body: JSON.stringify({
           amountUsdc: bidAmount,
           wallet,
+          paymentSignature,
         }),
       });
 
@@ -54,6 +63,8 @@ export default function BidButton({ currentHighBid }: Props) {
 
       setMessage("Bid accepted. Refreshing the auction...");
       window.setTimeout(() => window.location.reload(), 500);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not complete the USDC bid.");
     } finally {
       setIsSubmitting(false);
     }
@@ -97,7 +108,7 @@ export default function BidButton({ currentHighBid }: Props) {
         onClick={() => placeBid()}
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Verifying demo USDC..." : "Place bid"}
+        {isSubmitting ? "Processing USDC..." : "Place bid"}
       </button>
 
       <p className="hint">Next bid must be higher than {currentHighBid.toFixed(2)} USDC.</p>
