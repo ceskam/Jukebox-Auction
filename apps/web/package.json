@@ -11,6 +11,8 @@
   },
 
   "dependencies": {
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.98.0",
     "@supabase/supabase-js": "^2.50.0",
     "next": "^15.0.0",
     "react": "^18.3.1",

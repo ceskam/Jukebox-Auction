@@ -1,4 +1,4 @@
-import { verifyDemoUsdcPayment } from "./payment";
+import { verifySolanaUsdcPayment } from "./payment";
 import { createSupabaseServerClient } from "./supabase/server";
 
 const BLOCK_LENGTH_MS = 15 * 60 * 1000;
@@ -69,6 +69,22 @@ type BidRow = {
   verification_provider: string;
   created_at: string;
 };
+
+async function hasExistingPaymentSignature(paymentSignature: string) {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("bids")
+    .select("id")
+    .eq("payment_signature", paymentSignature)
+    .limit(1)
+    .maybeSingle<{ id: number }>();
+
+  if (error) {
+    throw new Error(`Could not check payment signature: ${error.message}`);
+  }
+
+  return Boolean(data);
+}
 
 async function ensureAuction(sequence: number) {
   const id = getAuctionIdFromSequence(sequence);
@@ -188,7 +204,7 @@ export async function placeBid(
     };
   }
 
-  if (roundedAmount <= nextAuction.highestBid) {
+  if (!paymentSignature && roundedAmount <= nextAuction.highestBid) {
     return {
       success: false,
       message: `Bid must be higher than ${nextAuction.highestBid.toFixed(2)} USDC.`,
@@ -196,7 +212,7 @@ export async function placeBid(
     };
   }
 
-  const verification = verifyDemoUsdcPayment({
+  const verification = await verifySolanaUsdcPayment({
     amountUsdc: roundedAmount,
     wallet,
     paymentSignature,
@@ -206,6 +222,14 @@ export async function placeBid(
     return {
       success: false,
       message: verification.message ?? "Payment verification failed.",
+      auction: nextAuction,
+    };
+  }
+
+  if (verification.signature && (await hasExistingPaymentSignature(verification.signature))) {
+    return {
+      success: false,
+      message: "This USDC payment has already been used for a bid.",
       auction: nextAuction,
     };
   }
