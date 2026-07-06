@@ -11,6 +11,11 @@ import {
 
 const USDC_DECIMALS = 6;
 const LAMPORTS_PER_USDC = 10 ** USDC_DECIMALS;
+const PUBLIC_SOLANA_CONFIG = {
+  NEXT_PUBLIC_SOLANA_RPC_URL: process.env.NEXT_PUBLIC_SOLANA_RPC_URL,
+  NEXT_PUBLIC_USDC_MINT_ADDRESS: process.env.NEXT_PUBLIC_USDC_MINT_ADDRESS,
+  NEXT_PUBLIC_TREASURY_WALLET_ADDRESS: process.env.NEXT_PUBLIC_TREASURY_WALLET_ADDRESS,
+};
 
 type PhantomProvider = {
   isPhantom?: boolean;
@@ -20,8 +25,8 @@ type PhantomProvider = {
   signTransaction?: (transaction: Transaction) => Promise<Transaction>;
 };
 
-function getRequiredPublicEnv(name: string) {
-  const value = process.env[name];
+function getRequiredPublicEnv(name: keyof typeof PUBLIC_SOLANA_CONFIG) {
+  const value = PUBLIC_SOLANA_CONFIG[name];
 
   if (!value) {
     throw new Error(`Missing ${name}. Configure Solana USDC payments before bidding.`);
