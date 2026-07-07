@@ -10,6 +10,7 @@ import {
   getNextAuction,
 } from "../lib/auction";
 import { getAttentionContent } from "../lib/attention";
+import { getSolscanTransactionUrl } from "../lib/solscan";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -102,7 +103,18 @@ export default async function HomePage() {
               <ol className="bid-list">
                 {liveBids.map((bid) => (
                   <li key={bid.id}>
-                    <span>{shortWallet(bid.wallet)}</span>
+                    <div>
+                      <span>{shortWallet(bid.wallet)}</span>
+                      {bid.paymentSignature && (
+                        <a
+                          href={getSolscanTransactionUrl(bid.paymentSignature)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Receipt
+                        </a>
+                      )}
+                    </div>
                     <strong>{bid.amountUsdc.toFixed(2)} USDC</strong>
                   </li>
                 ))}

@@ -357,12 +357,40 @@ textarea:focus {
 }
 
 .form-message {
-  margin: 0.8rem 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.9rem 0 0;
+  border: 1px solid rgba(255, 211, 63, 0.22);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 211, 63, 0.08);
   color: var(--yellow);
   font-weight: 800;
 }
 
+.form-message p {
+  margin: 0;
+}
+
+.form-message a,
+.bid-list a {
+  color: var(--blue);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.form-message.success {
+  border-color: rgba(79, 255, 117, 0.28);
+  background: rgba(79, 255, 117, 0.08);
+  color: var(--green);
+}
+
 .form-message.error {
+  border-color: rgba(255, 123, 123, 0.32);
+  background: rgba(255, 123, 123, 0.08);
   color: #ff7b7b;
 }
 
@@ -412,6 +440,11 @@ textarea:focus {
   gap: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding-bottom: 0.7rem;
+}
+
+.bid-list li div {
+  display: grid;
+  gap: 0.2rem;
 }
 
 .bid-list strong {

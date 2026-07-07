@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getStoredWallet, subscribeToWallet } from "./WalletConnect";
 import { sendUsdcBidPayment } from "./lib/solana-payment";
+import { getSolscanTransactionUrl } from "./lib/solscan";
 
 type Props = {
   currentHighBid: number;
@@ -13,6 +14,8 @@ export default function BidButton({ currentHighBid }: Props) {
   const [amount, setAmount] = useState(String(minimumBid));
   const [wallet, setWallet] = useState("");
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"info" | "success" | "error">("info");
+  const [receiptSignature, setReceiptSignature] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -24,24 +27,69 @@ export default function BidButton({ currentHighBid }: Props) {
     setAmount(String(minimumBid));
   }, [minimumBid]);
 
+  function setStatus(
+    nextMessage: string,
+    nextType: "info" | "success" | "error" = "info",
+    signature = ""
+  ) {
+    setMessage(nextMessage);
+    setMessageType(nextType);
+    setReceiptSignature(signature);
+  }
+
+  function getFriendlyBidError(error: unknown) {
+    const rawMessage = error instanceof Error ? error.message : String(error ?? "");
+    const message = rawMessage.toLowerCase();
+
+    if (message.includes("user rejected") || message.includes("rejected the request")) {
+      return "Bid canceled. No USDC was sent.";
+    }
+
+    if (message.includes("insufficient")) {
+      return "Your wallet does not have enough SOL for fees or enough USDC for this bid.";
+    }
+
+    if (message.includes("usdc token account")) {
+      return "This wallet does not have Solana USDC yet. Add USDC on Solana, then try again.";
+    }
+
+    if (
+      message.includes("403") ||
+      message.includes("access forbidden") ||
+      message.includes("failed to get info about account")
+    ) {
+      return "The Solana connection could not complete the payment check. Please try again in a moment.";
+    }
+
+    if (message.includes("blockhash") || message.includes("timeout")) {
+      return "The Solana network took too long to respond. Please try the bid again.";
+    }
+
+    if (rawMessage.startsWith("Missing NEXT_PUBLIC_")) {
+      return "Solana payments are not fully configured yet. Please contact support.";
+    }
+
+    return rawMessage || "Could not complete the USDC bid.";
+  }
+
   async function placeBid(bidAmount = Number(amount)) {
-    setMessage("");
+    setStatus("");
 
     if (!wallet) {
-      setMessage("Connect Phantom before placing a USDC bid.");
+      setStatus("Connect Phantom before placing a USDC bid.", "error");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      setMessage("Approve the USDC transfer in Phantom...");
+      setStatus("Approve the USDC transfer in Phantom...");
       const paymentSignature = await sendUsdcBidPayment({
         amountUsdc: bidAmount,
         wallet,
       });
 
-      setMessage("USDC sent. Verifying on Solana...");
+      setStatus("USDC sent. Verifying on Solana...", "info", paymentSignature);
       const res = await fetch("/api/bid", {
         method: "POST",
         headers: {
@@ -57,14 +105,18 @@ export default function BidButton({ currentHighBid }: Props) {
       const result = await res.json();
 
       if (!result.success) {
-        setMessage(result.message);
+        setStatus(result.message ?? "Could not verify this bid.", "error", paymentSignature);
         return;
       }
 
-      setMessage("Bid accepted. Refreshing the auction...");
-      window.setTimeout(() => window.location.reload(), 500);
+      setStatus(
+        "USDC received. You're leading the next block.",
+        "success",
+        paymentSignature
+      );
+      window.setTimeout(() => window.location.reload(), 1400);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not complete the USDC bid.");
+      setStatus(getFriendlyBidError(error), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -112,7 +164,20 @@ export default function BidButton({ currentHighBid }: Props) {
       </button>
 
       <p className="hint">Next bid must be higher than {currentHighBid.toFixed(2)} USDC.</p>
-      {message && <p className="form-message">{message}</p>}
+      {message && (
+        <div className={`form-message ${messageType}`} role="status">
+          <p>{message}</p>
+          {receiptSignature && (
+            <a
+              href={getSolscanTransactionUrl(receiptSignature)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              View transaction
+            </a>
+          )}
+        </div>
+      )}
     </section>
   );
 }
