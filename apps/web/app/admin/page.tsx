@@ -1,11 +1,8 @@
+import AdminDashboard from "../../AdminDashboard";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export default function AdminPage() {
-  return (
-    <main style={{ padding: "2rem" }}>
-      <h1>Admin Dashboard</h1>
-
-      <button>Start Auction</button>
-
-      <button>End Auction</button>
-    </main>
-  );
+  return <AdminDashboard />;
 }
