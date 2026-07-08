@@ -28,9 +28,25 @@ create table if not exists public.attention_content (
   description text not null default '',
   url text not null default '',
   image_url text not null default '',
+  moderation_status text not null default 'approved',
+  moderation_note text not null default '',
+  reviewed_at timestamptz,
+  reviewed_by text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz
 );
+
+alter table public.attention_content
+  add column if not exists moderation_status text not null default 'approved';
+
+alter table public.attention_content
+  add column if not exists moderation_note text not null default '';
+
+alter table public.attention_content
+  add column if not exists reviewed_at timestamptz;
+
+alter table public.attention_content
+  add column if not exists reviewed_by text not null default '';
 
 create index if not exists bids_auction_highest_idx
   on public.bids (auction_id, payment_status, amount_usdc desc, created_at asc);
@@ -41,6 +57,9 @@ create index if not exists bids_auction_recent_idx
 create unique index if not exists bids_payment_signature_unique_idx
   on public.bids (payment_signature)
   where payment_signature is not null;
+
+create index if not exists attention_content_moderation_status_idx
+  on public.attention_content (moderation_status, updated_at desc, created_at desc);
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -66,4 +85,4 @@ comment on table public.bids is
   'USDC bids for upcoming attention blocks. Demo verification is used until real Solana confirmation is added.';
 
 comment on table public.attention_content is
-  'Winner-controlled homepage content for each attention block.';
+  'Winner-controlled homepage content for each attention block, with admin moderation state.';

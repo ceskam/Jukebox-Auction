@@ -464,10 +464,159 @@ textarea:focus {
   box-shadow: none;
 }
 
+.admin-shell {
+  max-width: 1100px;
+}
+
+.admin-header {
+  padding: clamp(2rem, 7vw, 4rem) 0 1rem;
+}
+
+.admin-header h1 {
+  margin: 0.3rem 0 0.5rem;
+  font-size: clamp(2.4rem, 8vw, 4.6rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.admin-header p {
+  max-width: 660px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.admin-token-card,
+.admin-empty,
+.admin-review-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 0 28px rgba(255, 46, 213, 0.16);
+}
+
+.admin-token-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+  padding: 1rem;
+}
+
+.admin-token-card label,
+.admin-actions label {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.admin-empty {
+  padding: 1.2rem;
+}
+
+.admin-empty p {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+}
+
+.admin-review-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.admin-review-main {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.admin-review-image {
+  width: 100%;
+  max-height: 220px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.admin-review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.admin-review-card h2 {
+  margin: 0.55rem 0;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+}
+
+.admin-review-card p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.admin-review-card a {
+  color: var(--blue);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.status-pill {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 0.28rem 0.6rem;
+  color: var(--text);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.status-pill.approved {
+  border-color: rgba(35, 240, 107, 0.42);
+  color: var(--green);
+}
+
+.status-pill.hidden,
+.status-pill.rejected {
+  border-color: rgba(255, 123, 123, 0.42);
+  color: #ff7b7b;
+}
+
+.admin-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+.admin-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.danger-button {
+  color: #ffb0b0;
+}
+
 @media (max-width: 900px) {
   .top-nav,
   .auction-grid,
-  .attention-card {
+  .attention-card,
+  .admin-token-card,
+  .admin-review-main,
+  .admin-actions {
     grid-template-columns: 1fr;
   }
 
