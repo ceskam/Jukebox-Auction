@@ -28,9 +28,13 @@ NEXT_PUBLIC_USDC_MINT_ADDRESS=...
 USDC_MINT_ADDRESS=...
 NEXT_PUBLIC_TREASURY_WALLET_ADDRESS=...
 TREASURY_WALLET_ADDRESS=...
+ADMIN_TOKEN=...
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` must stay server-only.
+
+`ADMIN_TOKEN` protects the `/admin` moderation screen. Use a long private value
+in production, then paste that value into the admin page when reviewing content.
 
 `SOLANA_RPC_URL`, `USDC_MINT_ADDRESS`, and `TREASURY_WALLET_ADDRESS` are used by
 the server to verify USDC transfer signatures before saving bids. The
@@ -49,4 +53,4 @@ transaction. All Solana values must point to the same network.
 
 - Add Supabase Realtime for live bid history and current high bid updates.
 - Add a stronger payment receipt/admin audit view.
-- Add moderation/admin controls for attention content.
+- Add image upload storage instead of relying only on pasted image URLs.
