@@ -2,7 +2,7 @@
 
 The web app is the public interface for Attention Bid.
 
-Users connect Phantom, bid USDC for the next 15-minute attention block, and the winning wallet controls the public homepage content for the block it won.
+Users connect Phantom, bid USDC for the next 15-minute attention block, and the winning wallet controls the public homepage content for the block it won after admin approval. Bids are final and are not refunded.
 
 ## Persistence
 
@@ -46,8 +46,10 @@ transaction. All Solana values must point to the same network.
 1. The homepage shows the current attention block.
 2. Bids are placed in USDC for the next 15-minute block.
 3. The highest verified bid wins when the current block closes.
-4. When that auction becomes current, the winning wallet can edit the title, description, image URL, and link.
-5. The next auction continues automatically.
+4. Bids are winner-takes-all. Losing bids are not refunded.
+5. When that auction becomes current, the winning wallet can submit the title, description, image URL, and link.
+6. Submitted content is reviewed in `/admin`; only approved content appears on the homepage.
+7. The next auction continues automatically.
 
 ## Next Work
 

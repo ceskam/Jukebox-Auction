@@ -9,7 +9,10 @@ import {
   getCurrentAuction,
   getNextAuction,
 } from "../lib/auction";
-import { getAttentionContent } from "../lib/attention";
+import {
+  getAttentionContent,
+  getAttentionContentForAuction,
+} from "../lib/attention";
 import { getSolscanTransactionUrl } from "../lib/solscan";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +26,7 @@ export default async function HomePage() {
   const currentAuction = await getCurrentAuction();
   const nextAuction = await getNextAuction();
   const currentAttention = await getAttentionContent(currentAuction.id);
+  const editorAttention = await getAttentionContentForAuction(currentAuction.id);
   const liveBids = await getBidHistory(nextAuction.id, 6);
 
   return (
@@ -43,8 +47,8 @@ export default async function HomePage() {
         <span className="eyebrow">The world&apos;s first attention auction</span>
         <h1>Attention is valuable. Bid for it.</h1>
         <p>
-          Every 15 minutes, the highest verified USDC bidder wins control of
-          the public homepage attention block.
+          Every 15 minutes, the highest verified USDC bidder wins the public
+          homepage attention block. Bids are final.
         </p>
       </section>
 
@@ -79,10 +83,12 @@ export default async function HomePage() {
           <AttentionEditor
             auctionId={currentAuction.id}
             winner={currentAuction.winner}
-            initialTitle={currentAttention?.title}
-            initialDescription={currentAttention?.description}
-            initialUrl={currentAttention?.url}
-            initialImageUrl={currentAttention?.imageUrl}
+            initialTitle={editorAttention?.title}
+            initialDescription={editorAttention?.description}
+            initialUrl={editorAttention?.url}
+            initialImageUrl={editorAttention?.imageUrl}
+            initialModerationStatus={editorAttention?.moderationStatus}
+            initialModerationNote={editorAttention?.moderationNote}
           />
         </div>
 
@@ -130,7 +136,8 @@ export default async function HomePage() {
               <li>Connect Phantom.</li>
               <li>Bid USDC for the next 15-minute block.</li>
               <li>Highest verified bid wins when the timer ends.</li>
-              <li>The winning wallet controls the homepage content.</li>
+              <li>Bids are final. Losing bids are not refunded.</li>
+              <li>Approved winner content appears on the homepage.</li>
             </ol>
           </section>
         </aside>

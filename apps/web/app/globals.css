@@ -350,6 +350,32 @@ textarea:focus {
   font-weight: 700;
 }
 
+.editor-card small,
+.fine-print {
+  color: rgba(204, 196, 224, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.review-status-panel {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.8rem 0 1rem;
+  border: 1px solid rgba(27, 214, 255, 0.22);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  background: rgba(27, 214, 255, 0.08);
+}
+
+.review-status-panel strong {
+  color: var(--blue);
+  text-transform: uppercase;
+}
+
+.review-status-panel p {
+  margin: 0;
+}
+
 .bid-card .primary-button,
 .editor-card .primary-button {
   width: 100%;
@@ -587,10 +613,27 @@ textarea:focus {
   color: var(--green);
 }
 
+.status-pill.pending {
+  border-color: rgba(255, 211, 63, 0.42);
+  color: var(--yellow);
+}
+
 .status-pill.hidden,
 .status-pill.rejected {
   border-color: rgba(255, 123, 123, 0.42);
   color: #ff7b7b;
+}
+
+.image-fallback {
+  display: grid;
+  min-height: 170px;
+  place-items: center;
+  color: var(--muted);
+  font-weight: 900;
+  text-transform: uppercase;
+  background:
+    linear-gradient(135deg, rgba(255, 46, 213, 0.08), rgba(27, 214, 255, 0.06)),
+    rgba(255, 255, 255, 0.04);
 }
 
 .admin-actions {
