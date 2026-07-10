@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AttentionImage from "./AttentionImage";
 
 type AttentionContent = {
   auctionId: string;
@@ -9,7 +10,7 @@ type AttentionContent = {
   description: string;
   url: string;
   imageUrl: string;
-  moderationStatus: "approved" | "hidden" | "rejected";
+  moderationStatus: "pending" | "approved" | "hidden" | "rejected";
   moderationNote: string;
   reviewedAt: string | null;
   reviewedBy: string;
@@ -136,7 +137,7 @@ export default function AdminDashboard() {
             <article className="admin-review-card" key={item.auctionId}>
               <div className="admin-review-main">
                 {item.imageUrl && (
-                  <img
+                  <AttentionImage
                     className="admin-review-image"
                     src={item.imageUrl}
                     alt={`${item.title} preview`}

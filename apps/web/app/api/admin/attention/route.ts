@@ -38,9 +38,14 @@ export async function POST(request: Request) {
   const body = await request.json();
   const status = String(body.status ?? "");
 
-  if (status !== "approved" && status !== "hidden" && status !== "rejected") {
+  if (
+    status !== "pending" &&
+    status !== "approved" &&
+    status !== "hidden" &&
+    status !== "rejected"
+  ) {
     return Response.json(
-      { success: false, message: "Choose approved, hidden, or rejected." },
+      { success: false, message: "Choose pending, approved, hidden, or rejected." },
       { status: 400 }
     );
   }
