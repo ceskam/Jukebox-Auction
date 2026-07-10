@@ -29,6 +29,8 @@ export default function AttentionEditor({
   const [description, setDescription] = useState(initialDescription);
   const [url, setUrl] = useState(initialUrl);
   const [imageUrl, setImageUrl] = useState(initialImageUrl);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [message, setMessage] = useState("");
   const [moderationStatus, setModerationStatus] = useState(initialModerationStatus);
   const [moderationNote, setModerationNote] = useState(initialModerationNote);
@@ -39,6 +41,18 @@ export default function AttentionEditor({
     return subscribeToWallet(setWallet);
   }, []);
 
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl("");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [imageFile]);
+
   const isWinner = Boolean(winner && wallet === winner);
 
   if (!isWinner) {
@@ -48,8 +62,7 @@ export default function AttentionEditor({
         <h2>Winner controls the live homepage</h2>
         <p>
           The winning wallet for the current block can add the headline,
-          description, image, and link shown in the public attention space after
-          admin approval.
+          description, image, and link shown in the public attention space.
         </p>
         {winner ? (
           <p className="hint">Winning wallet: {winner.slice(0, 4)}...{winner.slice(-4)}</p>
@@ -65,19 +78,21 @@ export default function AttentionEditor({
     setMessage("");
 
     try {
+      const body = new FormData();
+      body.append("auctionId", auctionId);
+      body.append("wallet", wallet);
+      body.append("title", title);
+      body.append("description", description);
+      body.append("url", url);
+      body.append("imageUrl", imageUrl);
+
+      if (imageFile) {
+        body.append("image", imageFile);
+      }
+
       const res = await fetch("/api/attention", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          auctionId,
-          wallet,
-          title,
-          description,
-          url,
-          imageUrl,
-        }),
+        body,
       });
 
       const result = await res.json();
@@ -87,9 +102,10 @@ export default function AttentionEditor({
         return;
       }
 
-      setModerationStatus(result.content?.moderationStatus ?? "pending");
+      setModerationStatus(result.content?.moderationStatus ?? "approved");
       setModerationNote(result.content?.moderationNote ?? "");
-      setMessage(result.message ?? "Attention block submitted for review.");
+      setImageFile(null);
+      setMessage(result.message ?? "Attention block published.");
       window.setTimeout(() => window.location.reload(), 500);
     } finally {
       setIsSaving(false);
@@ -114,9 +130,9 @@ export default function AttentionEditor({
           {moderationStatus === "hidden" &&
             "This content is hidden from the homepage."}
           {moderationStatus === "rejected" &&
-            "This content was rejected. Edit and submit a new version for review."}
+            "This content was rejected. Edit and publish a new version."}
           {!moderationStatus &&
-            "Submit your title, description, image, and link for review."}
+            "Publish your title, description, image, and link to the homepage."}
         </p>
         {moderationNote && <p className="hint">Admin note: {moderationNote}</p>}
       </div>
@@ -144,7 +160,26 @@ export default function AttentionEditor({
       </label>
 
       <label>
-        <span>Image URL</span>
+        <span>Upload image</span>
+        <input
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          type="file"
+          onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+        />
+        <small>JPG, PNG, WebP, or GIF. Max 5 MB.</small>
+      </label>
+
+      {(imagePreviewUrl || imageUrl) && (
+        <div className="upload-preview">
+          <img
+            alt="Attention block preview"
+            src={imagePreviewUrl || imageUrl}
+          />
+        </div>
+      )}
+
+      <label>
+        <span>Image URL fallback</span>
         <input
           placeholder="https://example.com/image.png"
           value={imageUrl}
@@ -162,7 +197,7 @@ export default function AttentionEditor({
       </label>
 
       <button className="primary-button" onClick={saveAttention} disabled={isSaving}>
-        {isSaving ? "Submitting..." : "Submit for review"}
+        {isSaving ? "Publishing..." : "Publish attention block"}
       </button>
 
       {message && <p className="form-message">{message}</p>}
