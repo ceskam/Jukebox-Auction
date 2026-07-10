@@ -164,6 +164,10 @@ export default function BidButton({ currentHighBid }: Props) {
       </button>
 
       <p className="hint">Next bid must be higher than {currentHighBid.toFixed(2)} USDC.</p>
+      <p className="fine-print">
+        Winner takes the attention block. All verified bids are final and are
+        not refunded.
+      </p>
       {message && (
         <div className={`form-message ${messageType}`} role="status">
           <p>{message}</p>

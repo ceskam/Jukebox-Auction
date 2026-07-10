@@ -1,3 +1,5 @@
+import AttentionImage from "./AttentionImage";
+
 type Props = {
   title: string;
   description: string;
@@ -14,7 +16,7 @@ export default function AttentionDisplay({
   return (
     <section className="attention-card">
       {imageUrl && (
-        <img
+        <AttentionImage
           className="attention-image"
           src={imageUrl}
           alt={title ? `${title} preview` : "Attention block preview"}

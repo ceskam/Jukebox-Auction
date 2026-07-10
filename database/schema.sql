@@ -28,7 +28,7 @@ create table if not exists public.attention_content (
   description text not null default '',
   url text not null default '',
   image_url text not null default '',
-  moderation_status text not null default 'approved',
+  moderation_status text not null default 'pending',
   moderation_note text not null default '',
   reviewed_at timestamptz,
   reviewed_by text not null default '',
@@ -37,7 +37,10 @@ create table if not exists public.attention_content (
 );
 
 alter table public.attention_content
-  add column if not exists moderation_status text not null default 'approved';
+  add column if not exists moderation_status text not null default 'pending';
+
+alter table public.attention_content
+  alter column moderation_status set default 'pending';
 
 alter table public.attention_content
   add column if not exists moderation_note text not null default '';

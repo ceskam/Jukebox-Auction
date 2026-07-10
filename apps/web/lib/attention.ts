@@ -8,7 +8,7 @@ export type AttentionContent = {
   description: string;
   url: string;
   imageUrl: string;
-  moderationStatus: "approved" | "hidden" | "rejected";
+  moderationStatus: "pending" | "approved" | "hidden" | "rejected";
   moderationNote: string;
   reviewedAt: string | null;
   reviewedBy: string;
@@ -23,7 +23,7 @@ type AttentionContentRow = {
   description: string;
   url: string;
   image_url: string | null;
-  moderation_status: "approved" | "hidden" | "rejected" | null;
+  moderation_status: "pending" | "approved" | "hidden" | "rejected" | null;
   moderation_note: string | null;
   reviewed_at: string | null;
   reviewed_by: string | null;
@@ -68,6 +68,22 @@ export async function getAttentionContent(auctionId: string) {
   return data ? mapAttentionContent(data) : undefined;
 }
 
+export async function getAttentionContentForAuction(auctionId: string) {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("attention_content")
+    .select(ATTENTION_SELECT)
+    .eq("auction_id", auctionId)
+    .limit(1)
+    .maybeSingle<AttentionContentRow>();
+
+  if (error) {
+    throw new Error(`Could not load attention content for ${auctionId}: ${error.message}`);
+  }
+
+  return data ? mapAttentionContent(data) : undefined;
+}
+
 export async function getRecentAttentionContent(limit = 25) {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
@@ -99,6 +115,22 @@ function normalizeUrl(url: string) {
   }
 }
 
+function normalizeOptionalUrl(url: string) {
+  const trimmedUrl = url.trim();
+  if (!trimmedUrl) return "";
+
+  try {
+    const normalizedUrl = normalizeUrl(trimmedUrl);
+    const parsedUrl = new URL(normalizedUrl);
+    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+      return "";
+    }
+    return normalizedUrl;
+  } catch {
+    return "";
+  }
+}
+
 function validateAttentionContent({
   title,
   description,
@@ -118,16 +150,24 @@ function validateAttentionContent({
     return "Keep the title under 80 characters.";
   }
 
+  if (description.length < 10) {
+    return "Add at least a short description.";
+  }
+
   if (description.length > 600) {
     return "Keep the description under 600 characters.";
   }
 
-  if (url && !normalizeUrl(url)) {
+  if (url && !normalizeOptionalUrl(url)) {
     return "Use a valid http or https link.";
   }
 
-  if (imageUrl && !normalizeUrl(imageUrl)) {
+  if (imageUrl && !normalizeOptionalUrl(imageUrl)) {
     return "Use a valid http or https image URL.";
+  }
+
+  if (imageUrl.length > 700) {
+    return "Use a shorter image URL.";
   }
 
   return "";
@@ -159,8 +199,8 @@ export async function saveAttentionContent({
 
   const trimmedTitle = title.trim();
   const trimmedDescription = description.trim();
-  const normalizedUrl = normalizeUrl(url.trim());
-  const normalizedImageUrl = normalizeUrl(imageUrl.trim());
+  const normalizedUrl = normalizeOptionalUrl(url);
+  const normalizedImageUrl = normalizeOptionalUrl(imageUrl);
   const validationMessage = validateAttentionContent({
     title: trimmedTitle,
     description: trimmedDescription,
@@ -186,10 +226,10 @@ export async function saveAttentionContent({
       description: trimmedDescription,
       url: normalizedUrl,
       image_url: normalizedImageUrl,
-      moderation_status: "approved",
+      moderation_status: "pending",
       moderation_note: "",
-      reviewed_at: now,
-      reviewed_by: "auto",
+      reviewed_at: null,
+      reviewed_by: "",
       created_at: now,
       updated_at: now,
     },
@@ -207,7 +247,8 @@ export async function saveAttentionContent({
 
   return {
     success: true,
-    content: await getAttentionContent(auction.id),
+    message: "Attention block submitted for review.",
+    content: await getAttentionContentForAuction(auction.id),
   };
 }
 
@@ -218,7 +259,7 @@ export async function moderateAttentionContent({
   reviewedBy,
 }: {
   auctionId: string;
-  status: "approved" | "hidden" | "rejected";
+  status: "pending" | "approved" | "hidden" | "rejected";
   note: string;
   reviewedBy: string;
 }) {
