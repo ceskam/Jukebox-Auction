@@ -33,6 +33,15 @@ type AttentionContentRow = {
 
 const ATTENTION_SELECT =
   "auction_id, wallet, title, description, url, image_url, moderation_status, moderation_note, reviewed_at, reviewed_by, created_at, updated_at";
+const ATTENTION_IMAGE_BUCKET =
+  process.env.SUPABASE_ATTENTION_IMAGE_BUCKET ?? "attention-images";
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Map([
+  ["image/jpeg", "jpg"],
+  ["image/png", "png"],
+  ["image/webp", "webp"],
+  ["image/gif", "gif"],
+]);
 
 function mapAttentionContent(row: AttentionContentRow): AttentionContent {
   return {
@@ -173,6 +182,72 @@ function validateAttentionContent({
   return "";
 }
 
+function validateImageFile(imageFile?: File | null) {
+  if (!imageFile || imageFile.size === 0) return "";
+
+  if (imageFile.size > MAX_IMAGE_BYTES) {
+    return "Upload an image smaller than 5 MB.";
+  }
+
+  if (!ALLOWED_IMAGE_TYPES.has(imageFile.type)) {
+    return "Upload a JPG, PNG, WebP, or GIF image.";
+  }
+
+  return "";
+}
+
+function createImagePath({
+  auctionId,
+  wallet,
+  mimeType,
+}: {
+  auctionId: string;
+  wallet: string;
+  mimeType: string;
+}) {
+  const extension = ALLOWED_IMAGE_TYPES.get(mimeType) ?? "jpg";
+  const safeWallet = wallet.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12);
+  const uniqueId = crypto.randomUUID();
+  return `${auctionId}/${safeWallet}-${uniqueId}.${extension}`;
+}
+
+async function uploadAttentionImage({
+  supabase,
+  auctionId,
+  wallet,
+  imageFile,
+}: {
+  supabase: ReturnType<typeof createSupabaseServerClient>;
+  auctionId: string;
+  wallet: string;
+  imageFile: File;
+}) {
+  const filePath = createImagePath({
+    auctionId,
+    wallet,
+    mimeType: imageFile.type,
+  });
+  const bytes = await imageFile.arrayBuffer();
+  const { error } = await supabase.storage
+    .from(ATTENTION_IMAGE_BUCKET)
+    .upload(filePath, bytes, {
+      contentType: imageFile.type,
+      upsert: false,
+    });
+
+  if (error) {
+    throw new Error(
+      `Could not upload image. Make sure the ${ATTENTION_IMAGE_BUCKET} Supabase storage bucket exists. ${error.message}`
+    );
+  }
+
+  const { data } = supabase.storage
+    .from(ATTENTION_IMAGE_BUCKET)
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+}
+
 export async function saveAttentionContent({
   auctionId,
   wallet,
@@ -180,6 +255,7 @@ export async function saveAttentionContent({
   description,
   url,
   imageUrl,
+  imageFile,
 }: {
   auctionId: string;
   wallet: string;
@@ -187,6 +263,7 @@ export async function saveAttentionContent({
   description: string;
   url: string;
   imageUrl: string;
+  imageFile?: File | null;
 }) {
   const auction = await getAuctionById(auctionId);
 
@@ -215,9 +292,38 @@ export async function saveAttentionContent({
     };
   }
 
+  const imageFileMessage = validateImageFile(imageFile);
+  if (imageFileMessage) {
+    return {
+      success: false,
+      message: imageFileMessage,
+    };
+  }
+
   const now = new Date().toISOString();
 
   const supabase = createSupabaseServerClient();
+  let finalImageUrl = normalizedImageUrl;
+
+  if (imageFile && imageFile.size > 0) {
+    try {
+      finalImageUrl = await uploadAttentionImage({
+        supabase,
+        auctionId: auction.id,
+        wallet,
+        imageFile,
+      });
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Could not upload image. Try again or paste an image URL.",
+      };
+    }
+  }
+
   const { error } = await supabase.from("attention_content").upsert(
     {
       auction_id: auction.id,
@@ -225,11 +331,11 @@ export async function saveAttentionContent({
       title: trimmedTitle,
       description: trimmedDescription,
       url: normalizedUrl,
-      image_url: normalizedImageUrl,
-      moderation_status: "pending",
+      image_url: finalImageUrl,
+      moderation_status: "approved",
       moderation_note: "",
-      reviewed_at: null,
-      reviewed_by: "",
+      reviewed_at: now,
+      reviewed_by: "auto-approval",
       created_at: now,
       updated_at: now,
     },
@@ -247,7 +353,7 @@ export async function saveAttentionContent({
 
   return {
     success: true,
-    message: "Attention block submitted for review.",
+    message: "Attention block published. Admins can still hide or reject it if needed.",
     content: await getAttentionContentForAuction(auction.id),
   };
 }
