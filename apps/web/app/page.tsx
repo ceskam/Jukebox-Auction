@@ -4,6 +4,7 @@ import CountdownTimer from "../CountdownTimer";
 import AttentionOwner from "../AttentionOwner";
 import AttentionEditor from "../AttentionEditor";
 import AttentionDisplay from "../AttentionDisplay";
+import TrackPageView from "../TrackPageView";
 import {
   getBidHistory,
   getCurrentAuction,
@@ -13,6 +14,7 @@ import {
   getAttentionContent,
   getAttentionContentForAuction,
 } from "../lib/attention";
+import { getPlatformMetrics } from "../lib/metrics";
 import { getSolscanTransactionUrl } from "../lib/solscan";
 
 export const dynamic = "force-dynamic";
@@ -28,9 +30,12 @@ export default async function HomePage() {
   const currentAttention = await getAttentionContent(currentAuction.id);
   const editorAttention = await getAttentionContentForAuction(currentAuction.id);
   const liveBids = await getBidHistory(nextAuction.id, 6);
+  const platformMetrics = await getPlatformMetrics();
 
   return (
     <main className="page-shell">
+      <TrackPageView auctionId={currentAuction.id} />
+
       <nav className="top-nav">
         <a className="brand" href="/">
           <span>Attention</span> Bid
@@ -55,6 +60,7 @@ export default async function HomePage() {
       <section className="auction-grid" id="auction">
         <div className="main-column">
           <AttentionDisplay
+            auctionId={currentAuction.id}
             title={currentAttention?.title ?? ""}
             description={currentAttention?.description ?? ""}
             url={currentAttention?.url ?? ""}
@@ -77,6 +83,27 @@ export default async function HomePage() {
               <strong>{nextAuction.highestBid.toFixed(2)} USDC</strong>
             </div>
           </div>
+
+          <section className="platform-stats" aria-label="Attention Bid totals">
+            <div>
+              <span className="eyebrow">Total views</span>
+              <strong>{platformMetrics.totalViews.toLocaleString()}</strong>
+            </div>
+            <div>
+              <span className="eyebrow">Total USDC bid</span>
+              <strong>
+                {platformMetrics.totalBidUsdc.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                USDC
+              </strong>
+            </div>
+            <div>
+              <span className="eyebrow">Link clicks</span>
+              <strong>{platformMetrics.totalLinkClicks.toLocaleString()}</strong>
+            </div>
+          </section>
 
           <BidButton currentHighBid={nextAuction.highestBid} />
 

@@ -1,6 +1,8 @@
 import AttentionImage from "./AttentionImage";
+import TrackedAttentionLink from "./TrackedAttentionLink";
 
 type Props = {
+  auctionId: string;
   title: string;
   description: string;
   url: string;
@@ -8,6 +10,7 @@ type Props = {
 };
 
 export default function AttentionDisplay({
+  auctionId,
   title,
   description,
   url,
@@ -33,9 +36,7 @@ export default function AttentionDisplay({
       </div>
 
       {url && (
-        <a className="primary-link" href={url} target="_blank" rel="noreferrer">
-          Visit link
-        </a>
+        <TrackedAttentionLink auctionId={auctionId} url={url} />
       )}
     </section>
   );
