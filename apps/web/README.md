@@ -62,4 +62,5 @@ the `attention_events` table exists before deploying this version.
 ## Next Work
 
 - Add Supabase Realtime for live bid history and current high bid updates.
+- Add a stronger payment receipt/admin audit view.
 - Add custom domain and production analytics.
