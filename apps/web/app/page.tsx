@@ -14,7 +14,10 @@ import {
   getAttentionContent,
   getAttentionContentForAuction,
 } from "../lib/attention";
+ content-submission-safety
+
 import { getPlatformMetrics } from "../lib/metrics";
+ main
 import { getSolscanTransactionUrl } from "../lib/solscan";
 
 export const dynamic = "force-dynamic";

@@ -1,5 +1,8 @@
 import AttentionImage from "./AttentionImage";
+ content-submission-safety
+
 import TrackedAttentionLink from "./TrackedAttentionLink";
+ main
 
 type Props = {
   auctionId: string;

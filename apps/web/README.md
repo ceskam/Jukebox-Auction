@@ -2,7 +2,11 @@
 
 The web app is the public interface for Attention Bid.
 
+ content-submission-safety
+Users connect Phantom, bid USDC for the next 15-minute attention block, and the winning wallet controls the public homepage content for the block it won after admin approval. Bids are final and are not refunded.
+
 Users connect Phantom, bid USDC for the next 15-minute attention block, and the winning wallet controls the public homepage content for the block it won. Winner content is auto-approved so auctions can run continuously, while admins can still hide or reject content when needed. Bids are final and are not refunded.
+ main
 
 ## Persistence
 
@@ -49,6 +53,11 @@ transaction. All Solana values must point to the same network.
 2. Bids are placed in USDC for the next 15-minute block.
 3. The highest verified bid wins when the current block closes.
 4. Bids are winner-takes-all. Losing bids are not refunded.
+content-submission-safety
+5. When that auction becomes current, the winning wallet can submit the title, description, image URL, and link.
+6. Submitted content is reviewed in `/admin`; only approved content appears on the homepage.
+7. The next auction continues automatically.
+
 5. When that auction becomes current, the winning wallet can publish the title, description, uploaded image or image URL, and link.
 6. Submitted content is auto-approved so blocks can run without manual review every 15 minutes; admins can still hide or reject content in `/admin`.
 7. The next auction continues automatically.
@@ -58,6 +67,7 @@ transaction. All Solana values must point to the same network.
 The homepage shows running totals for page views, verified USDC bid volume, and
 attention link clicks. Run the latest `../../database/schema.sql` in Supabase so
 the `attention_events` table exists before deploying this version.
+main
 
 ## Next Work
 

@@ -668,6 +668,8 @@ textarea:focus {
     rgba(255, 255, 255, 0.04);
 }
 
+ content-submission-safety
+
 .upload-preview {
   display: grid;
   overflow: hidden;
@@ -683,6 +685,7 @@ textarea:focus {
   object-fit: cover;
 }
 
+ main
 .admin-actions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
