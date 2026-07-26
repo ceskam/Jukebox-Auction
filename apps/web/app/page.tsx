@@ -14,10 +14,7 @@ import {
   getAttentionContent,
   getAttentionContentForAuction,
 } from "../lib/attention";
- content-submission-safety
-
-import { getPlatformMetrics } from "../lib/metrics";
- main
+import { getPlatformMetrics, type PlatformMetrics } from "../lib/metrics";
 import { getSolscanTransactionUrl } from "../lib/solscan";
 
 export const dynamic = "force-dynamic";
@@ -27,13 +24,56 @@ function shortWallet(wallet: string) {
   return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
 }
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+async function loadOptional<T>(
+  label: string,
+  loader: () => Promise<T>,
+  fallback: T
+) {
+  try {
+    return await loader();
+  } catch (error) {
+    console.warn(`Could not load ${label}: ${getErrorMessage(error)}`);
+    return fallback;
+  }
+}
+
+const EMPTY_PLATFORM_METRICS: PlatformMetrics = {
+  totalViews: 0,
+  totalBidUsdc: 0,
+  totalLinkClicks: 0,
+};
+
 export default async function HomePage() {
   const currentAuction = await getCurrentAuction();
   const nextAuction = await getNextAuction();
-  const currentAttention = await getAttentionContent(currentAuction.id);
-  const editorAttention = await getAttentionContentForAuction(currentAuction.id);
-  const liveBids = await getBidHistory(nextAuction.id, 6);
-  const platformMetrics = await getPlatformMetrics();
+  const currentAttention = await loadOptional<
+    Awaited<ReturnType<typeof getAttentionContent>>
+  >(
+    "current attention content",
+    () => getAttentionContent(currentAuction.id),
+    undefined
+  );
+  const editorAttention = await loadOptional<
+    Awaited<ReturnType<typeof getAttentionContentForAuction>>
+  >(
+    "winner attention editor content",
+    () => getAttentionContentForAuction(currentAuction.id),
+    undefined
+  );
+  const liveBids = await loadOptional<Awaited<ReturnType<typeof getBidHistory>>>(
+    "live bids",
+    () => getBidHistory(nextAuction.id, 6),
+    []
+  );
+  const platformMetrics = await loadOptional(
+    "platform metrics",
+    getPlatformMetrics,
+    EMPTY_PLATFORM_METRICS
+  );
 
   return (
     <main className="page-shell">

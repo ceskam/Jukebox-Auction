@@ -331,19 +331,11 @@ export async function saveAttentionContent({
       title: trimmedTitle,
       description: trimmedDescription,
       url: normalizedUrl,
- content-submission-safety
-      image_url: normalizedImageUrl,
-      moderation_status: "pending",
-      moderation_note: "",
-      reviewed_at: null,
-      reviewed_by: "",
-
       image_url: finalImageUrl,
       moderation_status: "approved",
       moderation_note: "",
       reviewed_at: now,
       reviewed_by: "auto-approval",
- main
       created_at: now,
       updated_at: now,
     },
@@ -361,11 +353,7 @@ export async function saveAttentionContent({
 
   return {
     success: true,
- content-submission-safety
-    message: "Attention block submitted for review.",
-
     message: "Attention block published. Admins can still hide or reject it if needed.",
- main
     content: await getAttentionContentForAuction(auction.id),
   };
 }
