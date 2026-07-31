@@ -102,10 +102,10 @@ export default function AttentionEditor({
         return;
       }
 
-      setModerationStatus(result.content?.moderationStatus ?? "approved");
+      setModerationStatus(result.content?.moderationStatus ?? "pending");
       setModerationNote(result.content?.moderationNote ?? "");
       setImageFile(null);
-      setMessage(result.message ?? "Attention block published.");
+      setMessage(result.message ?? "Attention block submitted for admin approval.");
       window.setTimeout(() => window.location.reload(), 500);
     } finally {
       setIsSaving(false);
@@ -130,9 +130,9 @@ export default function AttentionEditor({
           {moderationStatus === "hidden" &&
             "This content is hidden from the homepage."}
           {moderationStatus === "rejected" &&
-            "This content was rejected. Edit and publish a new version."}
+            "This content was rejected. Edit and submit a new version."}
           {!moderationStatus &&
-            "Publish your title, description, image, and link to the homepage."}
+            "Submit your title, description, image, and link for admin approval."}
         </p>
         {moderationNote && <p className="hint">Admin note: {moderationNote}</p>}
       </div>
@@ -197,7 +197,7 @@ export default function AttentionEditor({
       </label>
 
       <button className="primary-button" onClick={saveAttention} disabled={isSaving}>
-        {isSaving ? "Publishing..." : "Publish attention block"}
+        {isSaving ? "Submitting..." : "Submit attention block"}
       </button>
 
       {message && <p className="form-message">{message}</p>}

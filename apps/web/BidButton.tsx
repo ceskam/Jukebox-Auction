@@ -7,12 +7,26 @@ import { getSolscanTransactionUrl } from "./lib/solscan";
 
 type Props = {
   currentHighBid: number;
+  auctionId: string;
 };
 
-export default function BidButton({ currentHighBid }: Props) {
+type PendingPayment = {
+  auctionId: string;
+  amountUsdc: number;
+  wallet: string;
+  paymentSignature: string;
+};
+
+const PENDING_PAYMENT_KEY = "attention-bid-pending-payment";
+const MAX_BETA_BID_USDC = Number(
+  process.env.NEXT_PUBLIC_MAX_BETA_BID_USDC ?? "100"
+);
+
+export default function BidButton({ currentHighBid, auctionId }: Props) {
   const minimumBid = useMemo(() => Math.round((currentHighBid + 1) * 100) / 100, [currentHighBid]);
   const [amount, setAmount] = useState(String(minimumBid));
   const [wallet, setWallet] = useState("");
+  const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"info" | "success" | "error">("info");
   const [receiptSignature, setReceiptSignature] = useState("");
@@ -26,6 +40,23 @@ export default function BidButton({ currentHighBid }: Props) {
   useEffect(() => {
     setAmount(String(minimumBid));
   }, [minimumBid]);
+
+  useEffect(() => {
+    try {
+      const storedPayment = window.localStorage.getItem(PENDING_PAYMENT_KEY);
+      if (!storedPayment) return;
+
+      const parsed = JSON.parse(storedPayment) as PendingPayment;
+      if (
+        parsed.wallet === wallet &&
+        parsed.paymentSignature
+      ) {
+        setPendingPayment(parsed);
+      }
+    } catch {
+      window.localStorage.removeItem(PENDING_PAYMENT_KEY);
+    }
+  }, [auctionId, wallet]);
 
   function setStatus(
     nextMessage: string,
@@ -80,6 +111,18 @@ export default function BidButton({ currentHighBid }: Props) {
       return;
     }
 
+    if (
+      !Number.isFinite(bidAmount) ||
+      bidAmount < minimumBid ||
+      bidAmount > MAX_BETA_BID_USDC
+    ) {
+      setStatus(
+        `Enter a bid from ${minimumBid.toFixed(2)} to ${MAX_BETA_BID_USDC.toFixed(2)} USDC.`,
+        "error"
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -89,34 +132,64 @@ export default function BidButton({ currentHighBid }: Props) {
         wallet,
       });
 
-      setStatus("USDC sent. Verifying on Solana...", "info", paymentSignature);
+      const payment = {
+        auctionId,
+        amountUsdc: bidAmount,
+        wallet,
+        paymentSignature,
+      };
+      window.localStorage.setItem(PENDING_PAYMENT_KEY, JSON.stringify(payment));
+      setPendingPayment(payment);
+      await recordPayment(payment);
+    } catch (error) {
+      setStatus(getFriendlyBidError(error), "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function recordPayment(payment: PendingPayment) {
+    setStatus("USDC sent. Verifying on Solana...", "info", payment.paymentSignature);
+
+    try {
       const res = await fetch("/api/bid", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          amountUsdc: bidAmount,
-          wallet,
-          paymentSignature,
-        }),
+        body: JSON.stringify(payment),
       });
 
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
 
-      if (!result.success) {
-        setStatus(result.message ?? "Could not verify this bid.", "error", paymentSignature);
+      if (!res.ok || !result.success) {
+        setStatus(
+          `${result.message ?? "Could not verify this bid."} Your receipt is saved; retry verification without sending again.`,
+          "error",
+          payment.paymentSignature
+        );
         return;
       }
 
-      setStatus(
-        "USDC received. You're leading the next block.",
-        "success",
-        paymentSignature
-      );
+      window.localStorage.removeItem(PENDING_PAYMENT_KEY);
+      setPendingPayment(null);
+      setStatus(result.message ?? "USDC received and bid recorded.", "success", payment.paymentSignature);
       window.setTimeout(() => window.location.reload(), 1400);
     } catch (error) {
-      setStatus(getFriendlyBidError(error), "error");
+      setStatus(
+        `${getFriendlyBidError(error)} Your receipt is saved; retry verification without sending again.`,
+        "error",
+        payment.paymentSignature
+      );
+    }
+  }
+
+  async function retryPendingPayment() {
+    if (!pendingPayment) return;
+
+    setIsSubmitting(true);
+    try {
+      await recordPayment(pendingPayment);
     } finally {
       setIsSubmitting(false);
     }
@@ -134,7 +207,7 @@ export default function BidButton({ currentHighBid }: Props) {
               key={increment}
               className="quick-bid-button"
               onClick={() => placeBid(bidAmount)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || bidAmount > MAX_BETA_BID_USDC}
             >
               +{increment}
               <span>USDC</span>
@@ -148,6 +221,7 @@ export default function BidButton({ currentHighBid }: Props) {
         <input
           type="number"
           min={minimumBid}
+          max={MAX_BETA_BID_USDC}
           step="0.01"
           placeholder="Enter USDC amount"
           value={amount}
@@ -164,10 +238,22 @@ export default function BidButton({ currentHighBid }: Props) {
       </button>
 
       <p className="hint">Next bid must be higher than {currentHighBid.toFixed(2)} USDC.</p>
+      <p className="hint">
+        Live beta limit: {MAX_BETA_BID_USDC.toFixed(2)} USDC per bid.
+      </p>
       <p className="fine-print">
         Winner takes the attention block. All verified bids are final and are
         not refunded.
       </p>
+      {pendingPayment && (
+        <button
+          className="ghost-button recovery-button"
+          onClick={retryPendingPayment}
+          disabled={isSubmitting}
+        >
+          Retry saved payment verification
+        </button>
+      )}
       {message && (
         <div className={`form-message ${messageType}`} role="status">
           <p>{message}</p>

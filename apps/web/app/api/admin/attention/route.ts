@@ -2,19 +2,17 @@ import {
   getRecentAttentionContent,
   moderateAttentionContent,
 } from "../../../../lib/attention";
+import { checkRateLimit, rateLimitResponse } from "../../../../lib/rate-limit";
+import {
+  hasAdminSession,
+  isSameOriginRequest,
+} from "../../../../lib/security";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function isAuthorized(request: Request) {
-  const adminToken = process.env.ADMIN_TOKEN;
-  const requestToken = request.headers.get("x-admin-token");
-
-  return Boolean(adminToken && requestToken && requestToken === adminToken);
-}
-
 export async function GET(request: Request) {
-  if (!isAuthorized(request)) {
+  if (!hasAdminSession(request)) {
     return Response.json(
       { success: false, message: "Admin token required." },
       { status: 401 }
@@ -28,12 +26,27 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (!isAuthorized(request)) {
+  if (!isSameOriginRequest(request)) {
+    return Response.json(
+      { success: false, message: "Invalid request origin." },
+      { status: 403 }
+    );
+  }
+
+  if (!hasAdminSession(request)) {
     return Response.json(
       { success: false, message: "Admin token required." },
       { status: 401 }
     );
   }
+
+  const rateLimit = checkRateLimit(request, {
+    key: "admin-moderation",
+    limit: 60,
+    windowMs: 10 * 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit.resetAt);
 
   const body = await request.json();
   const status = String(body.status ?? "");

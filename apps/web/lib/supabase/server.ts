@@ -5,10 +5,7 @@ function getSupabaseUrl() {
 }
 
 function getSupabaseServerKey() {
-  return (
-    process.env.SUPABASE_SERVICE_ROLE_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  return process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
 export function createSupabaseServerClient() {
@@ -17,7 +14,7 @@ export function createSupabaseServerClient() {
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      "Missing Supabase environment variables. Set NEXT_PUBLIC_SUPABASE_URL and either SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY."
+      "Missing server-side Supabase configuration. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
     );
   }
 

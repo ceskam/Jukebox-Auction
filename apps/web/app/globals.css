@@ -414,6 +414,11 @@ textarea:focus {
   margin-top: 1rem;
 }
 
+.recovery-button {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
 .form-message {
   display: flex;
   align-items: center;

@@ -51,7 +51,7 @@ function mapAttentionContent(row: AttentionContentRow): AttentionContent {
     description: row.description,
     url: row.url,
     imageUrl: row.image_url ?? "",
-    moderationStatus: row.moderation_status ?? "approved",
+    moderationStatus: row.moderation_status ?? "pending",
     moderationNote: row.moderation_note ?? "",
     reviewedAt: row.reviewed_at,
     reviewedBy: row.reviewed_by ?? "",
@@ -115,7 +115,7 @@ function normalizeUrl(url: string) {
 
   try {
     const parsedUrl = new URL(url);
-    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+    if (parsedUrl.protocol !== "https:") {
       return "";
     }
     return parsedUrl.toString();
@@ -131,7 +131,7 @@ function normalizeOptionalUrl(url: string) {
   try {
     const normalizedUrl = normalizeUrl(trimmedUrl);
     const parsedUrl = new URL(normalizedUrl);
-    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+    if (parsedUrl.protocol !== "https:") {
       return "";
     }
     return normalizedUrl;
@@ -168,11 +168,11 @@ function validateAttentionContent({
   }
 
   if (url && !normalizeOptionalUrl(url)) {
-    return "Use a valid http or https link.";
+    return "Use a valid https link.";
   }
 
   if (imageUrl && !normalizeOptionalUrl(imageUrl)) {
-    return "Use a valid http or https image URL.";
+    return "Use a valid https image URL.";
   }
 
   if (imageUrl.length > 700) {
@@ -211,6 +211,32 @@ function createImagePath({
   return `${auctionId}/${safeWallet}-${uniqueId}.${extension}`;
 }
 
+function hasExpectedImageSignature(bytes: Uint8Array, mimeType: string) {
+  if (mimeType === "image/jpeg") {
+    return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+
+  if (mimeType === "image/png") {
+    return [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every(
+      (value, index) => bytes[index] === value
+    );
+  }
+
+  if (mimeType === "image/webp") {
+    return (
+      String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" &&
+      String.fromCharCode(...bytes.slice(8, 12)) === "WEBP"
+    );
+  }
+
+  if (mimeType === "image/gif") {
+    const header = String.fromCharCode(...bytes.slice(0, 6));
+    return header === "GIF87a" || header === "GIF89a";
+  }
+
+  return false;
+}
+
 async function uploadAttentionImage({
   supabase,
   auctionId,
@@ -228,6 +254,12 @@ async function uploadAttentionImage({
     mimeType: imageFile.type,
   });
   const bytes = await imageFile.arrayBuffer();
+  const imageBytes = new Uint8Array(bytes);
+
+  if (!hasExpectedImageSignature(imageBytes, imageFile.type)) {
+    throw new Error("The uploaded file contents do not match its image type.");
+  }
+
   const { error } = await supabase.storage
     .from(ATTENTION_IMAGE_BUCKET)
     .upload(filePath, bytes, {
@@ -332,10 +364,10 @@ export async function saveAttentionContent({
       description: trimmedDescription,
       url: normalizedUrl,
       image_url: finalImageUrl,
-      moderation_status: "approved",
+      moderation_status: "pending",
       moderation_note: "",
-      reviewed_at: now,
-      reviewed_by: "auto-approval",
+      reviewed_at: null,
+      reviewed_by: "",
       created_at: now,
       updated_at: now,
     },
@@ -353,7 +385,7 @@ export async function saveAttentionContent({
 
   return {
     success: true,
-    message: "Attention block published. Admins can still hide or reject it if needed.",
+    message: "Attention block submitted for admin approval.",
     content: await getAttentionContentForAuction(auction.id),
   };
 }
