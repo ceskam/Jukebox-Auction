@@ -2,6 +2,7 @@ import { verifySolanaUsdcPayment } from "./payment";
 import { createSupabaseServerClient } from "./supabase/server";
 
 const BLOCK_LENGTH_MS = 15 * 60 * 1000;
+const PAYMENT_RECOVERY_GRACE_MS = 5 * 60 * 1000;
 const START_TIME = Date.UTC(2026, 0, 1, 0, 0, 0);
 
 export interface Auction {
@@ -34,8 +35,14 @@ function getAuctionIdFromSequence(sequence: number) {
 }
 
 function parseAuctionSequence(auctionId: string) {
-  const sequence = Number(auctionId.replace("attention-", ""));
-  return Number.isFinite(sequence) && sequence > 0 ? sequence : getAuctionNumber();
+  const match = /^attention-(\d+)$/.exec(auctionId);
+  const sequence = Number(match?.[1]);
+
+  if (!Number.isSafeInteger(sequence) || sequence <= 0) {
+    throw new Error("Invalid auction ID.");
+  }
+
+  return sequence;
 }
 
 function getAuctionStartTime(sequence: number) {
@@ -70,20 +77,25 @@ type BidRow = {
   created_at: string;
 };
 
-async function hasExistingPaymentSignature(paymentSignature: string) {
+async function getExistingPayment(paymentSignature: string) {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from("bids")
-    .select("id")
+    .select("id, auction_id, wallet, amount_usdc")
     .eq("payment_signature", paymentSignature)
     .limit(1)
-    .maybeSingle<{ id: number }>();
+    .maybeSingle<{
+      id: number;
+      auction_id: string;
+      wallet: string;
+      amount_usdc: number | string;
+    }>();
 
   if (error) {
     throw new Error(`Could not check payment signature: ${error.message}`);
   }
 
-  return Boolean(data);
+  return data ?? undefined;
 }
 
 async function ensureAuction(sequence: number) {
@@ -148,7 +160,14 @@ export async function getAuctionBySequence(sequence: number): Promise<Auction> {
 }
 
 export function getAuctionById(auctionId: string): Promise<Auction> {
-  return getAuctionBySequence(parseAuctionSequence(auctionId));
+  const sequence = parseAuctionSequence(auctionId);
+  const currentSequence = getAuctionNumber();
+
+  if (sequence < currentSequence || sequence > currentSequence + 1) {
+    throw new Error("Auction is outside the active bidding window.");
+  }
+
+  return getAuctionBySequence(sequence);
 }
 
 export function getCurrentAuction(): Promise<Auction> {
@@ -191,6 +210,7 @@ export async function getBidHistory(auctionId: string, limit = 8): Promise<Bid[]
 export async function placeBid(
   amountUsdc: number,
   wallet: string,
+  requestedAuctionId: string,
   paymentSignature?: string | null
 ) {
   const nextAuction = await getNextAuction();
@@ -204,10 +224,50 @@ export async function placeBid(
     };
   }
 
-  if (!paymentSignature && roundedAmount <= nextAuction.highestBid) {
+  if (!paymentSignature) {
     return {
       success: false,
-      message: `Bid must be higher than ${nextAuction.highestBid.toFixed(2)} USDC.`,
+      message: "A confirmed Solana USDC transaction signature is required.",
+      auction: nextAuction,
+    };
+  }
+
+  const existingPayment = await getExistingPayment(paymentSignature);
+
+  if (existingPayment) {
+    const existingAmount = Number(existingPayment.amount_usdc);
+    const existingAuction = await getAuctionBySequence(
+      parseAuctionSequence(existingPayment.auction_id)
+    );
+
+    if (
+      existingPayment.wallet !== wallet ||
+      existingAmount !== roundedAmount ||
+      existingPayment.auction_id !== requestedAuctionId
+    ) {
+      return {
+        success: false,
+        message: "This payment receipt is already attached to a different bid.",
+        auction: existingAuction,
+      };
+    }
+
+    return {
+      success: true,
+      message: "This payment was already verified and recorded.",
+      auction: existingAuction,
+      bidHistory: await getBidHistory(existingAuction.id),
+    };
+  }
+
+  let requestedAuction: Auction;
+
+  try {
+    requestedAuction = await getAuctionById(requestedAuctionId);
+  } catch {
+    return {
+      success: false,
+      message: "This bid has an invalid auction ID.",
       auction: nextAuction,
     };
   }
@@ -226,17 +286,26 @@ export async function placeBid(
     };
   }
 
-  if (verification.signature && (await hasExistingPaymentSignature(verification.signature))) {
+  const isNormalNextAuction = requestedAuction.id === nextAuction.id;
+  const isRecoverableCurrentAuction =
+    requestedAuction.sequence === nextAuction.sequence - 1 &&
+    Boolean(verification.blockTimeMs) &&
+    verification.blockTimeMs! < requestedAuction.startsAt &&
+    Date.now() <= requestedAuction.startsAt + PAYMENT_RECOVERY_GRACE_MS;
+
+  if (!isNormalNextAuction && !isRecoverableCurrentAuction) {
     return {
       success: false,
-      message: "This USDC payment has already been used for a bid.",
+      message:
+        "That auction has closed. Keep the transaction receipt and contact the administrator for review.",
       auction: nextAuction,
     };
   }
 
+  const targetAuction = isNormalNextAuction ? nextAuction : requestedAuction;
   const supabase = createSupabaseServerClient();
   const { error } = await supabase.from("bids").insert({
-    auction_id: nextAuction.id,
+    auction_id: targetAuction.id,
     wallet,
     amount_usdc: roundedAmount,
     payment_status: verification.status,
@@ -246,6 +315,22 @@ export async function placeBid(
   });
 
   if (error) {
+    if (error.code === "23505" && verification.signature) {
+      const concurrentPayment = await getExistingPayment(verification.signature);
+      if (
+        concurrentPayment?.wallet === wallet &&
+        Number(concurrentPayment.amount_usdc) === roundedAmount &&
+        concurrentPayment.auction_id === targetAuction.id
+      ) {
+        return {
+          success: true,
+          message: "This payment was already verified and recorded.",
+          auction: await getAuctionById(targetAuction.id),
+          bidHistory: await getBidHistory(targetAuction.id),
+        };
+      }
+    }
+
     return {
       success: false,
       message: `Could not save bid: ${error.message}`,
@@ -253,11 +338,16 @@ export async function placeBid(
     };
   }
 
-  const updatedAuction = await getNextAuction();
+  const updatedAuction = await getAuctionById(targetAuction.id);
+  const isLeading =
+    updatedAuction.winner === wallet &&
+    updatedAuction.highestBid === roundedAmount;
 
   return {
     success: true,
-    message: "Bid accepted for the next Attention Bid block.",
+    message: isLeading
+      ? "USDC received. You're leading this attention block."
+      : "USDC received and your bid was recorded. Another verified bid is currently higher.",
     auction: updatedAuction,
     bidHistory: await getBidHistory(updatedAuction.id),
   };

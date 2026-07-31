@@ -14,7 +14,8 @@ Ship a functional public auction loop:
 - Bids are denominated in USDC
 - Phantom creates real Solana USDC transfers before bids are saved
 - The backend verifies the Solana transaction signature, USDC mint, amount, sender, and treasury recipient
-- Only the winning wallet can edit content for the block it won
+- Only a cryptographically authenticated winning wallet can submit content
+- Winner content requires manual admin approval before it becomes public
 - Bid history, current high bid, countdown, and wallet state are visible on the homepage
 
 ## Current Implementation
@@ -39,16 +40,24 @@ Demo payments can still be enabled for local testing with `ENABLE_DEMO_PAYMENTS=
 5. Phantom signs and sends a USDC transfer to the treasury wallet.
 6. The backend verifies the Solana transaction before saving the bid.
 7. The highest verified bid wins when the countdown ends.
-8. When that block becomes current, the winning wallet can publish or update the homepage attention content.
-9. The next auction continues automatically.
+8. When that block becomes current, the winning wallet can submit or update homepage attention content.
+9. An admin reviews the submission before it becomes public.
+10. The next auction continues automatically.
 
-## Next Production Steps
+## Live Beta Safeguards
 
-- Add stronger payment receipt and admin audit views
-- Add realtime updates for bid history and current high bid
-- Add moderation/admin controls for published attention content
-- Deploy the web app to Vercel
-- Add production environment variables and observability
+- Phantom message signatures authenticate wallet ownership
+- Signed, HTTP-only cookies protect wallet and admin sessions
+- Server-side Solana verification checks the exact mint, amount, sender, and treasury
+- Duplicate transaction signatures cannot be reused
+- A saved payment receipt can be retried without sending USDC twice
+- Winner content remains pending until an admin approves it
+- Server routes have origin checks, input limits, and basic rate limits
+- Database tables use row-level security and are only accessed by server routes
+- Production responses include CSP, anti-framing, MIME, referrer, and HSTS headers
+- The temporary beta bid cap limits exposure while the product is monitored
+
+See `docs/beta-launch-checklist.md` for the production rollout steps.
 
 ## Development
 
@@ -81,12 +90,19 @@ NEXT_PUBLIC_USDC_MINT_ADDRESS=...
 USDC_MINT_ADDRESS=...
 NEXT_PUBLIC_TREASURY_WALLET_ADDRESS=...
 TREASURY_WALLET_ADDRESS=...
+ADMIN_TOKEN=...
+WALLET_AUTH_SECRET=...
+MAX_BETA_BID_USDC=100
+NEXT_PUBLIC_MAX_BETA_BID_USDC=100
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY` is server-only. Do not expose it in browser code.
+`SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_TOKEN`, and `WALLET_AUTH_SECRET` are
+server-only. Do not expose them in browser code.
 
 Use matching Solana RPC, USDC mint, and treasury wallet values for the same
 network. The default mainnet USDC mint is
 `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`.
 
-The current app uses server-side Supabase helpers for reads and writes so the UI behavior stays the same while persistence moves from local files to Postgres.
+The app uses server-side Supabase helpers for all database reads and writes.
+For an existing database, also run `database/beta-security.sql` before opening
+the beta.

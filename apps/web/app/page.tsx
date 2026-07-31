@@ -15,7 +15,12 @@ import {
   getAttentionContentForAuction,
 } from "../lib/attention";
 import { getPlatformMetrics, type PlatformMetrics } from "../lib/metrics";
+import {
+  getWalletFromSessionToken,
+  WALLET_SESSION_COOKIE,
+} from "../lib/security";
 import { getSolscanTransactionUrl } from "../lib/solscan";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -48,6 +53,10 @@ const EMPTY_PLATFORM_METRICS: PlatformMetrics = {
 };
 
 export default async function HomePage() {
+  const cookieStore = await cookies();
+  const authenticatedWallet = getWalletFromSessionToken(
+    cookieStore.get(WALLET_SESSION_COOKIE)?.value
+  );
   const currentAuction = await getCurrentAuction();
   const nextAuction = await getNextAuction();
   const currentAttention = await loadOptional<
@@ -57,13 +66,16 @@ export default async function HomePage() {
     () => getAttentionContent(currentAuction.id),
     undefined
   );
-  const editorAttention = await loadOptional<
-    Awaited<ReturnType<typeof getAttentionContentForAuction>>
-  >(
-    "winner attention editor content",
-    () => getAttentionContentForAuction(currentAuction.id),
-    undefined
-  );
+  const editorAttention =
+    authenticatedWallet && authenticatedWallet === currentAuction.winner
+      ? await loadOptional<
+          Awaited<ReturnType<typeof getAttentionContentForAuction>>
+        >(
+          "winner attention editor content",
+          () => getAttentionContentForAuction(currentAuction.id),
+          undefined
+        )
+      : undefined;
   const liveBids = await loadOptional<Awaited<ReturnType<typeof getBidHistory>>>(
     "live bids",
     () => getBidHistory(nextAuction.id, 6),
@@ -148,7 +160,10 @@ export default async function HomePage() {
             </div>
           </section>
 
-          <BidButton currentHighBid={nextAuction.highestBid} />
+          <BidButton
+            currentHighBid={nextAuction.highestBid}
+            auctionId={nextAuction.id}
+          />
 
           <AttentionEditor
             auctionId={currentAuction.id}

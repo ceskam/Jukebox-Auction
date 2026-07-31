@@ -2,26 +2,28 @@
   "name": "attention-bid-web",
   "version": "0.1.0",
   "private": true,
-
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
-
   "dependencies": {
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.98.0",
     "@supabase/supabase-js": "^2.50.0",
-    "next": "^15.0.0",
+    "next": "15.5.21",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tweetnacl": "^1.0.3"
   },
-
   "devDependencies": {
-    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.0.0"
+  },
+  "overrides": {
+    "postcss": "8.5.25",
+    "sharp": "0.35.3"
   }
 }

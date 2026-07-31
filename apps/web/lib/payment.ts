@@ -14,6 +14,7 @@ export type PaymentVerification = {
   status: "verified" | "failed";
   signature: string | null;
   provider: "demo-solana-usdc" | "solana-usdc";
+  blockTimeMs?: number;
   message?: string;
 };
 
@@ -25,6 +26,11 @@ type PaymentInput = {
 
 function isDemoPaymentsEnabled() {
   return process.env.ENABLE_DEMO_PAYMENTS === "true";
+}
+
+function getMaxBetaBidUsdc() {
+  const configured = Number(process.env.MAX_BETA_BID_USDC ?? "100");
+  return Number.isFinite(configured) && configured > 0 ? configured : 100;
 }
 
 function getSolanaRpcUrl() {
@@ -139,6 +145,16 @@ export async function verifySolanaUsdcPayment({
     };
   }
 
+  if (amountUsdc > getMaxBetaBidUsdc()) {
+    return {
+      ok: false,
+      status: "failed",
+      signature: paymentSignature ?? null,
+      provider: "solana-usdc",
+      message: `Live beta bids are limited to ${getMaxBetaBidUsdc().toFixed(2)} USDC.`,
+    };
+  }
+
   if (!paymentSignature) {
     return {
       ok: false,
@@ -232,6 +248,9 @@ export async function verifySolanaUsdcPayment({
       status: "verified",
       signature: paymentSignature,
       provider: "solana-usdc",
+      blockTimeMs: transaction.blockTime
+        ? transaction.blockTime * 1000
+        : undefined,
     };
   } catch {
     return {
@@ -276,5 +295,6 @@ export function verifyDemoUsdcPayment({
       paymentSignature ||
       `demo-usdc-${wallet.slice(0, 6)}-${Date.now().toString(36)}`,
     provider: "demo-solana-usdc",
+    blockTimeMs: Date.now(),
   };
 }

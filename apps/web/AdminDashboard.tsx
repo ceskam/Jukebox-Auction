@@ -28,34 +28,60 @@ export default function AdminDashboard() {
   const [message, setMessage] = useState("");
   const [noteByAuction, setNoteByAuction] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const storedToken = window.localStorage.getItem("attentionBidAdminToken") ?? "";
-    setToken(storedToken);
-    if (storedToken) {
-      loadContent(storedToken);
-    }
+    void loadContent();
   }, []);
 
-  async function loadContent(nextToken = token) {
+  async function login() {
     setIsLoading(true);
     setMessage("");
 
     try {
-      const res = await fetch("/api/admin/attention", {
-        headers: {
-          "x-admin-token": nextToken,
-        },
+      const response = await fetch("/api/admin/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
       });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        setMessage(result.message ?? "Could not authenticate admin session.");
+        return;
+      }
+
+      setToken("");
+      setIsAuthenticated(true);
+      await loadContent();
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function logout() {
+    await fetch("/api/admin/session", { method: "DELETE" });
+    setIsAuthenticated(false);
+    setContent([]);
+    setMessage("Admin session ended.");
+  }
+
+  async function loadContent() {
+    setIsLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/admin/attention");
       const result = await res.json();
 
       if (!result.success) {
+        if (res.status === 401) setIsAuthenticated(false);
         setMessage(result.message ?? "Could not load admin content.");
         return;
       }
 
+      setIsAuthenticated(true);
       setContent(result.content ?? []);
-      window.localStorage.setItem("attentionBidAdminToken", nextToken);
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +97,6 @@ export default function AdminDashboard() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-admin-token": token,
       },
       body: JSON.stringify({
         auctionId,
@@ -109,20 +134,38 @@ export default function AdminDashboard() {
         </p>
       </section>
 
-      <section className="admin-token-card">
-        <label>
-          <span>Admin token</span>
-          <input
-            type="password"
-            value={token}
-            onChange={(event) => setToken(event.target.value)}
-            placeholder="Paste ADMIN_TOKEN from Vercel"
-          />
-        </label>
-        <button className="primary-button" onClick={() => loadContent()} disabled={isLoading}>
-          {isLoading ? "Loading..." : "Load review queue"}
-        </button>
-      </section>
+      {isAuthenticated ? (
+        <section className="admin-token-card">
+          <p>Authenticated with a secure, temporary admin session.</p>
+          <div className="admin-action-buttons">
+            <button
+              className="primary-button"
+              onClick={() => loadContent()}
+              disabled={isLoading}
+            >
+              {isLoading ? "Loading..." : "Refresh review queue"}
+            </button>
+            <button className="ghost-button" onClick={logout}>
+              Log out
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section className="admin-token-card">
+          <label>
+            <span>Admin token</span>
+            <input
+              type="password"
+              value={token}
+              onChange={(event) => setToken(event.target.value)}
+              placeholder="Paste ADMIN_TOKEN from Vercel"
+            />
+          </label>
+          <button className="primary-button" onClick={login} disabled={isLoading}>
+            {isLoading ? "Authenticating..." : "Start secure admin session"}
+          </button>
+        </section>
+      )}
 
       {message && <p className="form-message">{message}</p>}
 
