@@ -27,8 +27,9 @@ Complete these steps before sharing the public URL broadly.
 - Confirm the transaction receipt opens on Solscan and the bid appears once.
 - Refresh and verify the bid is still present.
 - When the block becomes current, submit harmless test content.
-- Open `/admin`, approve the content, and confirm it becomes visible.
-- Hide it again and confirm it disappears.
+- Confirm the content is auto-approved and visible without opening `/admin`.
+- Open `/admin`, hide it, and confirm it disappears.
+- Edit and resubmit the hidden content; confirm it stays hidden until an admin approves it.
 - Check Vercel logs for 500 errors and Supabase logs for rejected requests.
 
 ## Operating Rules
