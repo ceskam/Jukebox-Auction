@@ -35,8 +35,14 @@ export default function AdminDashboard() {
   }, []);
 
   async function login() {
-    setIsLoading(true);
     setMessage("");
+
+    if (token.length < 32) {
+      setMessage("The admin token must contain at least 32 characters.");
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const response = await fetch("/api/admin/session", {
@@ -54,6 +60,8 @@ export default function AdminDashboard() {
       setToken("");
       setIsAuthenticated(true);
       await loadContent();
+    } catch {
+      setMessage("Could not contact the admin login service. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -158,8 +166,15 @@ export default function AdminDashboard() {
               type="password"
               value={token}
               onChange={(event) => setToken(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !isLoading) void login();
+              }}
               placeholder="Paste ADMIN_TOKEN from Vercel"
             />
+            <small className="hint">
+              Use the exact 32-character-or-longer ADMIN_TOKEN. After changing
+              it in Vercel, redeploy before signing in.
+            </small>
           </label>
           <button className="primary-button" onClick={login} disabled={isLoading}>
             {isLoading ? "Authenticating..." : "Start secure admin session"}

@@ -1,3 +1,4 @@
+import { OPENING_BID_USDC } from "./bid-rules";
 import { verifySolanaUsdcPayment } from "./payment";
 import { createSupabaseServerClient } from "./supabase/server";
 
@@ -216,10 +217,10 @@ export async function placeBid(
   const nextAuction = await getNextAuction();
   const roundedAmount = Math.round(amountUsdc * 100) / 100;
 
-  if (!Number.isFinite(roundedAmount) || roundedAmount <= 0) {
+  if (!Number.isFinite(roundedAmount) || roundedAmount < OPENING_BID_USDC) {
     return {
       success: false,
-      message: "Enter a valid USDC bid amount.",
+      message: `The opening bid is ${OPENING_BID_USDC.toFixed(2)} USDC.`,
       auction: nextAuction,
     };
   }

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getStoredWallet, subscribeToWallet } from "./WalletConnect";
+import { getMinimumBidUsdc, OPENING_BID_USDC } from "./lib/bid-rules";
 import { sendUsdcBidPayment } from "./lib/solana-payment";
 import { getSolscanTransactionUrl } from "./lib/solscan";
 
@@ -23,7 +24,10 @@ const MAX_BETA_BID_USDC = Number(
 );
 
 export default function BidButton({ currentHighBid, auctionId }: Props) {
-  const minimumBid = useMemo(() => Math.round((currentHighBid + 1) * 100) / 100, [currentHighBid]);
+  const minimumBid = useMemo(
+    () => getMinimumBidUsdc(currentHighBid),
+    [currentHighBid]
+  );
   const [amount, setAmount] = useState(String(minimumBid));
   const [wallet, setWallet] = useState("");
   const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
@@ -199,8 +203,12 @@ export default function BidButton({ currentHighBid, auctionId }: Props) {
     <section className="bid-card">
       <span className="eyebrow">Place your bid</span>
       <div className="quick-bids">
-        {[1, 5, 10, 25].map((increment) => {
-          const bidAmount = Math.round((currentHighBid + increment) * 100) / 100;
+        {(currentHighBid > 0
+          ? [1, 5, 10, 25]
+          : [OPENING_BID_USDC, 1, 5, 10]
+        ).map((increment) => {
+          const bidAmount =
+            Math.round((currentHighBid + increment) * 100) / 100;
 
           return (
             <button
@@ -209,7 +217,7 @@ export default function BidButton({ currentHighBid, auctionId }: Props) {
               onClick={() => placeBid(bidAmount)}
               disabled={isSubmitting || bidAmount > MAX_BETA_BID_USDC}
             >
-              +{increment}
+              {currentHighBid > 0 ? `+${increment}` : bidAmount.toFixed(2)}
               <span>USDC</span>
             </button>
           );
@@ -237,7 +245,11 @@ export default function BidButton({ currentHighBid, auctionId }: Props) {
         {isSubmitting ? "Processing USDC..." : "Place bid"}
       </button>
 
-      <p className="hint">Next bid must be higher than {currentHighBid.toFixed(2)} USDC.</p>
+      <p className="hint">
+        {currentHighBid > 0
+          ? `Next bid must be at least ${minimumBid.toFixed(2)} USDC.`
+          : `Opening bid starts at ${OPENING_BID_USDC.toFixed(2)} USDC.`}
+      </p>
       <p className="hint">
         Live beta limit: {MAX_BETA_BID_USDC.toFixed(2)} USDC per bid.
       </p>
