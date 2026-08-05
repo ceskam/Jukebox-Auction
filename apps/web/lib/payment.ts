@@ -5,6 +5,7 @@ import {
   PublicKey,
 } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { OPENING_BID_USDC } from "./bid-rules";
 
 const USDC_DECIMALS = 6;
 const LAMPORTS_PER_USDC = 10 ** USDC_DECIMALS;
@@ -135,13 +136,13 @@ export async function verifySolanaUsdcPayment({
     };
   }
 
-  if (!Number.isFinite(amountUsdc) || amountUsdc <= 0) {
+  if (!Number.isFinite(amountUsdc) || amountUsdc < OPENING_BID_USDC) {
     return {
       ok: false,
       status: "failed",
       signature: null,
       provider: "solana-usdc",
-      message: "Enter a valid USDC bid amount.",
+      message: `The opening bid is ${OPENING_BID_USDC.toFixed(2)} USDC.`,
     };
   }
 
@@ -278,13 +279,13 @@ export function verifyDemoUsdcPayment({
     };
   }
 
-  if (!Number.isFinite(amountUsdc) || amountUsdc <= 0) {
+  if (!Number.isFinite(amountUsdc) || amountUsdc < OPENING_BID_USDC) {
     return {
       ok: false,
       status: "failed",
       signature: null,
       provider: "demo-solana-usdc",
-      message: "Enter a valid USDC bid amount.",
+      message: `The opening bid is ${OPENING_BID_USDC.toFixed(2)} USDC.`,
     };
   }
 
