@@ -333,6 +333,14 @@ export async function saveAttentionContent({
   }
 
   const now = new Date().toISOString();
+  const existingContent = await getAttentionContentForAuction(auction.id);
+  const blockedContent =
+    existingContent &&
+    (existingContent.moderationStatus === "hidden" ||
+      existingContent.moderationStatus === "rejected")
+      ? existingContent
+      : undefined;
+  const moderationStatus = blockedContent?.moderationStatus ?? "approved";
 
   const supabase = createSupabaseServerClient();
   let finalImageUrl = normalizedImageUrl;
@@ -364,10 +372,14 @@ export async function saveAttentionContent({
       description: trimmedDescription,
       url: normalizedUrl,
       image_url: finalImageUrl,
-      moderation_status: "pending",
-      moderation_note: "",
-      reviewed_at: null,
-      reviewed_by: "",
+      moderation_status: moderationStatus,
+      moderation_note: blockedContent
+        ? blockedContent.moderationNote
+        : "Automatically approved for beta.",
+      reviewed_at: blockedContent ? blockedContent.reviewedAt : now,
+      reviewed_by: blockedContent
+        ? blockedContent.reviewedBy
+        : "automatic-beta",
       created_at: now,
       updated_at: now,
     },
@@ -385,7 +397,9 @@ export async function saveAttentionContent({
 
   return {
     success: true,
-    message: "Attention block submitted for admin approval.",
+    message: blockedContent
+      ? `Attention block saved and remains ${moderationStatus} until an admin approves it.`
+      : "Attention block published automatically and remains subject to admin moderation.",
     content: await getAttentionContentForAuction(auction.id),
   };
 }

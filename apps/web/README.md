@@ -50,7 +50,7 @@ transaction. All Solana values must point to the same network.
 3. The highest verified bid wins when the current block closes.
 4. Bids are winner-takes-all. Losing bids are not refunded.
 5. When that auction becomes current, the winning wallet can publish the title, description, uploaded image or image URL, and link.
-6. Submitted content is auto-approved so blocks can run without manual review every 15 minutes; admins can still hide or reject content in `/admin`.
+6. New content is auto-approved so blocks can run without manual review every 15 minutes; admins can still hide or reject content in `/admin`. Editing blocked content does not automatically unhide it.
 7. The next auction continues automatically.
 
 ## Homepage Metrics

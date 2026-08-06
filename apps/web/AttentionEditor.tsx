@@ -102,10 +102,10 @@ export default function AttentionEditor({
         return;
       }
 
-      setModerationStatus(result.content?.moderationStatus ?? "pending");
+      setModerationStatus(result.content?.moderationStatus ?? "approved");
       setModerationNote(result.content?.moderationNote ?? "");
       setImageFile(null);
-      setMessage(result.message ?? "Attention block submitted for admin approval.");
+      setMessage(result.message ?? "Attention block published automatically.");
       window.setTimeout(() => window.location.reload(), 500);
     } finally {
       setIsSaving(false);
@@ -132,7 +132,8 @@ export default function AttentionEditor({
           {moderationStatus === "rejected" &&
             "This content was rejected. Edit and submit a new version."}
           {!moderationStatus &&
-            "Submit your title, description, image, and link for admin approval."}
+            "Submit your title, description, image, and link to publish automatically. " +
+              "An admin can hide or reject it afterward."}
         </p>
         {moderationNote && <p className="hint">Admin note: {moderationNote}</p>}
       </div>

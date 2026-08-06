@@ -51,7 +51,7 @@ Demo payments can still be enabled for local testing with `ENABLE_DEMO_PAYMENTS=
 - Server-side Solana verification checks the exact mint, amount, sender, and treasury
 - Duplicate transaction signatures cannot be reused
 - A saved payment receipt can be retried without sending USDC twice
-- Winner content remains pending until an admin approves it
+- Winner content is auto-approved for the invite-only beta; admins can still hide or reject it
 - Server routes have origin checks, input limits, and basic rate limits
 - Database tables use row-level security and are only accessed by server routes
 - Production responses include CSP, anti-framing, MIME, referrer, and HSTS headers
