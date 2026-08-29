@@ -210,6 +210,7 @@ textarea:focus {
 .editor-card,
 .leader-card,
 .bid-history-card,
+.community-card,
 .how-card {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -264,6 +265,36 @@ textarea:focus {
 .timer-panel {
   padding: 1.4rem;
   text-align: center;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.timer-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.timer-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(35, 240, 107, 0.32);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  color: var(--green);
+  background: rgba(35, 240, 107, 0.08);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.timer-status > span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 12px currentColor;
 }
 
 .timer-value {
@@ -287,6 +318,98 @@ textarea:focus {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--pink), var(--yellow));
+  transition: width 1s linear;
+}
+
+.timer-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  border: 1px solid rgba(35, 240, 107, 0.22);
+  border-radius: 8px;
+  padding: 0.72rem 0.9rem;
+  color: var(--muted);
+  background: rgba(35, 240, 107, 0.06);
+  line-height: 1.4;
+}
+
+.timer-notice strong {
+  color: var(--green);
+  white-space: nowrap;
+}
+
+.timer-remaining {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+
+.timer-soon {
+  border-color: rgba(255, 212, 59, 0.62);
+  box-shadow: 0 0 34px rgba(255, 212, 59, 0.2);
+}
+
+.timer-soon .timer-status,
+.timer-soon .timer-notice {
+  border-color: rgba(255, 212, 59, 0.38);
+  color: var(--yellow);
+  background: rgba(255, 212, 59, 0.08);
+}
+
+.timer-soon .timer-notice strong {
+  color: var(--yellow);
+}
+
+.timer-urgent,
+.timer-final {
+  border-color: rgba(255, 123, 123, 0.72);
+  box-shadow: 0 0 42px rgba(255, 46, 213, 0.28);
+}
+
+.timer-urgent .timer-status,
+.timer-urgent .timer-notice,
+.timer-final .timer-status,
+.timer-final .timer-notice {
+  border-color: rgba(255, 123, 123, 0.46);
+  color: #ff7b7b;
+  background: rgba(255, 123, 123, 0.1);
+}
+
+.timer-urgent .timer-notice strong,
+.timer-final .timer-notice strong {
+  color: #ff7b7b;
+}
+
+.timer-final .timer-value,
+.timer-final .timer-status > span {
+  animation: timer-pulse 0.8s ease-in-out infinite alternate;
+}
+
+.timer-closed {
+  opacity: 0.8;
+}
+
+.timer-closed .timer-status,
+.timer-closed .timer-notice {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.timer-closed .timer-notice strong {
+  color: var(--text);
+}
+
+@keyframes timer-pulse {
+  from {
+    opacity: 0.68;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .stats-grid {
@@ -346,8 +469,79 @@ textarea:focus {
 .editor-card,
 .leader-card,
 .bid-history-card,
+.community-card,
 .how-card {
   padding: 1.2rem;
+}
+
+.community-card {
+  border-color: var(--line-blue);
+  background:
+    linear-gradient(145deg, rgba(27, 214, 255, 0.1), rgba(255, 46, 213, 0.08)),
+    var(--panel);
+}
+
+.community-card h2 {
+  margin: 0.45rem 0;
+  font-size: 1.55rem;
+  line-height: 1.05;
+}
+
+.community-card > p {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.community-links {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.community-links a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 0.8rem;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.88rem;
+  font-weight: 900;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.community-links a:hover {
+  border-color: var(--blue);
+  background: rgba(27, 214, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.community-links small {
+  display: block;
+  margin-bottom: 0.12rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.community-link-mark {
+  display: grid;
+  width: 2.2rem;
+  height: 2.2rem;
+  place-items: center;
+  border-radius: 8px;
+  color: #05030b;
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.telegram-mark {
+  color: #fff;
+  background: #229ed9;
 }
 
 .quick-bids {
@@ -773,6 +967,7 @@ textarea:focus {
   .editor-card,
   .leader-card,
   .bid-history-card,
+  .community-card,
   .how-card {
     border-radius: 8px;
   }
@@ -785,5 +980,31 @@ textarea:focus {
 
   .primary-link {
     text-align: center;
+  }
+
+  .timer-heading,
+  .timer-notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .timer-status {
+    justify-content: center;
+  }
+
+  .timer-notice strong {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timer-final .timer-value,
+  .timer-final .timer-status > span {
+    animation: none;
+  }
+
+  .timer-bar span,
+  .community-links a {
+    transition: none;
   }
 }

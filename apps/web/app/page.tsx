@@ -5,6 +5,7 @@ import AttentionOwner from "../AttentionOwner";
 import AttentionEditor from "../AttentionEditor";
 import AttentionDisplay from "../AttentionDisplay";
 import TrackPageView from "../TrackPageView";
+import CommunityCard from "../CommunityCard";
 import {
   getBidHistory,
   getCurrentAuction,
@@ -99,6 +100,7 @@ export default async function HomePage() {
           <a href="#auction">Auction</a>
           <a href="#leaderboard">Leaderboard</a>
           <a href="#how-it-works">How it works</a>
+          <a href="#community">Community</a>
         </div>
         <WalletConnect />
       </nav>
@@ -214,6 +216,8 @@ export default async function HomePage() {
               <p className="hint">No bids yet. Be first into the next block.</p>
             )}
           </section>
+
+          <CommunityCard />
 
           <section className="how-card" id="how-it-works">
             <span className="eyebrow">How it works</span>
