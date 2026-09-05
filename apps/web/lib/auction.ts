@@ -1,4 +1,5 @@
 import { OPENING_BID_USDC } from "./bid-rules";
+import { getHouseActivationTime } from "./house";
 import { verifySolanaUsdcPayment } from "./payment";
 import { createSupabaseServerClient } from "./supabase/server";
 
@@ -11,6 +12,10 @@ export interface Auction {
   sequence: number;
   highestBid: number;
   winner: string | null;
+  isHouseBid: boolean;
+  houseBidAmount: number;
+  housePaymentSignature: string | null;
+  houseActivatesAt: number;
   startsAt: number;
   endsAt: number;
   status: "live" | "scheduled" | "ended";
@@ -24,6 +29,7 @@ export interface Bid {
   paymentStatus: string;
   paymentSignature: string | null;
   verificationProvider: string;
+  bidSource: "user" | "house";
   createdAt: string;
 }
 
@@ -65,6 +71,8 @@ function getAuctionStatus(sequence: number): Auction["status"] {
 type HighestBidRow = {
   wallet: string;
   amount_usdc: number | string | null;
+  payment_signature: string | null;
+  bid_source: "user" | "house" | null;
 };
 
 type BidRow = {
@@ -75,6 +83,7 @@ type BidRow = {
   payment_status: string;
   payment_signature: string | null;
   verification_provider: string;
+  bid_source: "user" | "house" | null;
   created_at: string;
 };
 
@@ -125,13 +134,17 @@ async function ensureAuction(sequence: number) {
   return id;
 }
 
-async function getHighestBid(auctionId: string) {
+async function getHighestBidBySource(
+  auctionId: string,
+  bidSource: "user" | "house"
+) {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from("bids")
-    .select("wallet, amount_usdc")
+    .select("wallet, amount_usdc, payment_signature, bid_source")
     .eq("auction_id", auctionId)
     .eq("payment_status", "verified")
+    .eq("bid_source", bidSource)
     .order("amount_usdc", { ascending: false })
     .order("created_at", { ascending: true })
     .limit(1)
@@ -146,15 +159,24 @@ async function getHighestBid(auctionId: string) {
 
 export async function getAuctionBySequence(sequence: number): Promise<Auction> {
   const auctionId = await ensureAuction(sequence);
-  const highestBid = await getHighestBid(auctionId);
-  const highestBidAmount = Number(highestBid?.amount_usdc ?? 0);
+  const [highestUserBid, houseBid] = await Promise.all([
+    getHighestBidBySource(auctionId, "user"),
+    getHighestBidBySource(auctionId, "house"),
+  ]);
+  const winningBid = highestUserBid ?? houseBid;
+  const highestBidAmount = Number(highestUserBid?.amount_usdc ?? 0);
+  const startsAt = getAuctionStartTime(sequence);
 
   return {
     id: auctionId,
     sequence,
     highestBid: highestBidAmount,
-    winner: highestBid?.wallet ?? null,
-    startsAt: getAuctionStartTime(sequence),
+    winner: winningBid?.wallet ?? null,
+    isHouseBid: Boolean(!highestUserBid && houseBid),
+    houseBidAmount: Number(houseBid?.amount_usdc ?? 0),
+    housePaymentSignature: houseBid?.payment_signature ?? null,
+    houseActivatesAt: getHouseActivationTime(startsAt, BLOCK_LENGTH_MS),
+    startsAt,
     endsAt: getAuctionEndTime(sequence),
     status: getAuctionStatus(sequence),
   };
@@ -184,7 +206,7 @@ export async function getBidHistory(auctionId: string, limit = 8): Promise<Bid[]
   const { data, error } = await supabase
     .from("bids")
     .select(
-      "id, auction_id, wallet, amount_usdc, payment_status, payment_signature, verification_provider, created_at"
+      "id, auction_id, wallet, amount_usdc, payment_status, payment_signature, verification_provider, bid_source, created_at"
     )
     .eq("auction_id", auctionId)
     .eq("payment_status", "verified")
@@ -204,6 +226,7 @@ export async function getBidHistory(auctionId: string, limit = 8): Promise<Bid[]
     paymentStatus: bid.payment_status,
     paymentSignature: bid.payment_signature,
     verificationProvider: bid.verification_provider,
+    bidSource: bid.bid_source ?? "user",
     createdAt: bid.created_at,
   }));
 }
@@ -312,6 +335,7 @@ export async function placeBid(
     payment_status: verification.status,
     payment_signature: verification.signature,
     verification_provider: verification.provider,
+    bid_source: "user",
     created_at: new Date().toISOString(),
   });
 

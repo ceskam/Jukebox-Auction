@@ -7,6 +7,7 @@ type Props = {
   description: string;
   url: string;
   imageUrl: string;
+  isHouseSponsored?: boolean;
 };
 
 export default function AttentionDisplay({
@@ -15,9 +16,10 @@ export default function AttentionDisplay({
   description,
   url,
   imageUrl,
+  isHouseSponsored = false,
 }: Props) {
   return (
-    <section className="attention-card">
+    <section className={`attention-card${isHouseSponsored ? " house-attention" : ""}`}>
       {imageUrl && (
         <AttentionImage
           className="attention-image"
@@ -27,7 +29,9 @@ export default function AttentionDisplay({
       )}
 
       <div className="attention-copy">
-        <span className="eyebrow">Current attention</span>
+        <span className="eyebrow">
+          {isHouseSponsored ? "Current attention · House sponsored" : "Current attention"}
+        </span>
         <h2>{title || "The next winner controls this space"}</h2>
         <p>
           {description ||
@@ -35,9 +39,25 @@ export default function AttentionDisplay({
         </p>
       </div>
 
-      {url && (
-        <TrackedAttentionLink auctionId={auctionId} url={url} />
+      {isHouseSponsored && (
+        <p className="house-disclosure">
+          Operator-funded house bid · Excluded from organic bid totals
+        </p>
       )}
+
+      {url &&
+        (isHouseSponsored ? (
+          <a
+            className="primary-link"
+            href={url}
+            target="_blank"
+            rel="sponsored noreferrer"
+          >
+            Visit sponsor
+          </a>
+        ) : (
+          <TrackedAttentionLink auctionId={auctionId} url={url} />
+        ))}
     </section>
   );
 }
