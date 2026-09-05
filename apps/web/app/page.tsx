@@ -5,6 +5,7 @@ import AttentionOwner from "../AttentionOwner";
 import AttentionEditor from "../AttentionEditor";
 import AttentionDisplay from "../AttentionDisplay";
 import TrackPageView from "../TrackPageView";
+import AutoRefresh from "../AutoRefresh";
 import CommunityCard from "../CommunityCard";
 import {
   getBidHistory,
@@ -67,7 +68,14 @@ export default async function HomePage() {
     () => getAttentionContent(currentAuction.id),
     undefined
   );
-  const editorAttention =
+  const displayedAttention =
+    currentAttention?.wallet === currentAuction.winner
+      ? currentAttention
+      : undefined;
+  const isShowingHouseSponsored = Boolean(
+    displayedAttention && currentAuction.isHouseBid
+  );
+  const loadedEditorAttention =
     authenticatedWallet && authenticatedWallet === currentAuction.winner
       ? await loadOptional<
           Awaited<ReturnType<typeof getAttentionContentForAuction>>
@@ -76,6 +84,10 @@ export default async function HomePage() {
           () => getAttentionContentForAuction(currentAuction.id),
           undefined
         )
+      : undefined;
+  const editorAttention =
+    loadedEditorAttention?.wallet === authenticatedWallet
+      ? loadedEditorAttention
       : undefined;
   const liveBids = await loadOptional<Awaited<ReturnType<typeof getBidHistory>>>(
     "live bids",
@@ -90,6 +102,7 @@ export default async function HomePage() {
 
   return (
     <main className="page-shell">
+      <AutoRefresh />
       <TrackPageView auctionId={currentAuction.id} />
 
       <nav className="top-nav">
@@ -161,13 +174,17 @@ export default async function HomePage() {
         <div className="main-column">
           <AttentionDisplay
             auctionId={currentAuction.id}
-            title={currentAttention?.title ?? ""}
-            description={currentAttention?.description ?? ""}
-            url={currentAttention?.url ?? ""}
-            imageUrl={currentAttention?.imageUrl ?? ""}
+            title={displayedAttention?.title ?? ""}
+            description={displayedAttention?.description ?? ""}
+            url={displayedAttention?.url ?? ""}
+            imageUrl={displayedAttention?.imageUrl ?? ""}
+            isHouseSponsored={isShowingHouseSponsored}
           />
 
-          <CountdownTimer endsAt={currentAuction.endsAt} />
+          <CountdownTimer
+            endsAt={currentAuction.endsAt}
+            houseBidActive={nextAuction.isHouseBid}
+          />
 
           <div className="stats-grid" id="leaderboard">
             <div>
@@ -179,8 +196,15 @@ export default async function HomePage() {
               <strong>{nextAuction.id}</strong>
             </div>
             <div>
-              <span className="eyebrow">Current bid</span>
-              <strong>{nextAuction.highestBid.toFixed(2)} USDC</strong>
+              <span className="eyebrow">
+                {nextAuction.isHouseBid ? "House bid" : "Current bid"}
+              </span>
+              <strong>
+                {(nextAuction.isHouseBid
+                  ? nextAuction.houseBidAmount
+                  : nextAuction.highestBid
+                ).toFixed(2)} USDC
+              </strong>
             </div>
           </div>
 
@@ -190,7 +214,7 @@ export default async function HomePage() {
               <strong>{platformMetrics.totalViews.toLocaleString()}</strong>
             </div>
             <div>
-              <span className="eyebrow">Total USDC bid</span>
+              <span className="eyebrow">User USDC bid</span>
               <strong>
                 {platformMetrics.totalBidUsdc.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
@@ -227,6 +251,9 @@ export default async function HomePage() {
             winner={nextAuction.winner}
             highestBid={nextAuction.highestBid}
             auctionId={nextAuction.id}
+            isHouseBid={nextAuction.isHouseBid}
+            houseBidAmount={nextAuction.houseBidAmount}
+            housePaymentSignature={nextAuction.housePaymentSignature}
           />
 
           <section className="bid-history-card">
@@ -240,7 +267,14 @@ export default async function HomePage() {
                 {liveBids.map((bid) => (
                   <li key={bid.id}>
                     <div>
-                      <span>{shortWallet(bid.wallet)}</span>
+                      <span>
+                        {bid.bidSource === "house"
+                          ? "AttentionBid House"
+                          : shortWallet(bid.wallet)}
+                      </span>
+                      {bid.bidSource === "house" && (
+                        <small className="house-bid-label">Operator funded</small>
+                      )}
                       {bid.paymentSignature && (
                         <a
                           href={getSolscanTransactionUrl(bid.paymentSignature)}
@@ -256,7 +290,11 @@ export default async function HomePage() {
                 ))}
               </ol>
             ) : (
-              <p className="hint">No bids yet. Be first into the next block.</p>
+              <p className="hint">
+                {nextAuction.isHouseBid
+                  ? "A disclosed house bid is active. A user can replace it at the normal 0.25 USDC opening price."
+                  : "No bids yet. Be first into the next block."}
+              </p>
             )}
           </section>
 
@@ -270,6 +308,10 @@ export default async function HomePage() {
               <li>Highest verified bid wins when the timer ends.</li>
               <li>Bids are final. Losing bids are not refunded.</li>
               <li>Approved winner content appears on the homepage.</li>
+              <li>
+                Empty rounds may receive one clearly labeled, operator-funded
+                0.25 USDC house bid after five minutes.
+              </li>
             </ol>
           </section>
         </aside>

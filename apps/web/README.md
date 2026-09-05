@@ -53,6 +53,23 @@ transaction. All Solana values must point to the same network.
 6. New content is auto-approved so blocks can run without manual review every 15 minutes; admins can still hide or reject content in `/admin`. Editing blocked content does not automatically unhide it.
 7. The next auction continues automatically.
 
+## Disclosed house-sponsored bid bot
+
+After `database/house-bot.sql` is applied, an optional Vercel cron can place one
+operator-funded 0.25 USDC house bid when an auction has remained empty for five
+minutes. The bot rotates sponsored posts for Quiet Coin, LivePayout, and the
+configured Cash App destination. House bids are clearly labeled, excluded from
+organic bid-volume metrics, and never raise the opening price for a user. Any
+verified user bid takes priority over a house bid, including another 0.25 USDC
+bid.
+
+Keep `HOUSE_BOT_ENABLED=false` until a dedicated low-balance wallet, a daily
+limit, and a strong `CRON_SECRET` are configured in Vercel. Store the keypair
+only as the server-side `HOUSE_BOT_SECRET_KEY_BASE64`; never commit or expose it
+to the browser. Set `HOUSE_BOT_ENABLED=false` and redeploy for an immediate kill
+switch. A 24 USDC rolling daily limit covers at most 96 completely empty rounds;
+set a lower limit for a smaller beta budget.
+
 ## Homepage Metrics
 
 The homepage shows running totals for page views, verified USDC bid volume, and

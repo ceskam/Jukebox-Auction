@@ -1,15 +1,29 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default function AutoRefresh() {
+export default function AutoRefresh({ intervalMs = 20_000 }: { intervalMs?: number }) {
+  const router = useRouter();
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      window.location.reload();
-    }, 5000);
+    function refreshVisiblePage() {
+      if (document.visibilityState === "visible") {
+        router.refresh();
+      }
+    }
 
-    return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(() => {
+      refreshVisiblePage();
+    }, intervalMs);
+
+    window.addEventListener("focus", refreshVisiblePage);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", refreshVisiblePage);
+    };
+  }, [intervalMs, router]);
 
   return null;
 }

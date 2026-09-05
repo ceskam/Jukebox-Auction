@@ -49,6 +49,7 @@ export async function getPlatformMetrics(): Promise<PlatformMetrics> {
       .from("bids")
       .select("amount_usdc")
       .eq("payment_status", "verified")
+      .eq("bid_source", "user")
       .returns<BidAmountRow[]>();
 
     if (error) {

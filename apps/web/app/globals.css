@@ -289,6 +289,41 @@ textarea:focus {
     var(--panel-strong);
 }
 
+.house-attention,
+.house-leader {
+  border-color: rgba(27, 214, 255, 0.62);
+  box-shadow: 0 0 34px rgba(27, 214, 255, 0.15);
+}
+
+.attention-card .house-disclosure,
+.leader-card .house-disclosure {
+  margin: 0;
+  border: 1px solid rgba(27, 214, 255, 0.3);
+  border-radius: 999px;
+  padding: 0.42rem 0.7rem;
+  color: var(--blue);
+  background: rgba(27, 214, 255, 0.08);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.house-receipt,
+.house-bid-label {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--blue);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.leader-card .house-disclosure {
+  margin-top: 0.9rem;
+  border-radius: 8px;
+}
+
 .attention-copy {
   min-width: 0;
 }

@@ -336,6 +336,7 @@ export async function saveAttentionContent({
   const existingContent = await getAttentionContentForAuction(auction.id);
   const blockedContent =
     existingContent &&
+    existingContent.wallet === wallet &&
     (existingContent.moderationStatus === "hidden" ||
       existingContent.moderationStatus === "rejected")
       ? existingContent
@@ -402,6 +403,50 @@ export async function saveAttentionContent({
       : "Attention block published automatically and remains subject to admin moderation.",
     content: await getAttentionContentForAuction(auction.id),
   };
+}
+
+export async function saveHouseAttentionContent({
+  auctionId,
+  wallet,
+  title,
+  description,
+  url,
+  imageUrl,
+  sponsor,
+}: {
+  auctionId: string;
+  wallet: string;
+  title: string;
+  description: string;
+  url: string;
+  imageUrl: string;
+  sponsor: string;
+}) {
+  const now = new Date().toISOString();
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.from("attention_content").upsert(
+    {
+      auction_id: auctionId,
+      wallet,
+      title: title.trim(),
+      description: description.trim(),
+      url: normalizeOptionalUrl(url),
+      image_url: normalizeOptionalUrl(imageUrl),
+      moderation_status: "approved",
+      moderation_note: `House-sponsored post: ${sponsor}.`,
+      reviewed_at: now,
+      reviewed_by: "house-bot",
+      created_at: now,
+      updated_at: now,
+    },
+    {
+      onConflict: "auction_id",
+    }
+  );
+
+  if (error) {
+    throw new Error(`Could not save house attention content: ${error.message}`);
+  }
 }
 
 export async function moderateAttentionContent({

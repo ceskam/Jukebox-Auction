@@ -17,6 +17,8 @@ create table if not exists public.bids (
     check (payment_status in ('verified', 'failed', 'pending')),
   payment_signature text,
   verification_provider text not null default 'solana-usdc',
+  bid_source text not null default 'user'
+    check (bid_source in ('user', 'house')),
   created_at timestamptz not null default now()
 );
 
@@ -61,6 +63,24 @@ alter table public.attention_content
 alter table public.attention_content
   add column if not exists reviewed_by text not null default '';
 
+alter table public.bids
+  add column if not exists bid_source text not null default 'user';
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'bids_bid_source_check'
+      and conrelid = 'public.bids'::regclass
+  ) then
+    alter table public.bids
+      add constraint bids_bid_source_check
+      check (bid_source in ('user', 'house'));
+  end if;
+end
+$$;
+
 create index if not exists bids_auction_highest_idx
   on public.bids (auction_id, payment_status, amount_usdc desc, created_at asc);
 
@@ -70,6 +90,10 @@ create index if not exists bids_auction_recent_idx
 create unique index if not exists bids_payment_signature_unique_idx
   on public.bids (payment_signature)
   where payment_signature is not null;
+
+create unique index if not exists bids_one_active_house_bid_per_auction_idx
+  on public.bids (auction_id)
+  where bid_source = 'house' and payment_status in ('pending', 'verified');
 
 create index if not exists attention_content_moderation_status_idx
   on public.attention_content (moderation_status, updated_at desc, created_at desc);
