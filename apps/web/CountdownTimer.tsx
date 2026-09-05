@@ -78,7 +78,8 @@ export default function CountdownTimer({
     houseBidActive && (phase === "open" || phase === "soon")
       ? {
           label: "House sponsored bid",
-          message: "Operator funded. A verified user bid of 0.25 USDC or more takes priority.",
+          message:
+            "Operator funded. A verified user bid of 0.25 USDC or more takes priority.",
         }
       : TIMER_NOTICES[phase];
 

@@ -114,6 +114,13 @@ export default async function HomePage() {
           <a href="#leaderboard">Leaderboard</a>
           <a href="#how-it-works">How it works</a>
           <a href="#community">Community</a>
+          <a
+            href="/attention-bid-white-paper-v5.pdf"
+            target="_blank"
+            rel="noreferrer"
+          >
+            White paper
+          </a>
         </div>
         <WalletConnect />
       </nav>
@@ -125,6 +132,42 @@ export default async function HomePage() {
           Every 15 minutes, the highest verified USDC bidder wins the public
           homepage attention block. Bids are final.
         </p>
+      </section>
+
+      <section
+        className="white-paper-banner"
+        id="white-paper"
+        aria-labelledby="white-paper-title"
+      >
+        <div className="white-paper-copy">
+          <span className="eyebrow">White paper · Version 5.0</span>
+          <h2 id="white-paper-title">
+            The market for the next 15 minutes of attention.
+          </h2>
+          <p>
+            Read the market thesis, perpetual-auction design, infrastructure,
+            roadmap, token-economics discussion, and key risks behind
+            AttentionBid.
+          </p>
+          <span className="white-paper-meta">Discussion draft · 6-page PDF</span>
+        </div>
+        <div className="white-paper-actions">
+          <a
+            className="primary-link"
+            href="/attention-bid-white-paper-v5.pdf"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Read white paper <span aria-hidden="true">↗</span>
+          </a>
+          <a
+            className="ghost-button"
+            href="/attention-bid-white-paper-v5.pdf"
+            download="AttentionBid-White-Paper-v5.pdf"
+          >
+            Download PDF
+          </a>
+        </div>
       </section>
 
       <section className="auction-grid" id="auction">
