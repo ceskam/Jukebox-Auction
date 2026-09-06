@@ -1,4 +1,4 @@
-const DEFAULT_HOUSE_DELAY_MINUTES = 5;
+const DEFAULT_HOUSE_DELAY_MINUTES = 10;
 
 export const HOUSE_NAME = "AttentionBid House";
 export const HOUSE_BID_USDC = 0.25;
