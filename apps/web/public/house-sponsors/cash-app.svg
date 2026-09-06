@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Join Cash App with Canderson91</title>
+  <desc id="desc">House-sponsored AttentionBid referral card for the Canderson91 Cash App link.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07140b"/>
+      <stop offset="1" stop-color="#0b5d27"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="82%" cy="48%" r="45%">
+      <stop offset="0" stop-color="#23f06b" stop-opacity=".44"/>
+      <stop offset="1" stop-color="#23f06b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="675" rx="34" fill="url(#bg)"/>
+  <rect width="1200" height="675" rx="34" fill="url(#glow)"/>
+  <circle cx="930" cy="335" r="185" fill="#23f06b" fill-opacity=".1" stroke="#23f06b" stroke-width="8"/>
+  <text x="930" y="410" text-anchor="middle" fill="#23f06b" font-family="Arial, Helvetica, sans-serif" font-size="210" font-weight="800">$</text>
+  <rect x="70" y="66" width="245" height="48" rx="24" fill="#23f06b" fill-opacity=".12" stroke="#23f06b" stroke-opacity=".7"/>
+  <text x="193" y="98" text-anchor="middle" fill="#82ffa9" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="2">HOUSE SPONSORED</text>
+  <text x="70" y="240" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="800">JOIN CASH APP</text>
+  <text x="70" y="335" fill="#82ffa9" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="700">$Canderson91</text>
+  <text x="70" y="414" fill="#d0e7d6" font-family="Arial, Helvetica, sans-serif" font-size="28">House-sponsored referral from AttentionBid.</text>
+  <text x="70" y="574" fill="#23f06b" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="2">ATTENTIONBID</text>
+</svg>

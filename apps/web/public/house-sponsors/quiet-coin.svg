@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Quiet Coin community</title>
+  <desc id="desc">House-sponsored AttentionBid card inviting viewers to join the Quiet Coin community.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#061713"/>
+      <stop offset="1" stop-color="#123d32"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="72%" cy="44%" r="48%">
+      <stop offset="0" stop-color="#61f6c1" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#61f6c1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="675" rx="34" fill="url(#bg)"/>
+  <rect width="1200" height="675" rx="34" fill="url(#glow)"/>
+  <g fill="none" stroke="#61f6c1" stroke-width="8" opacity=".9">
+    <circle cx="895" cy="338" r="170"/>
+    <circle cx="895" cy="338" r="116" opacity=".55"/>
+    <path d="M815 340c45-58 115-58 160 0-45 58-115 58-160 0Z"/>
+    <circle cx="895" cy="340" r="28" fill="#61f6c1"/>
+  </g>
+  <rect x="70" y="66" width="245" height="48" rx="24" fill="#61f6c1" fill-opacity=".14" stroke="#61f6c1" stroke-opacity=".65"/>
+  <text x="193" y="98" text-anchor="middle" fill="#9affd9" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="2">HOUSE SPONSORED</text>
+  <text x="70" y="245" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="800">QUIET COIN</text>
+  <text x="70" y="326" fill="#9affd9" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700">Join the community.</text>
+  <text x="70" y="404" fill="#c8e4db" font-family="Arial, Helvetica, sans-serif" font-size="28">Conversation, updates, and the Quiet Coin Telegram.</text>
+  <text x="70" y="574" fill="#61f6c1" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="2">ATTENTIONBID</text>
+</svg>
