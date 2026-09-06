@@ -56,7 +56,7 @@ transaction. All Solana values must point to the same network.
 ## Disclosed house-sponsored bid bot
 
 After `database/house-bot.sql` is applied, an optional Vercel cron can place one
-operator-funded 0.25 USDC house bid when an auction has remained empty for five
+operator-funded 0.25 USDC house bid when an auction has remained empty for ten
 minutes. The bot rotates sponsored posts for Quiet Coin, LivePayout, and the
 configured Cash App destination. House bids are clearly labeled, excluded from
 organic bid-volume metrics, and never raise the opening price for a user. Any

@@ -310,7 +310,7 @@ export default async function HomePage() {
               <li>Approved winner content appears on the homepage.</li>
               <li>
                 Empty rounds may receive one clearly labeled, operator-funded
-                0.25 USDC house bid after five minutes.
+                0.25 USDC house bid after ten minutes.
               </li>
             </ol>
           </section>
