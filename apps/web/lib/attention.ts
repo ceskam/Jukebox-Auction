@@ -140,6 +140,16 @@ function normalizeOptionalUrl(url: string) {
   }
 }
 
+function normalizeHouseImageUrl(imageUrl: string) {
+  const trimmedUrl = imageUrl.trim();
+
+  if (/^\/house-sponsors\/[a-z0-9-]+\.svg$/.test(trimmedUrl)) {
+    return trimmedUrl;
+  }
+
+  return normalizeOptionalUrl(trimmedUrl);
+}
+
 function validateAttentionContent({
   title,
   description,
@@ -431,7 +441,7 @@ export async function saveHouseAttentionContent({
       title: title.trim(),
       description: description.trim(),
       url: normalizeOptionalUrl(url),
-      image_url: normalizeOptionalUrl(imageUrl),
+      image_url: normalizeHouseImageUrl(imageUrl),
       moderation_status: "approved",
       moderation_note: `House-sponsored post: ${sponsor}.`,
       reviewed_at: now,

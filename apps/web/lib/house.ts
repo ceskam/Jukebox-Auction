@@ -18,7 +18,7 @@ const HOUSE_ATTENTION_ROTATION: HouseAttention[] = [
     description:
       "House-sponsored post from AttentionBid. Join the Quiet Coin Telegram chat for community updates and conversation.",
     url: "https://t.me/quietcoinchat",
-    imageUrl: "",
+    imageUrl: "/house-sponsors/quiet-coin.svg",
   },
   {
     sponsor: "LivePayout",
@@ -26,7 +26,7 @@ const HOUSE_ATTENTION_ROTATION: HouseAttention[] = [
     description:
       "House-sponsored post from AttentionBid. Visit LivePayout to explore its creator and streaming platform.",
     url: "https://www.livepayout.org/",
-    imageUrl: "",
+    imageUrl: "/house-sponsors/livepayout.svg",
   },
   {
     sponsor: "Cash App referral",
@@ -34,7 +34,7 @@ const HOUSE_ATTENTION_ROTATION: HouseAttention[] = [
     description:
       "House-sponsored referral post from AttentionBid. Follow the link to visit $Canderson91 on Cash App.",
     url: "https://cash.app/$Canderson91",
-    imageUrl: "",
+    imageUrl: "/house-sponsors/cash-app.svg",
   },
 ];
 

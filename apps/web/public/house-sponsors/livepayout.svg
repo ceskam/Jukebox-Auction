@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Explore LivePayout</title>
+  <desc id="desc">House-sponsored AttentionBid card inviting viewers to explore LivePayout.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#100a27"/>
+      <stop offset=".55" stop-color="#171b3e"/>
+      <stop offset="1" stop-color="#07374a"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff2ed5"/>
+      <stop offset="1" stop-color="#1bd6ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" rx="34" fill="url(#bg)"/>
+  <g opacity=".17" stroke="#85edff">
+    <path d="M700 130v420M800 130v420M900 130v420M1000 130v420M1100 130v420"/>
+    <path d="M650 190h490M650 290h490M650 390h490M650 490h490"/>
+  </g>
+  <path d="M680 482 760 420l82 24 92-156 78 58 104-142" fill="none" stroke="url(#line)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1116" cy="204" r="18" fill="#1bd6ff"/>
+  <rect x="70" y="66" width="245" height="48" rx="24" fill="#1bd6ff" fill-opacity=".12" stroke="#1bd6ff" stroke-opacity=".7"/>
+  <text x="193" y="98" text-anchor="middle" fill="#85edff" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="2">HOUSE SPONSORED</text>
+  <text x="70" y="245" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="800">LIVEPAYOUT</text>
+  <text x="70" y="326" fill="#85edff" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700">Explore the platform.</text>
+  <text x="70" y="404" fill="#ccd4f4" font-family="Arial, Helvetica, sans-serif" font-size="28">Creator and streaming tools built for live participation.</text>
+  <text x="70" y="574" fill="#ff77df" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="2">ATTENTIONBID</text>
+</svg>
