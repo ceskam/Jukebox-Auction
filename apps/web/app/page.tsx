@@ -7,6 +7,7 @@ import AttentionDisplay from "../AttentionDisplay";
 import TrackPageView from "../TrackPageView";
 import AutoRefresh from "../AutoRefresh";
 import CommunityCard from "../CommunityCard";
+import ShareAuction from "../ShareAuction";
 import {
   getBidHistory,
   getCurrentAuction,
@@ -114,6 +115,7 @@ export default async function HomePage() {
           <a href="#leaderboard">Leaderboard</a>
           <a href="#how-it-works">How it works</a>
           <a href="#community">Community</a>
+          <a href="#share">Share</a>
           <a
             href="/attention-bid-white-paper-v5.pdf"
             target="_blank"
@@ -133,6 +135,8 @@ export default async function HomePage() {
           homepage attention block. Bids are final.
         </p>
       </section>
+
+      <ShareAuction auctionId={currentAuction.id} />
 
       <section
         className="white-paper-banner"

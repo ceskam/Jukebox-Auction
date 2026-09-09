@@ -180,6 +180,75 @@ textarea:focus {
   line-height: 1.6;
 }
 
+.share-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.75fr);
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: center;
+  margin-bottom: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid rgba(35, 240, 107, 0.42);
+  border-radius: 8px;
+  padding: clamp(1.2rem, 3vw, 2rem);
+  background:
+    radial-gradient(circle at 82% 20%, rgba(35, 240, 107, 0.14), transparent 13rem),
+    linear-gradient(135deg, rgba(255, 46, 213, 0.11), rgba(27, 214, 255, 0.1)),
+    var(--panel-strong);
+  box-shadow: 0 0 34px rgba(35, 240, 107, 0.12);
+}
+
+.share-card h2 {
+  margin: 0.45rem 0 0.65rem;
+  font-size: clamp(1.7rem, 4vw, 2.8rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.share-card p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.share-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.share-actions .primary-button {
+  grid-column: 1 / -1;
+  min-height: 3.2rem;
+}
+
+.share-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  padding: 0.8rem 0.9rem;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.share-link:hover {
+  border-color: var(--blue);
+  background: rgba(27, 214, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.share-card .share-message {
+  grid-column: 1 / -1;
+  color: var(--green);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 .white-paper-banner {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1017,6 +1086,7 @@ textarea:focus {
   .top-nav,
   .auction-grid,
   .attention-card,
+  .share-card,
   .white-paper-banner,
   .admin-token-card,
   .admin-review-main,
@@ -1104,6 +1174,14 @@ textarea:focus {
 
   .white-paper-actions {
     grid-template-columns: 1fr;
+  }
+
+  .share-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .share-actions .primary-button {
+    grid-column: auto;
   }
 
   .timer-heading,
