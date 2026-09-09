@@ -1,28 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
   <title id="title">Quiet Coin community</title>
-  <desc id="desc">House-sponsored AttentionBid card inviting viewers to join the Quiet Coin community.</desc>
+  <desc id="desc">A vibrant, house-sponsored AttentionBid card inviting viewers to join the Quiet Coin Telegram community.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#061713"/>
-      <stop offset="1" stop-color="#123d32"/>
+      <stop offset="0" stop-color="#05080d"/>
+      <stop offset=".5" stop-color="#08251f"/>
+      <stop offset="1" stop-color="#114f3e"/>
     </linearGradient>
-    <radialGradient id="glow" cx="72%" cy="44%" r="48%">
-      <stop offset="0" stop-color="#61f6c1" stop-opacity=".34"/>
-      <stop offset="1" stop-color="#61f6c1" stop-opacity="0"/>
+    <radialGradient id="glow" cx="78%" cy="42%" r="50%">
+      <stop offset="0" stop-color="#62ffd0" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#62ffd0" stop-opacity="0"/>
     </radialGradient>
+    <pattern id="dots" width="34" height="34" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="2" fill="#a0ffe2" fill-opacity=".14"/>
+    </pattern>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".42"/>
+    </filter>
   </defs>
   <rect width="1200" height="675" rx="34" fill="url(#bg)"/>
   <rect width="1200" height="675" rx="34" fill="url(#glow)"/>
-  <g fill="none" stroke="#61f6c1" stroke-width="8" opacity=".9">
-    <circle cx="895" cy="338" r="170"/>
-    <circle cx="895" cy="338" r="116" opacity=".55"/>
-    <path d="M815 340c45-58 115-58 160 0-45 58-115 58-160 0Z"/>
-    <circle cx="895" cy="340" r="28" fill="#61f6c1"/>
+  <rect width="1200" height="675" rx="34" fill="url(#dots)"/>
+  <g transform="translate(892 320)" filter="url(#shadow)">
+    <circle r="205" fill="#051a16" stroke="#62ffd0" stroke-width="7"/>
+    <circle r="164" fill="none" stroke="#62ffd0" stroke-opacity=".35" stroke-width="3" stroke-dasharray="10 15"/>
+    <path d="M-105-34c0-60 54-107 120-107s120 47 120 107S81 73 15 73c-20 0-39-4-56-11l-65 42 19-72c-12-19-18-41-18-66Z" fill="#62ffd0"/>
+    <path d="M-48-33h126M-48 5H48" fill="none" stroke="#06231c" stroke-width="18" stroke-linecap="round"/>
+    <path d="M-126 151c79 38 170 30 240-19" fill="none" stroke="#a0ffe2" stroke-width="9" stroke-linecap="round"/>
   </g>
-  <rect x="70" y="66" width="245" height="48" rx="24" fill="#61f6c1" fill-opacity=".14" stroke="#61f6c1" stroke-opacity=".65"/>
-  <text x="193" y="98" text-anchor="middle" fill="#9affd9" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="2">HOUSE SPONSORED</text>
-  <text x="70" y="245" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="800">QUIET COIN</text>
-  <text x="70" y="326" fill="#9affd9" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700">Join the community.</text>
-  <text x="70" y="404" fill="#c8e4db" font-family="Arial, Helvetica, sans-serif" font-size="28">Conversation, updates, and the Quiet Coin Telegram.</text>
-  <text x="70" y="574" fill="#61f6c1" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="2">ATTENTIONBID</text>
+  <rect x="64" y="58" width="324" height="54" rx="27" fill="#62ffd0" fill-opacity=".12" stroke="#62ffd0" stroke-opacity=".72"/>
+  <text x="226" y="93" text-anchor="middle" fill="#a0ffe2" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="800" letter-spacing="2">HOUSE SPONSORED • ATTENTIONBID</text>
+  <text x="64" y="218" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="900" letter-spacing="-2">QUIET COIN</text>
+  <text x="64" y="289" fill="#a0ffe2" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="800">COMMUNITY IS THE SIGNAL.</text>
+  <text x="64" y="365" fill="#d4e9e2" font-family="Arial, Helvetica, sans-serif" font-size="27">Updates, conversation, and the people</text>
+  <text x="64" y="402" fill="#d4e9e2" font-family="Arial, Helvetica, sans-serif" font-size="27">following what comes next.</text>
+  <rect x="64" y="486" width="390" height="74" rx="16" fill="#62ffd0"/>
+  <text x="259" y="533" text-anchor="middle" fill="#052019" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="900" letter-spacing="1">JOIN THE TELEGRAM  →</text>
+  <text x="64" y="618" fill="#91b9ad" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="2">OPERATOR-FUNDED PROMOTION</text>
 </svg>

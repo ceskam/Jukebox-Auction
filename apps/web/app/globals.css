@@ -295,6 +295,26 @@ textarea:focus {
   box-shadow: 0 0 34px rgba(27, 214, 255, 0.15);
 }
 
+.house-attention {
+  grid-template-columns: minmax(320px, 1.08fr) minmax(260px, 0.92fr);
+}
+
+.house-attention .attention-copy {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.house-attention .attention-copy > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.house-attention .primary-link {
+  margin-top: 0.2rem;
+}
+
 .attention-card .house-disclosure,
 .leader-card .house-disclosure {
   margin: 0;
@@ -330,7 +350,8 @@ textarea:focus {
 
 .attention-image {
   width: 100%;
-  max-height: 300px;
+  aspect-ratio: 16 / 9;
+  max-height: 340px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
   object-fit: cover;

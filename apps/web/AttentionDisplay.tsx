@@ -10,6 +10,22 @@ type Props = {
   isHouseSponsored?: boolean;
 };
 
+function getHouseCallToAction(url: string) {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+
+    if (hostname === "t.me") return "Join Quiet Coin on Telegram";
+    if (hostname === "livepayout.org" || hostname === "www.livepayout.org") {
+      return "Explore LivePayout";
+    }
+    if (hostname === "cash.app") return "Visit the Cash App referral";
+  } catch {
+    // House URLs are validated before they are stored; retain a safe fallback.
+  }
+
+  return "Visit sponsor";
+}
+
 export default function AttentionDisplay({
   auctionId,
   title,
@@ -37,27 +53,28 @@ export default function AttentionDisplay({
           {description ||
             "Bid in USDC for the next 15-minute block and put your link, launch, or message in front of everyone watching."}
         </p>
-      </div>
 
-      {isHouseSponsored && (
-        <p className="house-disclosure">
-          Operator-funded house bid · Excluded from organic bid totals
-        </p>
-      )}
+        {isHouseSponsored && (
+          <p className="house-disclosure">
+            Operator-funded house bid · Excluded from organic bid totals
+          </p>
+        )}
 
-      {url &&
-        (isHouseSponsored ? (
+        {isHouseSponsored && url && (
           <a
             className="primary-link"
             href={url}
             target="_blank"
             rel="sponsored noreferrer"
           >
-            Visit sponsor
+            {getHouseCallToAction(url)} <span aria-hidden="true">↗</span>
           </a>
-        ) : (
-          <TrackedAttentionLink auctionId={auctionId} url={url} />
-        ))}
+        )}
+      </div>
+
+      {url && !isHouseSponsored && (
+        <TrackedAttentionLink auctionId={auctionId} url={url} />
+      )}
     </section>
   );
 }

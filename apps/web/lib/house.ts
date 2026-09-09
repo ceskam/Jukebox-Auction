@@ -14,17 +14,17 @@ export type HouseAttention = {
 const HOUSE_ATTENTION_ROTATION: HouseAttention[] = [
   {
     sponsor: "Quiet Coin",
-    title: "Join the Quiet Coin community",
+    title: "Quiet Coin: join the conversation",
     description:
-      "House-sponsored post from AttentionBid. Join the Quiet Coin Telegram chat for community updates and conversation.",
+      "Step into the Quiet Coin Telegram for community conversation, project updates, and a closer look at what people are building together. This is a disclosed, house-sponsored post from AttentionBid.",
     url: "https://t.me/quietcoinchat",
     imageUrl: "/house-sponsors/quiet-coin.svg",
   },
   {
     sponsor: "LivePayout",
-    title: "Explore LivePayout",
+    title: "LivePayout: see what happens live",
     description:
-      "House-sponsored post from AttentionBid. Visit LivePayout to explore its creator and streaming platform.",
+      "Explore LivePayout and discover a platform focused on creators, live streams, and audience participation. Visit the site to see what the team is building. This is a disclosed, house-sponsored post from AttentionBid.",
     url: "https://www.livepayout.org/",
     imageUrl: "/house-sponsors/livepayout.svg",
   },
@@ -32,7 +32,7 @@ const HOUSE_ATTENTION_ROTATION: HouseAttention[] = [
     sponsor: "Cash App referral",
     title: "Join Cash App with $Canderson91",
     description:
-      "House-sponsored referral post from AttentionBid. Follow the link to visit $Canderson91 on Cash App.",
+      "Looking for a simple way to send and receive money? Visit the $Canderson91 Cash App referral page and check whether an offer is available to you. This is a disclosed, house-sponsored referral from AttentionBid.",
     url: "https://cash.app/$Canderson91",
     imageUrl: "/house-sponsors/cash-app.svg",
   },

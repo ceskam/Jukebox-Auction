@@ -1,28 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
   <title id="title">Explore LivePayout</title>
-  <desc id="desc">House-sponsored AttentionBid card inviting viewers to explore LivePayout.</desc>
+  <desc id="desc">A dynamic, house-sponsored AttentionBid card inviting viewers to explore LivePayout.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#100a27"/>
-      <stop offset=".55" stop-color="#171b3e"/>
-      <stop offset="1" stop-color="#07374a"/>
+      <stop offset="0" stop-color="#10061f"/>
+      <stop offset=".52" stop-color="#12183b"/>
+      <stop offset="1" stop-color="#063e53"/>
     </linearGradient>
-    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#ff2ed5"/>
       <stop offset="1" stop-color="#1bd6ff"/>
     </linearGradient>
+    <radialGradient id="glow" cx="80%" cy="42%" r="46%">
+      <stop offset="0" stop-color="#1bd6ff" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#1bd6ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".48"/>
+    </filter>
   </defs>
   <rect width="1200" height="675" rx="34" fill="url(#bg)"/>
-  <g opacity=".17" stroke="#85edff">
-    <path d="M700 130v420M800 130v420M900 130v420M1000 130v420M1100 130v420"/>
-    <path d="M650 190h490M650 290h490M650 390h490M650 490h490"/>
+  <rect width="1200" height="675" rx="34" fill="url(#glow)"/>
+  <g transform="translate(824 146)" filter="url(#shadow)">
+    <rect width="310" height="360" rx="30" fill="#0b1029" stroke="#5be7ff" stroke-opacity=".65" stroke-width="4"/>
+    <rect x="28" y="30" width="254" height="142" rx="20" fill="#141e46"/>
+    <circle cx="155" cy="101" r="47" fill="url(#accent)"/>
+    <path d="m143 76 38 25-38 25Z" fill="#fff"/>
+    <circle cx="54" cy="211" r="12" fill="#ff2ed5"/>
+    <circle cx="90" cy="211" r="12" fill="#7d75ff"/>
+    <circle cx="126" cy="211" r="12" fill="#1bd6ff"/>
+    <path d="M31 300h48l23-55 32 88 30-65 29 32h86" fill="none" stroke="url(#accent)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
-  <path d="M680 482 760 420l82 24 92-156 78 58 104-142" fill="none" stroke="url(#line)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="1116" cy="204" r="18" fill="#1bd6ff"/>
-  <rect x="70" y="66" width="245" height="48" rx="24" fill="#1bd6ff" fill-opacity=".12" stroke="#1bd6ff" stroke-opacity=".7"/>
-  <text x="193" y="98" text-anchor="middle" fill="#85edff" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="2">HOUSE SPONSORED</text>
-  <text x="70" y="245" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="800">LIVEPAYOUT</text>
-  <text x="70" y="326" fill="#85edff" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700">Explore the platform.</text>
-  <text x="70" y="404" fill="#ccd4f4" font-family="Arial, Helvetica, sans-serif" font-size="28">Creator and streaming tools built for live participation.</text>
-  <text x="70" y="574" fill="#ff77df" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="2">ATTENTIONBID</text>
+  <path d="M694 510c75-22 121-49 165-101 51-60 96-101 240-151" fill="none" stroke="url(#accent)" stroke-width="8" stroke-linecap="round" opacity=".72"/>
+  <rect x="64" y="58" width="324" height="54" rx="27" fill="#1bd6ff" fill-opacity=".1" stroke="#1bd6ff" stroke-opacity=".72"/>
+  <text x="226" y="93" text-anchor="middle" fill="#8aeeff" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="800" letter-spacing="2">HOUSE SPONSORED • ATTENTIONBID</text>
+  <text x="64" y="218" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="900" letter-spacing="-2">LIVEPAYOUT</text>
+  <text x="64" y="289" fill="#85edff" font-family="Arial, Helvetica, sans-serif" font-size="37" font-weight="800">LIVE MOMENTS. REAL MOMENTUM.</text>
+  <text x="64" y="365" fill="#d4dcfa" font-family="Arial, Helvetica, sans-serif" font-size="27">Explore a platform focused on creators,</text>
+  <text x="64" y="402" fill="#d4dcfa" font-family="Arial, Helvetica, sans-serif" font-size="27">streams, and audience participation.</text>
+  <rect x="64" y="486" width="438" height="74" rx="16" fill="url(#accent)"/>
+  <text x="283" y="533" text-anchor="middle" fill="#090c1c" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="900" letter-spacing="1">EXPLORE LIVEPAYOUT.ORG  →</text>
+  <text x="64" y="618" fill="#9099c5" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="2">OPERATOR-FUNDED PROMOTION</text>
 </svg>
