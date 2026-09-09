@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Playlist",
+  robots: { index: false, follow: false },
+};
+
 export default function PlaylistPage() {
   return (
     <main style={{ padding: "2rem" }}>
