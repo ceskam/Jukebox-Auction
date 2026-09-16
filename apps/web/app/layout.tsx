@@ -71,6 +71,23 @@ const WEBSITE_STRUCTURED_DATA = {
   sameAs: ["https://x.com/attentionbid"],
 };
 
+const ORGANIZATION_STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Attention Bid, Inc.",
+  legalName: "Attention Bid, Inc.",
+  url: SITE_URL,
+  foundingDate: "2026",
+  foundingLocation: {
+    "@type": "Place",
+    name: "Delaware, United States",
+  },
+  sameAs: [
+    "https://x.com/attentionbid",
+    "https://t.me/+dVMl7qg8gJJlY2E0",
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -83,6 +100,15 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(WEBSITE_STRUCTURED_DATA).replace(
+              /</g,
+              "\\u003c"
+            ),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(ORGANIZATION_STRUCTURED_DATA).replace(
               /</g,
               "\\u003c"
             ),

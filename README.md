@@ -15,7 +15,8 @@ Ship a functional public auction loop:
 - Phantom creates real Solana USDC transfers before bids are saved
 - The backend verifies the Solana transaction signature, USDC mint, amount, sender, and treasury recipient
 - Only a cryptographically authenticated winning wallet can submit content
-- Winner content requires manual admin approval before it becomes public
+- Winner content is auto-approved for the invite-only beta; admins can still
+  hide or reject it
 - Bid history, current high bid, countdown, and wallet state are visible on the homepage
 
 ## Current Implementation
@@ -41,7 +42,7 @@ Demo payments can still be enabled for local testing with `ENABLE_DEMO_PAYMENTS=
 6. The backend verifies the Solana transaction before saving the bid.
 7. The highest verified bid wins when the countdown ends.
 8. When that block becomes current, the winning wallet can submit or update homepage attention content.
-9. An admin reviews the submission before it becomes public.
+9. The submission becomes public automatically; an admin can hide or reject it.
 10. The next auction continues automatically.
 
 ## Live Beta Safeguards
@@ -83,6 +84,7 @@ npm run dev
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+NEXT_PUBLIC_SITE_URL=https://attentionbid.com
 SUPABASE_SERVICE_ROLE_KEY=...
 NEXT_PUBLIC_SOLANA_RPC_URL=...
 SOLANA_RPC_URL=...
