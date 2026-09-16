@@ -8,6 +8,8 @@ import TrackPageView from "../TrackPageView";
 import AutoRefresh from "../AutoRefresh";
 import CommunityCard from "../CommunityCard";
 import ShareAuction from "../ShareAuction";
+import CompanyCard from "../CompanyCard";
+import SiteFooter from "../SiteFooter";
 import {
   getBidHistory,
   getCurrentAuction,
@@ -116,13 +118,8 @@ export default async function HomePage() {
           <a href="#how-it-works">How it works</a>
           <a href="#community">Community</a>
           <a href="#share">Share</a>
-          <a
-            href="/attention-bid-white-paper-v5.pdf"
-            target="_blank"
-            rel="noreferrer"
-          >
-            White paper
-          </a>
+          <a href="/about">Company</a>
+          <a href="/white-paper">White paper</a>
         </div>
         <WalletConnect />
       </nav>
@@ -136,6 +133,8 @@ export default async function HomePage() {
         </p>
       </section>
 
+      <CompanyCard />
+
       <ShareAuction auctionId={currentAuction.id} />
 
       <section
@@ -144,30 +143,28 @@ export default async function HomePage() {
         aria-labelledby="white-paper-title"
       >
         <div className="white-paper-copy">
-          <span className="eyebrow">White paper · Version 5.0</span>
+          <span className="eyebrow">White paper · Version 6.0</span>
           <h2 id="white-paper-title">
             The market for the next 15 minutes of attention.
           </h2>
           <p>
             Read the market thesis, perpetual-auction design, infrastructure,
-            roadmap, token-economics discussion, and key risks behind
-            AttentionBid.
+            company structure, funding pathways, tokenization boundaries,
+            roadmap, and key risks behind Attention Bid.
           </p>
-          <span className="white-paper-meta">Discussion draft · 6-page PDF</span>
+          <span className="white-paper-meta">Discussion draft · 7-page PDF</span>
         </div>
         <div className="white-paper-actions">
           <a
             className="primary-link"
-            href="/attention-bid-white-paper-v5.pdf"
-            target="_blank"
-            rel="noreferrer"
+            href="/white-paper"
           >
-            Read white paper <span aria-hidden="true">↗</span>
+            White paper overview
           </a>
           <a
             className="ghost-button"
-            href="/attention-bid-white-paper-v5.pdf"
-            download="AttentionBid-White-Paper-v5.pdf"
+            href="/attention-bid-white-paper-v6.pdf"
+            download="Attention-Bid-White-Paper-v6.pdf"
           >
             Download PDF
           </a>
@@ -320,6 +317,8 @@ export default async function HomePage() {
           </section>
         </aside>
       </section>
+
+      <SiteFooter />
     </main>
   );
 }

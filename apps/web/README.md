@@ -20,6 +20,7 @@ Run `../../database/schema.sql` and `../../database/storage.sql` in Supabase bef
 Copy `.env.example` to `.env.local` and fill in:
 
 ```bash
+NEXT_PUBLIC_SITE_URL=https://attentionbid.com
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
@@ -34,6 +35,10 @@ ADMIN_TOKEN=...
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` must stay server-only.
+
+`NEXT_PUBLIC_SITE_URL` is the canonical public origin used by search metadata,
+social previews, `robots.txt`, and the XML sitemap. Change it only after the
+custom domain is connected and serving the production deployment.
 
 `ADMIN_TOKEN` protects the `/admin` moderation screen. Use a long private value
 in production, then paste that value into the admin page when reviewing content.
@@ -76,8 +81,24 @@ The homepage shows running totals for page views, verified USDC bid volume, and
 attention link clicks. Run the latest `../../database/schema.sql` in Supabase so
 the `attention_events` table exists before deploying this version.
 
+## Company, white paper, and search discovery
+
+The public company profile lives at `/about`, and the searchable white-paper
+overview lives at `/white-paper`. Version 6 of the PDF is served from
+`/attention-bid-white-paper-v6.pdf`. The app also publishes organization and
+website structured data, social preview metadata, `robots.txt`, and
+`sitemap.xml`.
+
+After a custom domain is connected in Vercel:
+
+1. Set `NEXT_PUBLIC_SITE_URL` to the final `https://` domain for Production.
+2. Redeploy so canonical links, previews, the sitemap, and robots file update.
+3. Add the domain to Google Search Console and submit `/sitemap.xml`.
+4. Keep one canonical domain and redirect the `www` or apex alternative to it.
+
 ## Next Work
 
 - Add Supabase Realtime for live bid history and current high bid updates.
 - Add a stronger payment receipt/admin audit view.
-- Add custom domain and production analytics.
+- Add privacy-conscious production analytics and track auction-to-wallet and
+  wallet-to-bid conversion.
