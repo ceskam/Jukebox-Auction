@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 const DEFAULT_SITE_URL = "https://attention-bid2-ten.vercel.app";
 const SHARE_TEXT =
-  "Attention is valuable. Bid USDC on Solana for the next 15 minutes of homepage attention.";
+  "Attention is valuable. Bid USDC on Solana for the next 30 minutes of homepage attention. QUIET holders get up to 10x bid power.";
 
 export default function ShareAuction({ auctionId }: { auctionId: string }) {
   const [shareUrl, setShareUrl] = useState(DEFAULT_SITE_URL);
@@ -61,7 +61,7 @@ export default function ShareAuction({ auctionId }: { auctionId: string }) {
         <h2>Share the live auction.</h2>
         <p>
           Invite builders, creators, communities, and curious bidders to watch
-          the next 15-minute auction unfold.
+          the next 30-minute auction unfold.
         </p>
       </div>
       <div className="share-actions">

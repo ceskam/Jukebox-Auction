@@ -43,7 +43,7 @@ function getHouseDelayMs() {
     process.env.HOUSE_BOT_DELAY_MINUTES ?? DEFAULT_HOUSE_DELAY_MINUTES
   );
   const safeMinutes = Number.isFinite(configuredMinutes)
-    ? Math.min(14, Math.max(1, configuredMinutes))
+    ? Math.min(29, Math.max(1, configuredMinutes))
     : DEFAULT_HOUSE_DELAY_MINUTES;
 
   return safeMinutes * 60 * 1000;
@@ -53,8 +53,7 @@ export function isHouseBotEnabled() {
   return process.env.HOUSE_BOT_ENABLED === "true";
 }
 
-export function getHouseActivationTime(auctionStartsAt: number, blockLengthMs: number) {
-  const biddingOpenedAt = auctionStartsAt - blockLengthMs;
+export function getHouseActivationTime(biddingOpenedAt: number) {
   return biddingOpenedAt + getHouseDelayMs();
 }
 

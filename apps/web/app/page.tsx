@@ -128,8 +128,9 @@ export default async function HomePage() {
         <span className="eyebrow">The world&apos;s first attention auction</span>
         <h1>Attention is valuable. Bid for it.</h1>
         <p>
-          Every 15 minutes, the highest verified USDC bidder wins the public
-          homepage attention block. Bids are final.
+          Every 30 minutes, the highest effective bidder wins the public
+          homepage attention block. QUIET holders receive up to 10x bid power.
+          Bids are final.
         </p>
       </section>
 
@@ -143,9 +144,9 @@ export default async function HomePage() {
         aria-labelledby="white-paper-title"
       >
         <div className="white-paper-copy">
-          <span className="eyebrow">White paper · Version 6.0</span>
+          <span className="eyebrow">White paper · Version 6.1</span>
           <h2 id="white-paper-title">
-            The market for the next 15 minutes of attention.
+            The market for the next 30 minutes of attention.
           </h2>
           <p>
             Read the market thesis, perpetual-auction design, infrastructure,
@@ -163,8 +164,8 @@ export default async function HomePage() {
           </a>
           <a
             className="ghost-button"
-            href="/attention-bid-white-paper-v6.pdf"
-            download="Attention-Bid-White-Paper-v6.pdf"
+            href="/attention-bid-white-paper-v6-1.pdf"
+            download="Attention-Bid-White-Paper-v6-1.pdf"
           >
             Download PDF
           </a>
@@ -183,6 +184,7 @@ export default async function HomePage() {
           />
 
           <CountdownTimer
+            startsAt={currentAuction.startsAt}
             endsAt={currentAuction.endsAt}
             houseBidActive={nextAuction.isHouseBid}
           />
@@ -206,6 +208,14 @@ export default async function HomePage() {
                   : nextAuction.highestBid
                 ).toFixed(2)} USDC
               </strong>
+              {!nextAuction.isHouseBid && nextAuction.highestBid > 0 && (
+                <small>
+                  {nextAuction.highestEffectiveBid.toFixed(2)} effective at{" "}
+                  {nextAuction.leadingBidMultiplier
+                    .toFixed(3)
+                    .replace(/\.?0+$/, "")}x
+                </small>
+              )}
             </div>
           </div>
 
@@ -231,7 +241,7 @@ export default async function HomePage() {
           </section>
 
           <BidButton
-            currentHighBid={nextAuction.highestBid}
+            currentHighestEffectiveBid={nextAuction.highestEffectiveBid}
             auctionId={nextAuction.id}
           />
 
@@ -251,6 +261,9 @@ export default async function HomePage() {
           <AttentionOwner
             winner={nextAuction.winner}
             highestBid={nextAuction.highestBid}
+            highestEffectiveBid={nextAuction.highestEffectiveBid}
+            bidMultiplier={nextAuction.leadingBidMultiplier}
+            quietBalance={nextAuction.leadingQuietBalance}
             auctionId={nextAuction.id}
             isHouseBid={nextAuction.isHouseBid}
             houseBidAmount={nextAuction.houseBidAmount}
@@ -286,7 +299,15 @@ export default async function HomePage() {
                         </a>
                       )}
                     </div>
-                    <strong>{bid.amountUsdc.toFixed(2)} USDC</strong>
+                    <strong>
+                      {bid.amountUsdc.toFixed(2)} USDC
+                      {bid.bidSource === "user" && (
+                        <small className="effective-bid-label">
+                          {bid.bidMultiplier.toFixed(3).replace(/\.?0+$/, "")}x
+                          = {bid.effectiveBidUsdc.toFixed(2)} effective
+                        </small>
+                      )}
+                    </strong>
                   </li>
                 ))}
               </ol>
@@ -305,8 +326,12 @@ export default async function HomePage() {
             <span className="eyebrow">How it works</span>
             <ol>
               <li>Connect Phantom.</li>
-              <li>Bid USDC for the next 15-minute block.</li>
-              <li>Highest verified bid wins when the timer ends.</li>
+              <li>Bid USDC for the next 30-minute block.</li>
+              <li>
+                Your connected wallet&apos;s verified QUIET balance adds
+                proportional bid power, up to 10x.
+              </li>
+              <li>Highest effective bid wins when the timer ends.</li>
               <li>Bids are final. Losing bids are not refunded.</li>
               <li>Approved winner content appears on the homepage.</li>
               <li>

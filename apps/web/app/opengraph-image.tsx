@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Attention Bid — bid for the next 15 minutes of attention";
+export const alt = "Attention Bid - bid for the next 30 minutes of attention";
 export const size = {
   width: 1200,
   height: 630,
@@ -108,8 +108,8 @@ export default function OpenGraphImage() {
               lineHeight: 1.35,
             }}
           >
-            Every 15 minutes, the highest verified bidder wins the live homepage
-            feature block.
+            Every 30 minutes, the highest effective bidder wins. QUIET holders
+            receive up to 10x bid power.
           </div>
         </div>
 

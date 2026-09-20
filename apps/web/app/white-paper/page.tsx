@@ -4,11 +4,11 @@ import SiteFooter from "../../SiteFooter";
 export const metadata: Metadata = {
   title: "White Paper",
   description:
-    "Read the Attention Bid white paper: market thesis, 15-minute auction design, Solana and USDC infrastructure, company roadmap, funding approach, and risks.",
+    "Read the Attention Bid white paper: 30-minute auction design, QUIET bid power, Solana and USDC infrastructure, company roadmap, funding approach, and risks.",
   alternates: { canonical: "/white-paper" },
 };
 
-const WHITE_PAPER_URL = "/attention-bid-white-paper-v6.pdf";
+const WHITE_PAPER_URL = "/attention-bid-white-paper-v6-1.pdf";
 
 const FAQ_STRUCTURED_DATA = {
   "@context": "https://schema.org",
@@ -19,7 +19,7 @@ const FAQ_STRUCTURED_DATA = {
       name: "What is Attention Bid?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Attention Bid is a live marketplace where verified USDC bidders compete to control the next 15-minute homepage attention block.",
+        text: "Attention Bid is a live marketplace where USDC bidders compete to control the next 30-minute homepage attention block, with verified QUIET balances providing proportional bid power.",
       },
     },
     {
@@ -32,10 +32,10 @@ const FAQ_STRUCTURED_DATA = {
     },
     {
       "@type": "Question",
-      name: "Does Attention Bid currently offer a token or company shares?",
+      name: "Does QUIET bid power represent Attention Bid shares?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No. The website does not currently offer company shares, tokens, or other securities.",
+        text: "No. QUIET bid power is a product utility based on a wallet-balance snapshot. It does not represent Attention Bid equity, revenue rights, dividends, or governance.",
       },
     },
   ],
@@ -62,8 +62,8 @@ export default function WhitePaperPage() {
       </nav>
 
       <header className="content-hero document-hero">
-        <span className="eyebrow">White paper · Version 6.0</span>
-        <h1>The market for the next 15 minutes of attention.</h1>
+        <span className="eyebrow">White paper · Version 6.1</span>
+        <h1>The market for the next 30 minutes of attention.</h1>
         <p>
           The updated paper covers the live auction design, Attention Bid,
           Inc., the growth thesis, funding pathways, tokenization constraints,
@@ -76,12 +76,12 @@ export default function WhitePaperPage() {
             target="_blank"
             rel="noreferrer"
           >
-            Read version 6.0 <span aria-hidden="true">↗</span>
+            Read version 6.1 <span aria-hidden="true">↗</span>
           </a>
           <a
             className="ghost-button"
             href={WHITE_PAPER_URL}
-            download="Attention-Bid-White-Paper-v6.pdf"
+            download="Attention-Bid-White-Paper-v6-1.pdf"
           >
             Download PDF
           </a>
@@ -97,7 +97,7 @@ export default function WhitePaperPage() {
         <article>
           <span>02</span>
           <h2>Live infrastructure</h2>
-          <p>How Solana and native USDC support verifiable settlement.</p>
+          <p>How Solana, USDC, and non-custodial QUIET snapshots support settlement and bid power.</p>
         </article>
         <article>
           <span>03</span>

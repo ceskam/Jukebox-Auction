@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const rateLimit = checkRateLimit(request, {
     key: "bid",
     limit: 12,
-    windowMs: 15 * 60 * 1000,
+    windowMs: 30 * 60 * 1000,
   });
 
   if (!rateLimit.allowed) return rateLimitResponse(rateLimit.resetAt);

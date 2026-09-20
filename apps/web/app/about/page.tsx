@@ -4,7 +4,7 @@ import SiteFooter from "../../SiteFooter";
 export const metadata: Metadata = {
   title: "Company",
   description:
-    "Learn about Attention Bid, Inc., the Delaware corporation building the live 15-minute attention auction.",
+    "Learn about Attention Bid, Inc., the Delaware corporation building the live 30-minute attention auction.",
   alternates: { canonical: "/about" },
 };
 
@@ -27,7 +27,7 @@ export default function AboutPage() {
         <p>
           Attention Bid, Inc. is a Delaware C corporation developing a
           perpetual auction where the highest verified USDC bidder controls the
-          next 15 minutes of the public homepage attention block.
+          next 30 minutes of the public homepage attention block.
         </p>
       </header>
 
