@@ -51,7 +51,7 @@ export default function AttentionDisplay({
         <h2>{title || "The next winner controls this space"}</h2>
         <p>
           {description ||
-            "Bid in USDC for the next 15-minute block and put your link, launch, or message in front of everyone watching."}
+            "Bid in USDC for the next 30-minute block and put your link, launch, or message in front of everyone watching."}
         </p>
 
         {isHouseSponsored && (

@@ -2,7 +2,7 @@
 
 The web app is the public interface for Attention Bid.
 
-Users connect Phantom, bid USDC for the next 15-minute attention block, and the winning wallet controls the public homepage content for the block it won. Winner content is auto-approved so auctions can run continuously, while admins can still hide or reject content when needed. Bids are final and are not refunded.
+Users connect Phantom, bid USDC for the next 30-minute attention block, and the winning wallet controls the public homepage content for the block it won. The server snapshots the bidder wallet's QUIET balance and applies proportional bid power from 1x to 10x. Winner content is auto-approved so auctions can run continuously, while admins can still hide or reject content when needed. Bids are final and are not refunded.
 
 ## Persistence
 
@@ -31,6 +31,7 @@ NEXT_PUBLIC_USDC_MINT_ADDRESS=...
 USDC_MINT_ADDRESS=...
 NEXT_PUBLIC_TREASURY_WALLET_ADDRESS=...
 TREASURY_WALLET_ADDRESS=...
+QUIET_MINT_ADDRESS=JCfSVdmBNKwMnMUMccfNbQQVVJKYsQNbXCqhdRuZpump
 ADMIN_TOKEN=...
 ```
 
@@ -51,12 +52,17 @@ transaction. All Solana values must point to the same network.
 ## Current Flow
 
 1. The homepage shows the current attention block.
-2. Bids are placed in USDC for the next 15-minute block.
-3. The highest verified bid wins when the current block closes.
-4. Bids are winner-takes-all. Losing bids are not refunded.
-5. When that auction becomes current, the winning wallet can publish the title, description, uploaded image or image URL, and link.
-6. New content is auto-approved so blocks can run without manual review every 15 minutes; admins can still hide or reject content in `/admin`. Editing blocked content does not automatically unhide it.
-7. The next auction continues automatically.
+2. Bids are placed in USDC for the next 30-minute block.
+3. The server verifies the connected wallet's current QUIET balance and saves a
+   bid-power snapshot. Tokens remain in the holder's wallet; they are not locked.
+4. The highest effective bid wins when the current block closes.
+5. Bids are winner-takes-all. Losing bids are not refunded.
+6. When that auction becomes current, the winning wallet can publish the title, description, uploaded image or image URL, and link.
+7. New content is auto-approved so blocks can run without manual review every 30 minutes; admins can still hide or reject content in `/admin`. Editing blocked content does not automatically unhide it.
+8. The next auction continues automatically.
+
+The snapshot design is non-custodial but does not lock QUIET. A true deposited
+vault would require a separately deployed and audited Solana program.
 
 ## Disclosed house-sponsored bid bot
 
@@ -84,8 +90,8 @@ the `attention_events` table exists before deploying this version.
 ## Company, white paper, and search discovery
 
 The public company profile lives at `/about`, and the searchable white-paper
-overview lives at `/white-paper`. Version 6 of the PDF is served from
-`/attention-bid-white-paper-v6.pdf`. The app also publishes organization and
+overview lives at `/white-paper`. Version 6.1 of the PDF is served from
+`/attention-bid-white-paper-v6-1.pdf`. The app also publishes organization and
 website structured data, social preview metadata, `robots.txt`, and
 `sitemap.xml`.
 

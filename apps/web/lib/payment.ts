@@ -29,11 +29,6 @@ function isDemoPaymentsEnabled() {
   return process.env.ENABLE_DEMO_PAYMENTS === "true";
 }
 
-function getMaxBetaBidUsdc() {
-  const configured = Number(process.env.MAX_BETA_BID_USDC ?? "100");
-  return Number.isFinite(configured) && configured > 0 ? configured : 100;
-}
-
 function getSolanaRpcUrl() {
   return process.env.SOLANA_RPC_URL ?? process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
 }
@@ -117,7 +112,7 @@ function verifyTransferInstruction({
 function isRecentTransaction(blockTime: number | null | undefined) {
   if (!blockTime) return false;
 
-  const maxAgeMs = 20 * 60 * 1000;
+  const maxAgeMs = 45 * 60 * 1000;
   return Date.now() - blockTime * 1000 <= maxAgeMs;
 }
 
@@ -146,13 +141,14 @@ export async function verifySolanaUsdcPayment({
     };
   }
 
-  if (amountUsdc > getMaxBetaBidUsdc()) {
+  const amountBaseUnits = amountUsdc * LAMPORTS_PER_USDC;
+  if (!Number.isSafeInteger(Math.round(amountBaseUnits))) {
     return {
       ok: false,
       status: "failed",
       signature: paymentSignature ?? null,
       provider: "solana-usdc",
-      message: `Live beta bids are limited to ${getMaxBetaBidUsdc().toFixed(2)} USDC.`,
+      message: "The bid amount is too large to verify safely.",
     };
   }
 

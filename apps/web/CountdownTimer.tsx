@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 type Props = {
+  startsAt: number;
   endsAt: number;
   houseBidActive?: boolean;
 };
@@ -23,7 +24,7 @@ const TIMER_NOTICES: Record<
 > = {
   open: {
     label: "Bidding is open",
-    message: "Place a bid now for the next 15-minute attention block.",
+    message: "Place a bid now for the next 30-minute attention block.",
   },
   soon: {
     label: "Ending soon",
@@ -44,6 +45,7 @@ const TIMER_NOTICES: Record<
 };
 
 export default function CountdownTimer({
+  startsAt,
   endsAt,
   houseBidActive = false,
 }: Props) {
@@ -69,9 +71,10 @@ export default function CountdownTimer({
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
+  const totalSeconds = Math.max(1, Math.floor((endsAt - startsAt) / 1000));
   const percentRemaining = Math.max(
     0,
-    Math.min(100, Math.ceil((secondsLeft / 900) * 100))
+    Math.min(100, Math.ceil((secondsLeft / totalSeconds) * 100))
   );
   const phase = getTimerPhase(secondsLeft);
   const notice =

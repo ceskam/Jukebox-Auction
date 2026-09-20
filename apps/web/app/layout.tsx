@@ -5,13 +5,13 @@ import type { Metadata } from "next";
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://attention-bid2-ten.vercel.app";
 const SITE_DESCRIPTION =
-  "Bid USDC on Solana for the next 15 minutes of homepage attention. The highest verified bidder controls the live Attention Bid feature block.";
+  "Bid USDC on Solana for the next 30 minutes of homepage attention. QUIET holders receive up to 10x bid power.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: "Attention Bid",
   title: {
-    default: "Attention Bid | The 15-Minute Attention Auction",
+    default: "Attention Bid | The 30-Minute Attention Auction",
     template: "%s | Attention Bid",
   },
   description: SITE_DESCRIPTION,
@@ -30,14 +30,14 @@ export const metadata: Metadata = {
     type: "website",
     url: "/",
     siteName: "Attention Bid",
-    title: "Attention Bid | Win the Next 15 Minutes",
+    title: "Attention Bid | Win the Next 30 Minutes",
     description: SITE_DESCRIPTION,
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Attention Bid — bid for the next 15 minutes of attention",
+        alt: "Attention Bid - bid for the next 30 minutes of attention",
       },
     ],
   },
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@attentionbid",
     creator: "@attentionbid",
-    title: "Attention Bid | Win the Next 15 Minutes",
+    title: "Attention Bid | Win the Next 30 Minutes",
     description: SITE_DESCRIPTION,
     images: ["/opengraph-image"],
   },

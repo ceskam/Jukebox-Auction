@@ -787,6 +787,63 @@ textarea:focus {
   margin: 1rem 0;
 }
 
+.bid-power-vault {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  border: 1px solid rgba(27, 214, 255, 0.38);
+  border-radius: 8px;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(35, 240, 107, 0.14), transparent 11rem),
+    linear-gradient(135deg, rgba(27, 214, 255, 0.09), rgba(255, 46, 213, 0.08));
+}
+
+.bid-power-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.bid-power-heading > div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.bid-power-heading strong {
+  color: var(--green);
+  font-size: 1.4rem;
+}
+
+.bid-power-heading .ghost-button {
+  width: auto;
+}
+
+.bid-power-vault p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.bid-power-vault .bid-power-formula {
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.bid-power-vault a {
+  color: var(--yellow);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.quiet-mint {
+  color: rgba(204, 196, 224, 0.74);
+  font-size: 0.68rem;
+  overflow-wrap: anywhere;
+}
+
 .quick-bid-button {
   display: grid;
   gap: 0.1rem;
@@ -943,6 +1000,28 @@ textarea:focus {
 .bid-list strong {
   color: var(--green);
   white-space: nowrap;
+}
+
+.bid-list .effective-bid-label {
+  display: block;
+  margin-top: 0.22rem;
+  color: var(--blue);
+  font-size: 0.64rem;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.bid-power-disclosure {
+  margin: 0.8rem 0 0;
+  color: var(--blue);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.stats-grid small {
+  color: var(--muted);
+  line-height: 1.35;
 }
 
 .how-card ol {
@@ -1447,6 +1526,15 @@ textarea:focus {
   .timer-notice {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .bid-power-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .bid-power-heading .ghost-button {
+    width: 100%;
   }
 
   .timer-status {

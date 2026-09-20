@@ -1,16 +1,29 @@
 import { OPENING_BID_USDC } from "./bid-rules";
+import {
+  calculateEffectiveBidUsdc,
+  getQuietBidPower,
+} from "./bid-power";
 import { getHouseActivationTime } from "./house";
 import { verifySolanaUsdcPayment } from "./payment";
 import { createSupabaseServerClient } from "./supabase/server";
 
-const BLOCK_LENGTH_MS = 15 * 60 * 1000;
+const LEGACY_BLOCK_LENGTH_MS = 15 * 60 * 1000;
+const BLOCK_LENGTH_MS = 30 * 60 * 1000;
 const PAYMENT_RECOVERY_GRACE_MS = 5 * 60 * 1000;
 const START_TIME = Date.UTC(2026, 0, 1, 0, 0, 0);
+const THIRTY_MINUTE_SCHEDULE_START = Date.UTC(2026, 8, 21, 7, 0, 0);
+const FIRST_THIRTY_MINUTE_SEQUENCE =
+  Math.floor(
+    (THIRTY_MINUTE_SCHEDULE_START - START_TIME) / LEGACY_BLOCK_LENGTH_MS
+  ) + 1;
 
 export interface Auction {
   id: string;
   sequence: number;
   highestBid: number;
+  highestEffectiveBid: number;
+  leadingBidMultiplier: number;
+  leadingQuietBalance: number;
   winner: string | null;
   isHouseBid: boolean;
   houseBidAmount: number;
@@ -26,6 +39,9 @@ export interface Bid {
   auctionId: string;
   wallet: string;
   amountUsdc: number;
+  effectiveBidUsdc: number;
+  bidMultiplier: number;
+  quietBalance: number;
   paymentStatus: string;
   paymentSignature: string | null;
   verificationProvider: string;
@@ -34,7 +50,14 @@ export interface Bid {
 }
 
 function getAuctionNumber(offset = 0) {
-  return Math.floor((Date.now() - START_TIME) / BLOCK_LENGTH_MS) + 1 + offset;
+  const now = Date.now();
+  const currentSequence =
+    now < THIRTY_MINUTE_SCHEDULE_START
+      ? Math.floor((now - START_TIME) / LEGACY_BLOCK_LENGTH_MS) + 1
+      : FIRST_THIRTY_MINUTE_SEQUENCE +
+        Math.floor((now - THIRTY_MINUTE_SCHEDULE_START) / BLOCK_LENGTH_MS);
+
+  return currentSequence + offset;
 }
 
 function getAuctionIdFromSequence(sequence: number) {
@@ -53,11 +76,18 @@ function parseAuctionSequence(auctionId: string) {
 }
 
 function getAuctionStartTime(sequence: number) {
-  return START_TIME + (sequence - 1) * BLOCK_LENGTH_MS;
+  if (sequence < FIRST_THIRTY_MINUTE_SEQUENCE) {
+    return START_TIME + (sequence - 1) * LEGACY_BLOCK_LENGTH_MS;
+  }
+
+  return (
+    THIRTY_MINUTE_SCHEDULE_START +
+    (sequence - FIRST_THIRTY_MINUTE_SEQUENCE) * BLOCK_LENGTH_MS
+  );
 }
 
 function getAuctionEndTime(sequence: number) {
-  return START_TIME + sequence * BLOCK_LENGTH_MS;
+  return getAuctionStartTime(sequence + 1);
 }
 
 function getAuctionStatus(sequence: number): Auction["status"] {
@@ -71,6 +101,9 @@ function getAuctionStatus(sequence: number): Auction["status"] {
 type HighestBidRow = {
   wallet: string;
   amount_usdc: number | string | null;
+  effective_bid_usdc: number | string | null;
+  bid_multiplier: number | string | null;
+  quiet_balance: number | string | null;
   payment_signature: string | null;
   bid_source: "user" | "house" | null;
 };
@@ -80,6 +113,9 @@ type BidRow = {
   auction_id: string;
   wallet: string;
   amount_usdc: number | string | null;
+  effective_bid_usdc: number | string | null;
+  bid_multiplier: number | string | null;
+  quiet_balance: number | string | null;
   payment_status: string;
   payment_signature: string | null;
   verification_provider: string;
@@ -141,10 +177,13 @@ async function getHighestBidBySource(
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from("bids")
-    .select("wallet, amount_usdc, payment_signature, bid_source")
+    .select(
+      "wallet, amount_usdc, effective_bid_usdc, bid_multiplier, quiet_balance, payment_signature, bid_source"
+    )
     .eq("auction_id", auctionId)
     .eq("payment_status", "verified")
     .eq("bid_source", bidSource)
+    .order("effective_bid_usdc", { ascending: false })
     .order("amount_usdc", { ascending: false })
     .order("created_at", { ascending: true })
     .limit(1)
@@ -165,17 +204,25 @@ export async function getAuctionBySequence(sequence: number): Promise<Auction> {
   ]);
   const winningBid = highestUserBid ?? houseBid;
   const highestBidAmount = Number(highestUserBid?.amount_usdc ?? 0);
+  const highestEffectiveBid = Number(
+    highestUserBid?.effective_bid_usdc ?? 0
+  );
   const startsAt = getAuctionStartTime(sequence);
 
   return {
     id: auctionId,
     sequence,
     highestBid: highestBidAmount,
+    highestEffectiveBid,
+    leadingBidMultiplier: Number(highestUserBid?.bid_multiplier ?? 1),
+    leadingQuietBalance: Number(highestUserBid?.quiet_balance ?? 0),
     winner: winningBid?.wallet ?? null,
     isHouseBid: Boolean(!highestUserBid && houseBid),
     houseBidAmount: Number(houseBid?.amount_usdc ?? 0),
     housePaymentSignature: houseBid?.payment_signature ?? null,
-    houseActivatesAt: getHouseActivationTime(startsAt, BLOCK_LENGTH_MS),
+    houseActivatesAt: getHouseActivationTime(
+      getAuctionStartTime(Math.max(1, sequence - 1))
+    ),
     startsAt,
     endsAt: getAuctionEndTime(sequence),
     status: getAuctionStatus(sequence),
@@ -206,7 +253,7 @@ export async function getBidHistory(auctionId: string, limit = 8): Promise<Bid[]
   const { data, error } = await supabase
     .from("bids")
     .select(
-      "id, auction_id, wallet, amount_usdc, payment_status, payment_signature, verification_provider, bid_source, created_at"
+      "id, auction_id, wallet, amount_usdc, effective_bid_usdc, bid_multiplier, quiet_balance, payment_status, payment_signature, verification_provider, bid_source, created_at"
     )
     .eq("auction_id", auctionId)
     .eq("payment_status", "verified")
@@ -223,6 +270,9 @@ export async function getBidHistory(auctionId: string, limit = 8): Promise<Bid[]
     auctionId: bid.auction_id,
     wallet: bid.wallet,
     amountUsdc: Number(bid.amount_usdc ?? 0),
+    effectiveBidUsdc: Number(bid.effective_bid_usdc ?? bid.amount_usdc ?? 0),
+    bidMultiplier: Number(bid.bid_multiplier ?? 1),
+    quietBalance: Number(bid.quiet_balance ?? 0),
     paymentStatus: bid.payment_status,
     paymentSignature: bid.payment_signature,
     verificationProvider: bid.verification_provider,
@@ -327,11 +377,32 @@ export async function placeBid(
   }
 
   const targetAuction = isNormalNextAuction ? nextAuction : requestedAuction;
+  let bidPower;
+
+  try {
+    bidPower = await getQuietBidPower(wallet);
+  } catch {
+    return {
+      success: false,
+      message:
+        "USDC was received, but QUIET bid power could not be verified. Retry this saved receipt without sending another payment.",
+      auction: nextAuction,
+    };
+  }
+
+  const effectiveBidUsdc = calculateEffectiveBidUsdc(
+    roundedAmount,
+    bidPower.bidMultiplier
+  );
   const supabase = createSupabaseServerClient();
   const { error } = await supabase.from("bids").insert({
     auction_id: targetAuction.id,
     wallet,
     amount_usdc: roundedAmount,
+    quiet_balance: bidPower.quietBalance,
+    quiet_balance_slot: bidPower.snapshotSlot,
+    bid_multiplier: bidPower.bidMultiplier,
+    effective_bid_usdc: effectiveBidUsdc,
     payment_status: verification.status,
     payment_signature: verification.signature,
     verification_provider: verification.provider,
@@ -366,12 +437,12 @@ export async function placeBid(
   const updatedAuction = await getAuctionById(targetAuction.id);
   const isLeading =
     updatedAuction.winner === wallet &&
-    updatedAuction.highestBid === roundedAmount;
+    updatedAuction.highestEffectiveBid === effectiveBidUsdc;
 
   return {
     success: true,
     message: isLeading
-      ? "USDC received. You're leading this attention block."
+      ? `USDC received. Your ${bidPower.bidMultiplier.toFixed(2)}x bid power produces a ${effectiveBidUsdc.toFixed(2)} USDC effective bid, and you're leading.`
       : "USDC received and your bid was recorded. Another verified bid is currently higher.",
     auction: updatedAuction,
     bidHistory: await getBidHistory(updatedAuction.id),
@@ -380,5 +451,8 @@ export async function placeBid(
 
 export const auctionTiming = {
   blockLengthMs: BLOCK_LENGTH_MS,
+  legacyBlockLengthMs: LEGACY_BLOCK_LENGTH_MS,
+  thirtyMinuteScheduleStart: THIRTY_MINUTE_SCHEDULE_START,
+  firstThirtyMinuteSequence: FIRST_THIRTY_MINUTE_SEQUENCE,
   startTime: START_TIME,
 };

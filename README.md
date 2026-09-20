@@ -1,6 +1,6 @@
 # Attention Bid
 
-Attention Bid is a continuous 15-minute attention auction powered by USDC on Solana.
+Attention Bid is a continuous 30-minute attention auction powered by USDC on Solana.
 
 The highest verified USDC bidder wins the next attention block. When that block becomes live, the winning wallet can control the headline, description, and link shown on the public homepage.
 
@@ -8,10 +8,12 @@ The highest verified USDC bidder wins the next attention block. When that block 
 
 Ship a functional public auction loop:
 
-- Continuous 15-minute auction windows
+- Continuous 30-minute auction windows
 - Bids target the next attention block
 - The current block displays the previous winner's content
 - Bids are denominated in USDC
+- The server snapshots each bidder's connected-wallet QUIET balance and applies
+  proportional bid power from 1x to 10x
 - Phantom creates real Solana USDC transfers before bids are saved
 - The backend verifies the Solana transaction signature, USDC mint, amount, sender, and treasury recipient
 - Only a cryptographically authenticated winning wallet can submit content
@@ -37,10 +39,11 @@ Demo payments can still be enabled for local testing with `ENABLE_DEMO_PAYMENTS=
 1. A visitor opens the public homepage.
 2. The page shows the current attention block, the next auction countdown, the next block's high bid, and recent bids.
 3. A user connects Phantom.
-4. The user bids USDC for the next 15-minute attention block.
+4. The user bids USDC for the next 30-minute attention block.
 5. Phantom signs and sends a USDC transfer to the treasury wallet.
 6. The backend verifies the Solana transaction before saving the bid.
-7. The highest verified bid wins when the countdown ends.
+7. The highest effective bid wins when the countdown ends. Effective bid equals
+   the USDC bid times the verified QUIET multiplier.
 8. When that block becomes current, the winning wallet can submit or update homepage attention content.
 9. The submission becomes public automatically; an admin can hide or reject it.
 10. The next auction continues automatically.
@@ -56,7 +59,7 @@ Demo payments can still be enabled for local testing with `ENABLE_DEMO_PAYMENTS=
 - Server routes have origin checks, input limits, and basic rate limits
 - Database tables use row-level security and are only accessed by server routes
 - Production responses include CSP, anti-framing, MIME, referrer, and HSTS headers
-- The temporary beta bid cap limits exposure while the product is monitored
+- Bids of 100 USDC or more require an additional browser confirmation
 
 See `docs/beta-launch-checklist.md` for the production rollout steps.
 
@@ -92,10 +95,9 @@ NEXT_PUBLIC_USDC_MINT_ADDRESS=...
 USDC_MINT_ADDRESS=...
 NEXT_PUBLIC_TREASURY_WALLET_ADDRESS=...
 TREASURY_WALLET_ADDRESS=...
+QUIET_MINT_ADDRESS=JCfSVdmBNKwMnMUMccfNbQQVVJKYsQNbXCqhdRuZpump
 ADMIN_TOKEN=...
 WALLET_AUTH_SECRET=...
-MAX_BETA_BID_USDC=100
-NEXT_PUBLIC_MAX_BETA_BID_USDC=100
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_TOKEN`, and `WALLET_AUTH_SECRET` are
@@ -106,5 +108,5 @@ network. The default mainnet USDC mint is
 `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`.
 
 The app uses server-side Supabase helpers for all database reads and writes.
-For an existing database, also run `database/beta-security.sql` before opening
-the beta.
+For an existing database, also run `database/beta-security.sql` and
+`database/quiet-bid-power.sql` before deploying this version.

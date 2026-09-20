@@ -11,7 +11,7 @@ from reportlab.platypus import Paragraph
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "apps" / "web" / "public" / "attention-bid-white-paper-v6.pdf"
+OUTPUT = ROOT / "apps" / "web" / "public" / "attention-bid-white-paper-v6-1.pdf"
 
 WIDTH, HEIGHT = letter
 MARGIN_X = 0.68 * inch
@@ -88,7 +88,7 @@ def background(c, page_num, section="DISCUSSION DRAFT"):
     c.line(MARGIN_X, 0.43 * inch, WIDTH - MARGIN_X, 0.43 * inch)
     c.setFillColor(MUTED)
     c.setFont("Helvetica", 6.5)
-    c.drawString(MARGIN_X, 0.25 * inch, "Attention Bid White Paper v6.0 - September 2026")
+    c.drawString(MARGIN_X, 0.25 * inch, "Attention Bid White Paper v6.1 - September 2026")
     c.drawRightString(WIDTH - MARGIN_X, 0.25 * inch, f"{page_num} / 7")
 
 
@@ -141,10 +141,10 @@ def chip(c, x, y, text, color):
 
 
 def page_one(c):
-    background(c, 1, "WHITE PAPER - VERSION 6.0")
+    background(c, 1, "WHITE PAPER - VERSION 6.1")
     y = HEIGHT - 1.24 * inch
     y = paragraph(c, "THE MARKET FOR THE NEXT", MARGIN_X, y, WIDTH - 2 * MARGIN_X, style("cover1", 23, 24, WHITE, True, TA_CENTER))
-    y = paragraph(c, "15 MINUTES OF ATTENTION", MARGIN_X, y - 3, WIDTH - 2 * MARGIN_X, style("cover2", 31, 31, YELLOW, True, TA_CENTER))
+    y = paragraph(c, "30 MINUTES OF ATTENTION", MARGIN_X, y - 3, WIDTH - 2 * MARGIN_X, style("cover2", 31, 31, YELLOW, True, TA_CENTER))
 
     y = paragraph(
         c,
@@ -177,7 +177,7 @@ def page_one(c):
         BODY,
     )
 
-    paragraph(c, "VERSION 6.0 - SEPTEMBER 2026", MARGIN_X, 1.42 * inch, WIDTH - 2 * MARGIN_X, style("version", 8.2, 10, BLUE, True, TA_CENTER))
+    paragraph(c, "VERSION 6.1 - SEPTEMBER 2026", MARGIN_X, 1.42 * inch, WIDTH - 2 * MARGIN_X, style("version", 8.2, 10, BLUE, True, TA_CENTER))
     paragraph(c, "INFORMATIONAL DISCUSSION DRAFT - NOT AN OFFER TO SELL SECURITIES OR TOKENS", MARGIN_X, 1.12 * inch, WIDTH - 2 * MARGIN_X, style("cover-warning", 7, 9, MUTED, True, TA_CENTER))
 
 
@@ -187,7 +187,7 @@ def page_two(c):
     y = paragraph(c, "A new market primitive for digital attention", MARGIN_X, y, WIDTH - 2 * MARGIN_X, H1)
     y = paragraph(
         c,
-        "Attention Bid operates a perpetual auction for a scarce, time-bounded digital resource: control of the platform's primary attention surface. Each 15-minute block is allocated through competitive bidding. When one block ends, the next market begins.",
+        "Attention Bid operates a perpetual auction for a scarce, time-bounded digital resource: control of the platform's primary attention surface. Each 30-minute block is allocated through competitive bidding. When one block ends, the next market begins.",
         MARGIN_X,
         y - 12,
         WIDTH - 2 * MARGIN_X,
@@ -205,17 +205,17 @@ def page_two(c):
     gap = 8
     mw = (WIDTH - 2 * MARGIN_X - gap * 3) / 4
     my = y - 66
-    metric(c, MARGIN_X, my, mw, "15 MIN", "one block", YELLOW)
-    metric(c, MARGIN_X + (mw + gap), my, mw, "96", "blocks per day", GREEN)
-    metric(c, MARGIN_X + 2 * (mw + gap), my, mw, "2,880", "per 30 days", BLUE)
-    metric(c, MARGIN_X + 3 * (mw + gap), my, mw, "35,040", "per year", PINK)
+    metric(c, MARGIN_X, my, mw, "30 MIN", "one block", YELLOW)
+    metric(c, MARGIN_X + (mw + gap), my, mw, "48", "blocks per day", GREEN)
+    metric(c, MARGIN_X + 2 * (mw + gap), my, mw, "1,440", "per 30 days", BLUE)
+    metric(c, MARGIN_X + 3 * (mw + gap), my, mw, "17,520", "per year", PINK)
 
     y = my - 22
     y = section_title(c, "02", "Market thesis", y)
     y = paragraph(c, "Attention is valuable. Time is scarce. Markets discover prices.", MARGIN_X, y, WIDTH - 2 * MARGIN_X, H2)
     y = paragraph(
         c,
-        "Businesses already allocate enormous capital to acquiring digital visibility. Attention Bid narrows that broad market into a defined inventory unit - its own next 15-minute homepage block - and asks participants to reveal what that specific interval is worth.",
+        "Businesses already allocate enormous capital to acquiring digital visibility. Attention Bid narrows that broad market into a defined inventory unit - its own next 30-minute homepage block - and asks participants to reveal what that specific interval is worth.",
         MARGIN_X,
         y - 8,
         WIDTH - 2 * MARGIN_X,
@@ -241,7 +241,7 @@ def page_three(c):
     )
 
     flow_y = y - 52
-    labels = ["OPEN BLOCK", "BID USDC", "VERIFY", "WIN 15 MIN", "NEXT BLOCK"]
+    labels = ["OPEN BLOCK", "BID USDC", "VERIFY", "WIN 30 MIN", "NEXT BLOCK"]
     total_gap = 8 * 4
     fw = (WIDTH - 2 * MARGIN_X - total_gap) / 5
     for i, label in enumerate(labels):
@@ -253,10 +253,10 @@ def page_three(c):
 
     y = flow_y - 28
     y = section_title(c, "04", "Price discovery", y)
-    y = paragraph(c, "The winning bid becomes a market observation.", MARGIN_X, y, WIDTH - 2 * MARGIN_X, H2)
+    y = paragraph(c, "USDC value plus verified QUIET bid power.", MARGIN_X, y, WIDTH - 2 * MARGIN_X, H2)
     y = paragraph(
         c,
-        "Attention Bid does not claim to discover a universal price of human attention. It discovers the clearing price of its own defined inventory at a particular moment. The next block may clear differently as participants, traffic, content, and context change.",
+        "User bids are ranked by effective bid: USDC bid x min(10, 1 + QUIET held / 1,000,000). One million QUIET adds one unit of power, while nine million reaches the 10x maximum. Fractional balances apply proportionally. The USDC transfer remains the amount actually paid.",
         MARGIN_X,
         y - 8,
         WIDTH - 2 * MARGIN_X,
@@ -264,8 +264,8 @@ def page_three(c):
     )
 
     cw = (WIDTH - 2 * MARGIN_X - 12) / 2
-    card(c, MARGIN_X, y - 18, cw, 108, "Bidder experience", "Compete for a finite interval", "Choose a valuation, react to visible competition, experience time pressure, and receive a clear win or loss.", YELLOW)
-    card(c, MARGIN_X + cw + 12, y - 18, cw, 108, "Spectator experience", "Watch the market clear", "See price changes, anticipate the close, discover the winner, and immediately see the new content.", GREEN)
+    card(c, MARGIN_X, y - 18, cw, 108, "Bid Power Vault", "Non-custodial balance snapshot", "At bid recording time, the server verifies the connected wallet's current QUIET balance. Tokens stay in the holder's wallet and are not transferred or locked.", YELLOW)
+    card(c, MARGIN_X + cw + 12, y - 18, cw, 108, "Important limitation", "Snapshot is not an on-chain lock", "A holder can move tokens after a bid or between wallets. A true deposited vault would require a separately deployed and audited Solana program.", GREEN)
 
     y2 = y - 146
     y2 = section_title(c, "05", "Growth engine", y2)
@@ -381,10 +381,10 @@ def page_six(c):
 
     y = y - 170
     y = section_title(c, "11", "Current token position", y)
-    y = paragraph(c, "No Attention Bid equity token is currently offered.", MARGIN_X, y, WIDTH - 2 * MARGIN_X, H2)
+    y = paragraph(c, "QUIET utility does not represent Attention Bid equity.", MARGIN_X, y, WIDTH - 2 * MARGIN_X, H2)
     y = paragraph(
         c,
-        "This white paper does not grant a right to receive Attention Bid shares, company revenue, dividends, or a future token. No website visitor should rely on a future token launch. Any later token design would require new governing documents, technical security review, tax analysis, and a documented legal pathway before announcement or sale.",
+        "The current product can use the separately issued QUIET token only to calculate bid power. Holding QUIET does not grant Attention Bid shares, company revenue, dividends, governance rights, or a future company token. No website visitor should rely on a future equity-token launch. Any later design would require new governing documents, technical security review, tax analysis, and a documented legal pathway before announcement or sale.",
         MARGIN_X,
         y - 8,
         WIDTH - 2 * MARGIN_X,
@@ -397,7 +397,7 @@ def page_six(c):
     paragraph(c, "SEPARATE COMMUNITY ASSETS", MARGIN_X + 14, y - 31, WIDTH - 2 * MARGIN_X - 28, style("separate", 7, 8, GREEN, True))
     paragraph(
         c,
-        "A third-party or community token does not become Attention Bid equity merely because its community promotes the product. Any proposed holder rewards, revenue sharing, or exchange for company securities must be separately authorized, documented, and reviewed before launch.",
+        "QUIET bid power is a product utility calculated from a wallet-balance snapshot. It does not make QUIET an Attention Bid share. Any proposed holder rewards, revenue sharing, redemption, or exchange for company securities must be separately authorized, documented, and reviewed before launch.",
         MARGIN_X + 14,
         y - 50,
         WIDTH - 2 * MARGIN_X - 28,
@@ -466,7 +466,7 @@ def page_seven(c):
 def build():
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     c = canvas.Canvas(str(OUTPUT), pagesize=letter, pageCompression=1)
-    c.setTitle("Attention Bid White Paper v6.0")
+    c.setTitle("Attention Bid White Paper v6.1")
     c.setAuthor("Attention Bid, Inc.")
     c.setSubject("Perpetual marketplace for digital attention")
     c.setKeywords("Attention Bid, Solana, USDC, attention auction, Attention Bid Inc")

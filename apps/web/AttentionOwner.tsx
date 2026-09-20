@@ -4,6 +4,9 @@ import { getSolscanTransactionUrl } from "./lib/solscan";
 interface Props {
   winner: string | null;
   highestBid: number;
+  highestEffectiveBid?: number;
+  bidMultiplier?: number;
+  quietBalance?: number;
   auctionId: string;
   isHouseBid?: boolean;
   houseBidAmount?: number;
@@ -18,6 +21,9 @@ function shortWallet(wallet: string | null) {
 export default function AttentionOwner({
   winner,
   highestBid,
+  highestEffectiveBid = 0,
+  bidMultiplier = 1,
+  quietBalance = 0,
   auctionId,
   isHouseBid = false,
   houseBidAmount = 0,
@@ -36,11 +42,30 @@ export default function AttentionOwner({
               : `${highestBid.toFixed(2)} USDC`}
           </dd>
         </div>
+        {!isHouseBid && winner && (
+          <div>
+            <dt>QUIET bid power</dt>
+            <dd>{bidMultiplier.toFixed(3).replace(/\.?0+$/, "")}x</dd>
+          </div>
+        )}
+        {!isHouseBid && winner && (
+          <div>
+            <dt>Effective bid</dt>
+            <dd>{highestEffectiveBid.toFixed(2)} USDC</dd>
+          </div>
+        )}
         <div>
           <dt>Auction ID</dt>
           <dd>{auctionId}</dd>
         </div>
       </dl>
+      {!isHouseBid && winner && (
+        <p className="bid-power-disclosure">
+          Snapshot: {quietBalance.toLocaleString(undefined, {
+            maximumFractionDigits: 3,
+          })} QUIET
+        </p>
+      )}
       {isHouseBid && (
         <>
           <p className="house-disclosure">

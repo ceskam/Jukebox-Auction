@@ -46,7 +46,13 @@ function getProvider(): PhantomProvider {
 }
 
 function toUsdcBaseUnits(amountUsdc: number) {
-  return BigInt(Math.round(amountUsdc * LAMPORTS_PER_USDC));
+  const baseUnits = Math.round(amountUsdc * LAMPORTS_PER_USDC);
+
+  if (!Number.isFinite(amountUsdc) || !Number.isSafeInteger(baseUnits)) {
+    throw new Error("This bid amount is too large to send safely.");
+  }
+
+  return BigInt(baseUnits);
 }
 
 export async function sendUsdcBidPayment({
