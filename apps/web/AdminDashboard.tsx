@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AttentionImage from "./AttentionImage";
+import Brand from "./Brand";
 
 type AttentionContent = {
   auctionId: string;
@@ -124,9 +125,7 @@ export default function AdminDashboard() {
   return (
     <main className="page-shell admin-shell">
       <nav className="top-nav">
-        <a className="brand" href="/">
-          <span>Attention</span> Bid
-        </a>
+        <Brand />
         <div />
         <a className="ghost-button" href="/">
           View site

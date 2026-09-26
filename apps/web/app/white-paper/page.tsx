@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import SiteFooter from "../../SiteFooter";
+import Brand from "../../Brand";
 
 export const metadata: Metadata = {
   title: "White Paper",
   description:
-    "Read the Attention Bid white paper: 30-minute auction design, QUIET bid power, Solana and USDC infrastructure, company roadmap, funding approach, and risks.",
+    "Read the AdBidCoin white paper: 30-minute auction design, QUIET bid power, Solana and USDC infrastructure, company roadmap, funding approach, and risks.",
   alternates: { canonical: "/white-paper" },
 };
 
@@ -16,18 +17,18 @@ const FAQ_STRUCTURED_DATA = {
   mainEntity: [
     {
       "@type": "Question",
-      name: "What is Attention Bid?",
+      name: "What is AdBidCoin?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Attention Bid is a live marketplace where USDC bidders compete to control the next 30-minute homepage attention block, with verified QUIET balances providing proportional bid power.",
+        text: "AdBidCoin is a live marketplace where USDC bidders compete to control the next 30-minute homepage attention block, with verified QUIET balances providing proportional bid power.",
       },
     },
     {
       "@type": "Question",
-      name: "Who operates Attention Bid?",
+      name: "Who operates AdBidCoin?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Attention Bid is operated by Attention Bid, Inc., a Delaware C corporation.",
+        text: "AdBidCoin is operated by Attention Bid, Inc., a Delaware C corporation.",
       },
     },
     {
@@ -52,9 +53,7 @@ export default function WhitePaperPage() {
       />
 
       <nav className="content-nav" aria-label="White paper page navigation">
-        <a className="brand" href="/">
-          <span>Attention</span> Bid
-        </a>
+        <Brand />
         <div>
           <a href="/">Live auction</a>
           <a href="/about">Company</a>
@@ -65,9 +64,9 @@ export default function WhitePaperPage() {
         <span className="eyebrow">White paper · Version 6.1</span>
         <h1>The market for the next 30 minutes of attention.</h1>
         <p>
-          The updated paper covers the live auction design, Attention Bid,
-          Inc., the growth thesis, funding pathways, tokenization constraints,
-          infrastructure, roadmap, and major risks.
+          The updated paper covers AdBidCoin&apos;s live auction design, its
+          operator Attention Bid, Inc., the growth thesis, funding pathways,
+          tokenization constraints, infrastructure, roadmap, and major risks.
         </p>
         <div className="document-actions">
           <a
@@ -81,7 +80,7 @@ export default function WhitePaperPage() {
           <a
             className="ghost-button"
             href={WHITE_PAPER_URL}
-            download="Attention-Bid-White-Paper-v6-1.pdf"
+            download="AdBidCoin-White-Paper-v6-1.pdf"
           >
             Download PDF
           </a>

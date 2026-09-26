@@ -1,6 +1,7 @@
-# Attention Bid
+# AdBidCoin
 
-Attention Bid is a continuous 30-minute attention auction powered by USDC on Solana.
+AdBidCoin is a continuous 30-minute attention auction powered by USDC on
+Solana and operated by Attention Bid, Inc.
 
 The highest verified USDC bidder wins the next attention block. When that block becomes live, the winning wallet can control the headline, description, and link shown on the public homepage.
 
@@ -67,7 +68,7 @@ See `docs/beta-launch-checklist.md` for the production rollout steps.
 
 ```txt
 apps/
-  web/              Attention Bid web app
+  web/              AdBidCoin web app
 ```
 
 From `apps/web`:
@@ -87,7 +88,7 @@ npm run dev
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-NEXT_PUBLIC_SITE_URL=https://attentionbid.com
+NEXT_PUBLIC_SITE_URL=https://adbidcoin.com
 SUPABASE_SERVICE_ROLE_KEY=...
 NEXT_PUBLIC_SOLANA_RPC_URL=...
 SOLANA_RPC_URL=...

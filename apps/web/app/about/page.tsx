@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import SiteFooter from "../../SiteFooter";
+import Brand from "../../Brand";
 
 export const metadata: Metadata = {
   title: "Company",
   description:
-    "Learn about Attention Bid, Inc., the Delaware corporation building the live 30-minute attention auction.",
+    "Learn about Attention Bid, Inc., the Delaware corporation operating the AdBidCoin 30-minute attention auction.",
   alternates: { canonical: "/about" },
 };
 
@@ -12,9 +13,7 @@ export default function AboutPage() {
   return (
     <main className="page-shell content-page">
       <nav className="content-nav" aria-label="Company page navigation">
-        <a className="brand" href="/">
-          <span>Attention</span> Bid
-        </a>
+        <Brand />
         <div>
           <a href="/">Live auction</a>
           <a href="/white-paper">White paper</a>
@@ -25,9 +24,9 @@ export default function AboutPage() {
         <span className="eyebrow">Attention Bid, Inc.</span>
         <h1>The company building the attention market.</h1>
         <p>
-          Attention Bid, Inc. is a Delaware C corporation developing a
-          perpetual auction where the highest verified USDC bidder controls the
-          next 30 minutes of the public homepage attention block.
+          Attention Bid, Inc. is the Delaware C corporation operating
+          AdBidCoin, a perpetual auction where the highest verified USDC bidder
+          controls the next 30 minutes of the public homepage attention block.
         </p>
       </header>
 
@@ -64,9 +63,9 @@ export default function AboutPage() {
           <span className="eyebrow">Funding</span>
           <h2>Building before offering.</h2>
           <p>
-            Attention Bid may pursue grants or private financing under formal
-            documentation and applicable law. No investment, company share, or
-            token is offered through this website.
+            Attention Bid, Inc. may pursue grants or private financing under
+            formal documentation and applicable law. No investment, company
+            share, or token is offered through this website.
           </p>
         </article>
       </section>

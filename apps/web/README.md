@@ -1,6 +1,7 @@
-# Attention Bid Web App
+# AdBidCoin Web App
 
-The web app is the public interface for Attention Bid.
+The web app is the public interface for AdBidCoin, operated by Attention Bid,
+Inc.
 
 Users connect Phantom, bid USDC for the next 30-minute attention block, and the winning wallet controls the public homepage content for the block it won. The server snapshots the bidder wallet's QUIET balance and applies proportional bid power from 1x to 10x. Winner content is auto-approved so auctions can run continuously, while admins can still hide or reject content when needed. Bids are final and are not refunded.
 
@@ -20,7 +21,7 @@ Run `../../database/schema.sql` and `../../database/storage.sql` in Supabase bef
 Copy `.env.example` to `.env.local` and fill in:
 
 ```bash
-NEXT_PUBLIC_SITE_URL=https://attentionbid.com
+NEXT_PUBLIC_SITE_URL=https://adbidcoin.com
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...

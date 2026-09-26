@@ -8,7 +8,7 @@ export default function CommunityCard() {
       <h2>Follow every winning block.</h2>
       <p>
         Get launch updates, auction reminders, and beta announcements from
-        Attention Bid.
+        AdBidCoin.
       </p>
       <div className="community-links">
         <a href={X_URL} target="_blank" rel="noreferrer">
@@ -27,7 +27,7 @@ export default function CommunityCard() {
           </span>
           <span>
             <small>Join the group</small>
-            Attention Bid Telegram
+            AdBidCoin Telegram
           </span>
           <span aria-hidden="true">↗</span>
         </a>

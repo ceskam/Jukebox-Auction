@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const DEFAULT_SITE_URL = "https://attention-bid2-ten.vercel.app";
+const DEFAULT_SITE_URL = "https://adbidcoin.com";
 const SHARE_TEXT =
-  "Attention is valuable. Bid USDC on Solana for the next 30 minutes of homepage attention. QUIET holders get up to 10x bid power.";
+  "AdBidCoin is live. Bid USDC on Solana for the next 30 minutes of homepage attention. QUIET holders get up to 10x bid power.";
 
 export default function ShareAuction({ auctionId }: { auctionId: string }) {
   const [shareUrl, setShareUrl] = useState(DEFAULT_SITE_URL);
@@ -19,7 +19,7 @@ export default function ShareAuction({ auctionId }: { auctionId: string }) {
       text: SHARE_TEXT,
       url: shareUrl,
       via: "attentionbid",
-      hashtags: "AttentionBid,Solana,USDC",
+      hashtags: "AdBidCoin,Solana,USDC",
     });
     return `https://x.com/intent/tweet?${params.toString()}`;
   }, [shareUrl]);
@@ -38,7 +38,7 @@ export default function ShareAuction({ auctionId }: { auctionId: string }) {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: "Attention Bid",
+          title: "AdBidCoin",
           text: SHARE_TEXT,
           url: shareUrl,
         });
@@ -66,7 +66,7 @@ export default function ShareAuction({ auctionId }: { auctionId: string }) {
       </div>
       <div className="share-actions">
         <button className="primary-button" type="button" onClick={shareSite}>
-          Share Attention Bid
+          Share AdBidCoin
         </button>
         <a
           className="share-link"
