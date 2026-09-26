@@ -1,6 +1,6 @@
 const DEFAULT_HOUSE_DELAY_MINUTES = 10;
 
-export const HOUSE_NAME = "AttentionBid House";
+export const HOUSE_NAME = "AdBidCoin House";
 export const HOUSE_BID_USDC = 0.25;
 
 export type HouseAttention = {

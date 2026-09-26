@@ -1,3 +1,5 @@
+import Brand from "./Brand";
+
 const X_URL = "https://x.com/attentionbid";
 const TELEGRAM_URL = "https://t.me/+dVMl7qg8gJJlY2E0";
 
@@ -5,12 +7,10 @@ export default function SiteFooter() {
   return (
     <footer className="site-footer">
       <div>
-        <a className="brand footer-brand" href="/">
-          <span>Attention</span> Bid
-        </a>
+        <Brand className="footer-brand" />
         <p>
-          Operated by Attention Bid, Inc., a Delaware C corporation. Live beta
-          on Solana using USDC.
+          AdBidCoin is operated by Attention Bid, Inc., a Delaware C
+          corporation. Live beta on Solana using USDC.
         </p>
       </div>
       <nav aria-label="Footer navigation">

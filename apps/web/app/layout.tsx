@@ -3,20 +3,20 @@ import "./upload.css";
 import type { Metadata } from "next";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://attention-bid2-ten.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://adbidcoin.com";
 const SITE_DESCRIPTION =
-  "Bid USDC on Solana for the next 30 minutes of homepage attention. QUIET holders receive up to 10x bid power.";
+  "AdBidCoin is the live 30-minute attention auction. Bid USDC on Solana, with up to 10x bid power for verified QUIET holders.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  applicationName: "Attention Bid",
+  applicationName: "AdBidCoin",
   title: {
-    default: "Attention Bid | The 30-Minute Attention Auction",
-    template: "%s | Attention Bid",
+    default: "AdBidCoin | The 30-Minute Attention Auction",
+    template: "%s | AdBidCoin",
   },
   description: SITE_DESCRIPTION,
   keywords: [
-    "Attention Bid",
+    "AdBidCoin",
     "attention auction",
     "Solana auction",
     "USDC auction",
@@ -29,15 +29,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "/",
-    siteName: "Attention Bid",
-    title: "Attention Bid | Win the Next 30 Minutes",
+    siteName: "AdBidCoin",
+    title: "AdBidCoin | Win the Next 30 Minutes",
     description: SITE_DESCRIPTION,
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Attention Bid - bid for the next 30 minutes of attention",
+        alt: "AdBidCoin - bid for the next 30 minutes of attention",
       },
     ],
   },
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@attentionbid",
     creator: "@attentionbid",
-    title: "Attention Bid | Win the Next 30 Minutes",
+    title: "AdBidCoin | Win the Next 30 Minutes",
     description: SITE_DESCRIPTION,
     images: ["/opengraph-image"],
   },
@@ -65,9 +65,10 @@ export const metadata: Metadata = {
 const WEBSITE_STRUCTURED_DATA = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "Attention Bid",
+  name: "AdBidCoin",
   url: SITE_URL,
   description: SITE_DESCRIPTION,
+  image: `${SITE_URL}/adbidcoin-logo.png`,
   sameAs: ["https://x.com/attentionbid"],
 };
 
@@ -76,7 +77,9 @@ const ORGANIZATION_STRUCTURED_DATA = {
   "@type": "Organization",
   name: "Attention Bid, Inc.",
   legalName: "Attention Bid, Inc.",
+  alternateName: "AdBidCoin",
   url: SITE_URL,
+  logo: `${SITE_URL}/adbidcoin-logo.png`,
   foundingDate: "2026",
   foundingLocation: {
     "@type": "Place",

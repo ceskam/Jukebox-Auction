@@ -9,10 +9,11 @@ export default function CompanyCard() {
     >
       <div>
         <span className="eyebrow">Now incorporated</span>
-        <h2 id="company-title">Built by Attention Bid, Inc.</h2>
+        <h2 id="company-title">AdBidCoin is built by Attention Bid, Inc.</h2>
         <p>
-          Attention Bid, Inc. is a Delaware C corporation building an open,
-          observable marketplace for time-bound digital attention.
+          Attention Bid, Inc. is the Delaware C corporation operating
+          AdBidCoin, an open, observable marketplace for time-bound digital
+          attention.
         </p>
       </div>
       <div className="company-actions">

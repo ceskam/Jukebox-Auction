@@ -1,13 +1,21 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
-export const alt = "Attention Bid - bid for the next 30 minutes of attention";
+export const alt = "AdBidCoin - bid for the next 30 minutes of attention";
 export const size = {
   width: 1200,
   height: 630,
 };
 export const contentType = "image/png";
+export const runtime = "nodejs";
 
-export default function OpenGraphImage() {
+export default async function OpenGraphImage() {
+  const logoData = await readFile(
+    path.join(process.cwd(), "app", "apple-icon.png")
+  );
+  const logoSrc = `data:image/png;base64,${logoData.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -56,17 +64,26 @@ export default function OpenGraphImage() {
             justifyContent: "space-between",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              fontSize: 34,
-              fontWeight: 900,
-              letterSpacing: -1,
-              textTransform: "uppercase",
-            }}
-          >
-            <span>ATTENTION&nbsp;</span>
-            <span style={{ color: "#ffd43b" }}>BID</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <img
+              src={logoSrc}
+              alt=""
+              width="86"
+              height="86"
+              style={{ borderRadius: 20, boxShadow: "0 0 30px rgba(27, 214, 255, 0.35)" }}
+            />
+            <div
+              style={{
+                display: "flex",
+                fontSize: 34,
+                fontWeight: 900,
+                letterSpacing: -1,
+                textTransform: "uppercase",
+              }}
+            >
+              <span style={{ color: "white" }}>AD</span>
+              <span style={{ color: "#ffd43b" }}>BIDCOIN</span>
+            </div>
           </div>
           <div
             style={{
@@ -97,7 +114,7 @@ export default function OpenGraphImage() {
               textTransform: "uppercase",
             }}
           >
-            ATTENTION IS VALUABLE. BID FOR IT.
+            OWN THE NEXT BLOCK.
           </div>
           <div
             style={{
@@ -132,7 +149,7 @@ export default function OpenGraphImage() {
               textTransform: "uppercase",
             }}
           >
-            Watch the live auction →
+            Visit adbidcoin.com →
           </div>
           <div
             style={{

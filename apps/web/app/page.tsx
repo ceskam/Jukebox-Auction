@@ -10,6 +10,7 @@ import CommunityCard from "../CommunityCard";
 import ShareAuction from "../ShareAuction";
 import CompanyCard from "../CompanyCard";
 import SiteFooter from "../SiteFooter";
+import Brand from "../Brand";
 import {
   getBidHistory,
   getCurrentAuction,
@@ -109,9 +110,7 @@ export default async function HomePage() {
       <TrackPageView auctionId={currentAuction.id} />
 
       <nav className="top-nav">
-        <a className="brand" href="/">
-          <span>Attention</span> Bid
-        </a>
+        <Brand />
         <div className="nav-links" aria-label="Primary navigation">
           <a href="#auction">Auction</a>
           <a href="#leaderboard">Leaderboard</a>
@@ -125,13 +124,22 @@ export default async function HomePage() {
       </nav>
 
       <section className="hero-section">
-        <span className="eyebrow">The world&apos;s first attention auction</span>
-        <h1>Attention is valuable. Bid for it.</h1>
-        <p>
-          Every 30 minutes, the highest effective bidder wins the public
-          homepage attention block. QUIET holders receive up to 10x bid power.
-          Bids are final.
-        </p>
+        <img
+          className="hero-logo"
+          src="/adbidcoin-logo.png"
+          alt="AdBidCoin logo"
+          width="420"
+          height="420"
+        />
+        <div className="hero-copy">
+          <span className="eyebrow">The 30-minute attention market</span>
+          <h1>Own the next block.</h1>
+          <p>
+            Every 30 minutes, the highest effective bidder wins the public
+            homepage attention block. QUIET holders receive up to 10x bid power.
+            Bids are final.
+          </p>
+        </div>
       </section>
 
       <CompanyCard />
@@ -151,7 +159,7 @@ export default async function HomePage() {
           <p>
             Read the market thesis, perpetual-auction design, infrastructure,
             company structure, funding pathways, tokenization boundaries,
-            roadmap, and key risks behind Attention Bid.
+            roadmap, and key risks behind AdBidCoin.
           </p>
           <span className="white-paper-meta">Discussion draft · 7-page PDF</span>
         </div>
@@ -219,7 +227,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <section className="platform-stats" aria-label="Attention Bid totals">
+          <section className="platform-stats" aria-label="AdBidCoin totals">
             <div>
               <span className="eyebrow">Total views</span>
               <strong>{platformMetrics.totalViews.toLocaleString()}</strong>
@@ -283,7 +291,7 @@ export default async function HomePage() {
                     <div>
                       <span>
                         {bid.bidSource === "house"
-                          ? "AttentionBid House"
+                          ? "AdBidCoin House"
                           : shortWallet(bid.wallet)}
                       </span>
                       {bid.bidSource === "house" && (

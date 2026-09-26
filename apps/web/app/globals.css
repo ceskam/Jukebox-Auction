@@ -92,6 +92,9 @@ textarea:focus {
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
   color: var(--yellow);
   font-size: clamp(1.25rem, 3vw, 1.7rem);
   font-weight: 900;
@@ -100,7 +103,23 @@ textarea:focus {
   text-shadow: 0 0 18px rgba(255, 212, 59, 0.42);
 }
 
-.brand span {
+.brand-logo {
+  width: 2.65rem;
+  height: 2.65rem;
+  flex: 0 0 auto;
+  border: 1px solid rgba(27, 214, 255, 0.45);
+  border-radius: 0.8rem;
+  object-fit: cover;
+  box-shadow:
+    0 0 18px rgba(27, 214, 255, 0.24),
+    0 0 18px rgba(255, 46, 213, 0.18);
+}
+
+.brand-name {
+  white-space: nowrap;
+}
+
+.brand .brand-accent {
   color: #fff;
 }
 
@@ -157,13 +176,32 @@ textarea:focus {
 }
 
 .hero-section {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  align-items: center;
   padding: clamp(2.5rem, 8vw, 5rem) 0 clamp(1.5rem, 4vw, 3rem);
-  text-align: center;
+  text-align: left;
+}
+
+.hero-logo {
+  width: min(100%, 390px);
+  height: auto;
+  justify-self: center;
+  border: 1px solid rgba(27, 214, 255, 0.35);
+  border-radius: clamp(1.2rem, 4vw, 2.8rem);
+  box-shadow:
+    0 0 65px rgba(27, 214, 255, 0.18),
+    0 0 65px rgba(255, 46, 213, 0.16);
+}
+
+.hero-copy {
+  min-width: 0;
 }
 
 .hero-section h1 {
   max-width: 980px;
-  margin: 0.5rem auto;
+  margin: 0.5rem 0;
   color: #fff;
   font-size: clamp(2.6rem, 9vw, 5.8rem);
   line-height: 0.95;
@@ -174,7 +212,7 @@ textarea:focus {
 
 .hero-section p {
   max-width: 680px;
-  margin: 0 auto;
+  margin: 0;
   color: var(--muted);
   font-size: 1.08rem;
   line-height: 1.6;
@@ -1390,6 +1428,7 @@ textarea:focus {
 
 @media (max-width: 900px) {
   .top-nav,
+  .hero-section,
   .auction-grid,
   .attention-card,
   .share-card,
@@ -1408,6 +1447,20 @@ textarea:focus {
 
   .attention-card {
     min-height: 300px;
+  }
+
+  .hero-section {
+    text-align: center;
+  }
+
+  .hero-section h1,
+  .hero-section p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-logo {
+    width: min(68vw, 360px);
   }
 
   .top-nav,
@@ -1460,8 +1513,15 @@ textarea:focus {
     text-align: left;
   }
 
-  .hero-section h1 {
+  .hero-section h1,
+  .hero-section p {
     margin-left: 0;
+    margin-right: 0;
+  }
+
+  .hero-logo {
+    width: min(82vw, 330px);
+    justify-self: start;
   }
 
   .stats-grid,

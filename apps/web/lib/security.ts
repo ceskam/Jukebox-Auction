@@ -102,7 +102,7 @@ export function createWalletChallenge(wallet: string) {
 
 export function buildWalletChallengeMessage(challenge: WalletChallenge) {
   return [
-    "Attention Bid wallet authentication",
+    "AdBidCoin wallet authentication",
     "",
     `Wallet: ${challenge.wallet}`,
     `Nonce: ${challenge.nonce}`,
