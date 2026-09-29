@@ -11,6 +11,7 @@ import ShareAuction from "../ShareAuction";
 import CompanyCard from "../CompanyCard";
 import SiteFooter from "../SiteFooter";
 import Brand from "../Brand";
+import ReferralCapture from "../ReferralCapture";
 import {
   getBidHistory,
   getCurrentAuction,
@@ -58,7 +59,16 @@ const EMPTY_PLATFORM_METRICS: PlatformMetrics = {
   totalLinkClicks: 0,
 };
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const referralParam = resolvedSearchParams.ref;
+  const referralCode = Array.isArray(referralParam)
+    ? referralParam[0] ?? ""
+    : referralParam ?? "";
   const cookieStore = await cookies();
   const authenticatedWallet = getWalletFromSessionToken(
     cookieStore.get(WALLET_SESSION_COOKIE)?.value
@@ -106,6 +116,7 @@ export default async function HomePage() {
 
   return (
     <main className="page-shell">
+      <ReferralCapture code={referralCode} />
       <AutoRefresh />
       <TrackPageView auctionId={currentAuction.id} />
 

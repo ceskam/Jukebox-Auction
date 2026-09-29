@@ -1,5 +1,6 @@
 import { getBidHistory, getNextAuction, placeBid } from "../../../lib/auction";
 import { checkRateLimit, rateLimitResponse } from "../../../lib/rate-limit";
+import { recordReferralConversion } from "../../../lib/growth";
 import {
   getAuthenticatedWallet,
   isSameOriginRequest,
@@ -58,6 +59,18 @@ export async function POST(request: Request) {
       String(body.auctionId ?? ""),
       body.paymentSignature ?? null
     );
+
+    if (result.success && body.paymentSignature) {
+      try {
+        await recordReferralConversion(
+          request,
+          authenticatedWallet,
+          String(body.paymentSignature)
+        );
+      } catch (error) {
+        console.warn("Could not attach optional referral attribution.", error);
+      }
+    }
 
     return Response.json(result, {
       status: result.success ? 200 : 400,
