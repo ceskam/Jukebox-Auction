@@ -64,6 +64,21 @@ Demo payments can still be enabled for local testing with `ENABLE_DEMO_PAYMENTS=
 
 See `docs/beta-launch-checklist.md` for the production rollout steps.
 
+## Growth Scout
+
+`database/growth-scout.sql` adds a review-first discovery queue, privacy-conscious
+referral attribution, first-verified-bid conversions, and a manual USDC reward
+ledger. The six-hour cron can use Brave Search to find recent, relevant public
+pages. It does not auto-reply, mass-message, join groups, or pay rewards.
+
+Admins review every candidate at `/admin`. An optional Telegram action can post
+an approved draft only to an owned channel configured with server-side bot
+credentials. Referral rewards must be reviewed, paid manually from a dedicated
+wallet, and marked paid with the Solana transaction signature.
+
+See `docs/growth-scout-runbook.md` for database, Vercel, Telegram, referral,
+anti-abuse, and rollout steps.
+
 ## Development
 
 ```txt

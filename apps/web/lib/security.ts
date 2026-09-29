@@ -3,10 +3,12 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 export const WALLET_CHALLENGE_COOKIE = "attention_bid_wallet_challenge";
 export const WALLET_SESSION_COOKIE = "attention_bid_wallet_session";
 export const ADMIN_SESSION_COOKIE = "attention_bid_admin_session";
+export const REFERRAL_ATTRIBUTION_COOKIE = "adbidcoin_referral";
 
 const WALLET_SESSION_TTL_SECONDS = 24 * 60 * 60;
 const ADMIN_SESSION_TTL_SECONDS = 8 * 60 * 60;
 const CHALLENGE_TTL_SECONDS = 5 * 60;
+const REFERRAL_TTL_SECONDS = 30 * 24 * 60 * 60;
 
 type WalletChallenge = {
   wallet: string;
@@ -21,6 +23,11 @@ type WalletSession = {
 
 type AdminSession = {
   role: "admin";
+  expiresAt: number;
+};
+
+type ReferralAttribution = {
+  code: string;
   expiresAt: number;
 };
 
@@ -162,6 +169,25 @@ export function hasAdminSession(request: Request) {
   );
 }
 
+export function createReferralAttributionToken(code: string) {
+  return createSignedToken({
+    code,
+    expiresAt: Date.now() + REFERRAL_TTL_SECONDS * 1000,
+  } satisfies ReferralAttribution);
+}
+
+export function getReferralAttribution(request: Request) {
+  const attribution = verifySignedToken<ReferralAttribution>(
+    readCookie(request, REFERRAL_ATTRIBUTION_COOKIE)
+  );
+
+  if (!attribution?.code || attribution.expiresAt <= Date.now()) {
+    return undefined;
+  }
+
+  return attribution;
+}
+
 export function verifyAdminToken(candidate: string) {
   const expected = process.env.ADMIN_TOKEN ?? "";
   const candidateBytes = Buffer.from(candidate);
@@ -207,4 +233,12 @@ export const adminSessionCookieOptions = {
   sameSite: "strict" as const,
   path: "/",
   maxAge: ADMIN_SESSION_TTL_SECONDS,
+};
+
+export const referralAttributionCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: REFERRAL_TTL_SECONDS,
 };

@@ -15,6 +15,8 @@ The app uses Supabase Postgres for:
 - `attention_events`
 
 Run `../../database/schema.sql` and `../../database/storage.sql` in Supabase before starting the app against a real project.
+Run `../../database/growth-scout.sql` when enabling Growth Scout and referrals
+on an existing project.
 
 ## Environment
 
@@ -34,6 +36,10 @@ NEXT_PUBLIC_TREASURY_WALLET_ADDRESS=...
 TREASURY_WALLET_ADDRESS=...
 QUIET_MINT_ADDRESS=JCfSVdmBNKwMnMUMccfNbQQVVJKYsQNbXCqhdRuZpump
 ADMIN_TOKEN=...
+GROWTH_SCOUT_ENABLED=false
+BRAVE_SEARCH_API_KEY=...
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_GROWTH_CHAT_ID=...
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` must stay server-only.
@@ -44,6 +50,28 @@ custom domain is connected and serving the production deployment.
 
 `ADMIN_TOKEN` protects the `/admin` moderation screen. Use a long private value
 in production, then paste that value into the admin page when reviewing content.
+
+## Growth Scout and referral rewards
+
+The authenticated `/admin` page includes a review-first acquisition dashboard:
+
+- a six-hour Vercel cron searches recent public web results for high-intent
+  Solana and crypto-promotion discussions;
+- candidates are scored and stored as drafts, but never posted automatically;
+- an admin must review the source and its community rules before approving;
+- the optional Telegram action publishes only to the configured owned channel;
+- referral URLs use `/?ref=CODE` and attribute a promoter only when a referred
+  wallet makes its first verified user bid at or above
+  `REFERRAL_MIN_FIRST_BID_USDC` (1 USDC by default);
+- USDC rewards remain in a manual ledger until an admin approves the conversion,
+  pays from a dedicated wallet, and records the Solana payout signature.
+
+Set `GROWTH_SCOUT_ENABLED=true` only after applying
+`database/growth-scout.sql` and adding a server-only `BRAVE_SEARCH_API_KEY`.
+`CRON_SECRET` protects the discovery endpoint. Keep Telegram credentials and
+all wallet keys server-only. This feature does not automate unsolicited replies,
+DMs, group joining, or third-party community posting. Self-referrals are ignored,
+but the admin must still review likely multi-wallet abuse before paying.
 
 `SOLANA_RPC_URL`, `USDC_MINT_ADDRESS`, and `TREASURY_WALLET_ADDRESS` are used by
 the server to verify USDC transfer signatures before saving bids. The

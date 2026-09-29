@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AttentionImage from "./AttentionImage";
 import Brand from "./Brand";
+import GrowthDashboard from "./GrowthDashboard";
 
 type AttentionContent = {
   auctionId: string;
@@ -182,6 +183,8 @@ export default function AdminDashboard() {
       )}
 
       {message && <p className="form-message">{message}</p>}
+
+      <GrowthDashboard active={isAuthenticated} />
 
       <section className="admin-list">
         {content.length === 0 ? (
