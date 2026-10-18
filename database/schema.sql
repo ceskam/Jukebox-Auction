@@ -1,3 +1,5 @@
+create extension if not exists pgcrypto;
+
 create table if not exists public.auctions (
   id text primary key,
   sequence bigint not null unique,
@@ -105,6 +107,36 @@ create table if not exists public.referral_conversions (
   payout_signature text not null default '',
   converted_at timestamptz not null default now(),
   reviewed_at timestamptz,
+  paid_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz
+);
+
+create table if not exists public.art_drop_control (
+  id smallint primary key default 1 check (id = 1),
+  paused boolean not null default true,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.art_drop_control (id, paused)
+values (1, true)
+on conflict (id) do nothing;
+
+create table if not exists public.art_drops (
+  id uuid primary key default gen_random_uuid(),
+  public_id text not null unique,
+  claim_code text not null,
+  code_hash text not null unique,
+  reward_usdc numeric(12, 2) not null check (reward_usdc > 0 and reward_usdc <= 100),
+  status text not null default 'scheduled'
+    check (status in ('scheduled', 'active', 'reserved', 'paid', 'expired', 'cancelled', 'payout_review')),
+  scheduled_for timestamptz not null,
+  published_at timestamptz,
+  expires_at timestamptz,
+  reserved_at timestamptz,
+  claim_wallet text not null default '',
+  payout_signature text not null default '',
+  payout_error text not null default '',
   paid_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz
@@ -242,6 +274,21 @@ create index if not exists referral_visits_hash_created_idx
 create index if not exists referral_conversions_code_status_idx
   on public.referral_conversions (referral_code, status, converted_at desc);
 
+create unique index if not exists art_drops_one_open_drop_idx
+  on public.art_drops ((true))
+  where status in ('scheduled', 'active', 'reserved');
+
+create unique index if not exists art_drops_payout_signature_idx
+  on public.art_drops (payout_signature)
+  where payout_signature <> '';
+
+create index if not exists art_drops_status_schedule_idx
+  on public.art_drops (status, scheduled_for, created_at desc);
+
+create index if not exists art_drops_recent_paid_idx
+  on public.art_drops (paid_at desc)
+  where status = 'paid';
+
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -249,6 +296,43 @@ as $$
 begin
   new.updated_at = now();
   return new;
+end;
+$$;
+
+create or replace function public.reserve_art_drop(
+  requested_code_hash text,
+  requested_wallet text
+)
+returns setof public.art_drops
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  selected_drop public.art_drops%rowtype;
+begin
+  if coalesce((select paused from public.art_drop_control where id = 1), true) then
+    return;
+  end if;
+
+  select * into selected_drop
+  from public.art_drops
+  where code_hash = requested_code_hash
+  for update;
+
+  if not found then return; end if;
+
+  if selected_drop.status = 'active'
+     and selected_drop.expires_at is not null
+     and selected_drop.expires_at > now() then
+    update public.art_drops
+    set status = 'reserved', claim_wallet = requested_wallet,
+        reserved_at = now(), payout_error = ''
+    where id = selected_drop.id
+    returning * into selected_drop;
+    return next selected_drop;
+    return;
+  end if;
 end;
 $$;
 
@@ -274,6 +358,16 @@ create trigger referral_conversions_set_updated_at
 before update on public.referral_conversions
 for each row execute function public.set_updated_at();
 
+drop trigger if exists art_drop_control_set_updated_at on public.art_drop_control;
+create trigger art_drop_control_set_updated_at
+before update on public.art_drop_control
+for each row execute function public.set_updated_at();
+
+drop trigger if exists art_drops_set_updated_at on public.art_drops;
+create trigger art_drops_set_updated_at
+before update on public.art_drops
+for each row execute function public.set_updated_at();
+
 comment on table public.auctions is
   'Continuous Attention Bid auction windows; production moved from 15 to 30 minutes in September 2026.';
 
@@ -295,6 +389,9 @@ comment on table public.attention_content is
 comment on table public.attention_events is
   'Page view and link click events for Attention Bid homepage metrics.';
 
+comment on table public.art_drops is
+  'Randomized AdBidCoin Art Drops with atomic first-wallet reservation and server-side USDC payout receipts.';
+
 alter table public.auctions enable row level security;
 alter table public.bids enable row level security;
 alter table public.attention_content enable row level security;
@@ -303,6 +400,8 @@ alter table public.growth_opportunities enable row level security;
 alter table public.referral_codes enable row level security;
 alter table public.referral_visits enable row level security;
 alter table public.referral_conversions enable row level security;
+alter table public.art_drop_control enable row level security;
+alter table public.art_drops enable row level security;
 
 revoke all on table public.auctions from anon, authenticated;
 revoke all on table public.bids from anon, authenticated;
@@ -312,6 +411,9 @@ revoke all on table public.growth_opportunities from anon, authenticated;
 revoke all on table public.referral_codes from anon, authenticated;
 revoke all on table public.referral_visits from anon, authenticated;
 revoke all on table public.referral_conversions from anon, authenticated;
+revoke all on table public.art_drop_control from anon, authenticated;
+revoke all on table public.art_drops from anon, authenticated;
+revoke all on function public.reserve_art_drop(text, text) from public, anon, authenticated;
 revoke usage, select on all sequences in schema public from anon, authenticated;
 
 grant select, insert, update, delete on table public.auctions to service_role;
@@ -322,4 +424,7 @@ grant select, insert, update, delete on table public.growth_opportunities to ser
 grant select, insert, update, delete on table public.referral_codes to service_role;
 grant select, insert, update, delete on table public.referral_visits to service_role;
 grant select, insert, update, delete on table public.referral_conversions to service_role;
+grant select, insert, update, delete on table public.art_drop_control to service_role;
+grant select, insert, update, delete on table public.art_drops to service_role;
+grant execute on function public.reserve_art_drop(text, text) to service_role;
 grant usage, select on all sequences in schema public to service_role;

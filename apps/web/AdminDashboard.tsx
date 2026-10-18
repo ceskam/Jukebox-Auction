@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AttentionImage from "./AttentionImage";
 import Brand from "./Brand";
 import GrowthDashboard from "./GrowthDashboard";
+import ArtDropAdmin from "./ArtDropAdmin";
 
 type AttentionContent = {
   auctionId: string;
@@ -185,6 +186,8 @@ export default function AdminDashboard() {
       {message && <p className="form-message">{message}</p>}
 
       <GrowthDashboard active={isAuthenticated} />
+
+      <ArtDropAdmin active={isAuthenticated} />
 
       <section className="admin-list">
         {content.length === 0 ? (

@@ -12,6 +12,7 @@ import CompanyCard from "../CompanyCard";
 import SiteFooter from "../SiteFooter";
 import Brand from "../Brand";
 import ReferralCapture from "../ReferralCapture";
+import ArtDrops from "../ArtDrops";
 import {
   getBidHistory,
   getCurrentAuction,
@@ -27,6 +28,7 @@ import {
   WALLET_SESSION_COOKIE,
 } from "../lib/security";
 import { getSolscanTransactionUrl } from "../lib/solscan";
+import { getPublicArtDrops } from "../lib/art-drops";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -113,6 +115,11 @@ export default async function HomePage({
     getPlatformMetrics,
     EMPTY_PLATFORM_METRICS
   );
+  const artDrops = await loadOptional(
+    "Art Drops",
+    getPublicArtDrops,
+    { active: undefined, recent: [] }
+  );
 
   return (
     <main className="page-shell">
@@ -127,6 +134,7 @@ export default async function HomePage({
           <a href="#leaderboard">Leaderboard</a>
           <a href="#how-it-works">How it works</a>
           <a href="#community">Community</a>
+          <a href="#art-drops">Art drops</a>
           <a href="#share">Share</a>
           <a href="/about">Company</a>
           <a href="/white-paper">White paper</a>
@@ -154,6 +162,8 @@ export default async function HomePage({
       </section>
 
       <CompanyCard />
+
+      <ArtDrops active={artDrops.active} recent={artDrops.recent} />
 
       <ShareAuction auctionId={currentAuction.id} />
 

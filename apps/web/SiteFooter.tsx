@@ -16,6 +16,7 @@ export default function SiteFooter() {
       <nav aria-label="Footer navigation">
         <a href="/about">Company</a>
         <a href="/white-paper">White paper</a>
+        <a href="/art-drop-rules">Art Drop rules</a>
         <a href={X_URL} target="_blank" rel="noreferrer">
           X
         </a>

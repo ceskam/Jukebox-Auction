@@ -73,6 +73,18 @@ all wallet keys server-only. This feature does not automate unsolicited replies,
 DMs, group joining, or third-party community posting. Self-referrals are ignored,
 but the admin must still review likely multi-wallet abuse before paying.
 
+## Art Drops
+
+The homepage Art Drops section and `/claim` implement first-valid-claim USDC
+rewards without exposing a funded private key. Claims require the existing signed
+Phantom session, Cloudflare Turnstile, an unexpired code, a 30-day wallet cooldown,
+and an atomic Supabase reservation. A dedicated server-side signer pays the winner
+and records a public Solscan receipt. Admin controls live under `/admin`; the
+randomized scheduler runs from `/api/cron/art-drops`.
+
+Run `../../database/art-drops.sql` and follow
+`../../docs/art-drops-runbook.md` before enabling the feature.
+
 `SOLANA_RPC_URL`, `USDC_MINT_ADDRESS`, and `TREASURY_WALLET_ADDRESS` are used by
 the server to verify USDC transfer signatures before saving bids. The
 `NEXT_PUBLIC_` versions are used by the browser to build the Phantom payment
