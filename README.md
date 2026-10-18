@@ -79,6 +79,18 @@ wallet, and marked paid with the Solana transaction signature.
 See `docs/growth-scout-runbook.md` for database, Vercel, Telegram, referral,
 anti-abuse, and rollout steps.
 
+## Art Drops
+
+AdBidCoin Art Drops provide randomized, operator-funded USDC rewards without
+publishing wallet private keys. An active branded image exposes a one-time claim
+code, while `/claim` requires a signed Phantom session and Cloudflare Turnstile.
+The database atomically reserves the first valid claim, the dedicated low-balance
+treasury sends USDC, and the site publishes a shortened recipient plus Solscan
+receipt. Drops are disabled in Vercel and paused in Supabase by default.
+
+Apply `database/art-drops.sql`, then follow `docs/art-drops-runbook.md` for the
+signer, Turnstile, Vercel, funding, and controlled production-test steps.
+
 ## Development
 
 ```txt
