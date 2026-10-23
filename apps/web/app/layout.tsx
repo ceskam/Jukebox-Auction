@@ -1,6 +1,7 @@
 import "./globals.css";
 import "./upload.css";
 import type { Metadata } from "next";
+import MintfunnelTracking from "../MintfunnelTracking";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://adbidcoin.com";
@@ -118,6 +119,7 @@ export default function RootLayout({
           }}
         />
         {children}
+        <MintfunnelTracking />
       </body>
     </html>
   );

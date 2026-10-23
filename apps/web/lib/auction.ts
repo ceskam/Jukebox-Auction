@@ -446,6 +446,10 @@ export async function placeBid(
       : "USDC received and your bid was recorded. Another verified bid is currently higher.",
     auction: updatedAuction,
     bidHistory: await getBidHistory(updatedAuction.id),
+    // Replayed receipts and demo payments do not create paid conversions.
+    ...(verification.provider === "solana-usdc"
+      ? { campaignConversion: { event: "verified_user_bid" as const, value_usd: roundedAmount } }
+      : {}),
   };
 }
 
