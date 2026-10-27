@@ -3,19 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { getStoredWallet, subscribeToWallet } from "./WalletConnect";
 import { getMinimumBidUsdc, OPENING_BID_USDC } from "./lib/bid-rules";
-import { calculateEffectiveBidUsdc } from "./lib/bid-power-math";
 import { sendUsdcBidPayment } from "./lib/solana-payment";
 import { getSolscanTransactionUrl } from "./lib/solscan";
 
 type Props = {
   currentHighestEffectiveBid: number;
   auctionId: string;
-};
-
-type BidPower = {
-  quietBalance: number;
-  bidMultiplier: number;
-  mintAddress: string;
 };
 
 type PendingPayment = {
@@ -27,28 +20,14 @@ type PendingPayment = {
 
 const PENDING_PAYMENT_KEY = "attention-bid-pending-payment";
 const LARGE_BID_CONFIRMATION_USDC = 100;
-const QUIET_COIN_URL =
-  "https://pump.fun/coin/JCfSVdmBNKwMnMUMccfNbQQVVJKYsQNbXCqhdRuZpump";
 
 export default function BidButton({
   currentHighestEffectiveBid,
   auctionId,
 }: Props) {
-  const [bidPower, setBidPower] = useState<BidPower>({
-    quietBalance: 0,
-    bidMultiplier: 1,
-    mintAddress: "JCfSVdmBNKwMnMUMccfNbQQVVJKYsQNbXCqhdRuZpump",
-  });
-  const [bidPowerStatus, setBidPowerStatus] = useState<
-    "idle" | "loading" | "ready" | "error"
-  >("idle");
   const minimumBid = useMemo(
-    () =>
-      getMinimumBidUsdc(
-        currentHighestEffectiveBid,
-        bidPower.bidMultiplier
-      ),
-    [currentHighestEffectiveBid, bidPower.bidMultiplier]
+    () => getMinimumBidUsdc(currentHighestEffectiveBid, 1),
+    [currentHighestEffectiveBid]
   );
   const [amount, setAmount] = useState(String(minimumBid));
   const [wallet, setWallet] = useState("");
@@ -62,50 +41,6 @@ export default function BidButton({
     setWallet(getStoredWallet());
     return subscribeToWallet(setWallet);
   }, []);
-
-  async function refreshBidPower(signal?: AbortSignal) {
-    if (!wallet) {
-      setBidPowerStatus("idle");
-      setBidPower((current) => ({
-        ...current,
-        quietBalance: 0,
-        bidMultiplier: 1,
-      }));
-      return;
-    }
-
-    setBidPowerStatus("loading");
-
-    try {
-      const response = await fetch("/api/bid-power", {
-        cache: "no-store",
-        signal,
-      });
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message ?? "Could not verify QUIET balance.");
-      }
-
-      setBidPower(result.bidPower as BidPower);
-      setBidPowerStatus("ready");
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      setBidPowerStatus("error");
-      setStatus(
-        error instanceof Error
-          ? error.message
-          : "Could not verify QUIET bid power.",
-        "error"
-      );
-    }
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-    void refreshBidPower(controller.signal);
-    return () => controller.abort();
-  }, [wallet]);
 
   useEffect(() => {
     setAmount(String(minimumBid));
@@ -178,14 +113,6 @@ export default function BidButton({
 
     if (!wallet) {
       setStatus("Connect Phantom before placing a USDC bid.", "error");
-      return;
-    }
-
-    if (bidPowerStatus !== "ready") {
-      setStatus(
-        "Refresh your QUIET bid power before sending USDC.",
-        "error"
-      );
       return;
     }
 
@@ -285,47 +212,10 @@ export default function BidButton({
   return (
     <section className="bid-card">
       <span className="eyebrow">Place your bid</span>
-      <div className="bid-power-vault">
-        <div className="bid-power-heading">
-          <div>
-            <span className="eyebrow">QUIET Bid Power Vault</span>
-            <strong>
-              {wallet && bidPowerStatus === "ready"
-                ? `${bidPower.bidMultiplier.toFixed(3).replace(/\.?0+$/, "")}x power`
-                : "Connect and verify"}
-            </strong>
-          </div>
-          {wallet && (
-            <button
-              className="ghost-button"
-              type="button"
-              onClick={() => void refreshBidPower()}
-              disabled={bidPowerStatus === "loading" || isSubmitting}
-            >
-              {bidPowerStatus === "loading" ? "Checking..." : "Refresh"}
-            </button>
-          )}
-        </div>
-        <p>
-          {bidPowerStatus === "ready"
-            ? `${bidPower.quietBalance.toLocaleString(undefined, {
-                maximumFractionDigits: 3,
-              })} QUIET verified in this wallet.`
-            : "Hold QUIET in your connected wallet to increase your bid power."}
-        </p>
-        <p className="bid-power-formula">
-          Effective bid = USDC bid x min(10, 1 + QUIET / 1,000,000)
-        </p>
-        <p className="fine-print">
-          Non-custodial beta: the server snapshots your wallet balance when the
-          bid is recorded. Tokens stay in your wallet and are not locked or
-          transferred. Maximum power is 10x at 9,000,000 QUIET.
-        </p>
-        <a href={QUIET_COIN_URL} target="_blank" rel="noreferrer">
-          View QUIET Coin and verify the mint
-        </a>
-        <code className="quiet-mint">{bidPower.mintAddress}</code>
-      </div>
+      <p className="hint">
+        Every verified USDC bid competes at face value. Token-based bid power is
+        paused while AdBidCoin prepares its own future utility.
+      </p>
       <div className="quick-bids">
         {(currentHighestEffectiveBid > 0
           ? [minimumBid, minimumBid + 1, minimumBid + 5, minimumBid + 10]
@@ -338,7 +228,7 @@ export default function BidButton({
               key={bidAmount}
               className="quick-bid-button"
               onClick={() => placeBid(bidAmount)}
-              disabled={isSubmitting || bidPowerStatus !== "ready"}
+              disabled={isSubmitting}
             >
               {bidAmount.toFixed(2)}
               <span>USDC</span>
@@ -362,22 +252,15 @@ export default function BidButton({
       <button
         className="primary-button"
         onClick={() => placeBid()}
-        disabled={isSubmitting || !wallet || bidPowerStatus !== "ready"}
+        disabled={isSubmitting || !wallet}
       >
         {isSubmitting ? "Processing USDC..." : "Place bid"}
       </button>
 
       <p className="hint">
         {currentHighestEffectiveBid > 0
-          ? `With your ${bidPower.bidMultiplier.toFixed(3).replace(/\.?0+$/, "")}x power, the next bid must be at least ${minimumBid.toFixed(2)} USDC.`
+          ? `The next bid must be at least ${minimumBid.toFixed(2)} USDC.`
           : `Opening bid starts at ${OPENING_BID_USDC.toFixed(2)} USDC.`}
-      </p>
-      <p className="hint">
-        Estimated effective bid:{" "}
-        {calculateEffectiveBidUsdc(
-          Number(amount),
-          bidPower.bidMultiplier
-        ).toFixed(2)} USDC.
       </p>
       <p className="fine-print">
         Winner takes the attention block. All verified bids are final and are

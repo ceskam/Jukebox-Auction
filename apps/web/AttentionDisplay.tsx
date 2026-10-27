@@ -14,7 +14,7 @@ function getHouseCallToAction(url: string) {
   try {
     const hostname = new URL(url).hostname.toLowerCase();
 
-    if (hostname === "t.me") return "Join Quiet Coin on Telegram";
+    if (hostname === "t.me") return "Visit the sponsor community";
     if (hostname === "livepayout.org" || hostname === "www.livepayout.org") {
       return "Explore LivePayout";
     }
@@ -61,20 +61,17 @@ export default function AttentionDisplay({
         )}
 
         {isHouseSponsored && url && (
-          <a
-            className="primary-link"
-            href={url}
-            target="_blank"
-            rel="sponsored noreferrer"
-          >
-            {getHouseCallToAction(url)} <span aria-hidden="true">↗</span>
-          </a>
+          <TrackedAttentionLink
+            auctionId={auctionId}
+            url={url}
+            label={getHouseCallToAction(url)}
+            sponsored
+          />
+        )}
+        {url && !isHouseSponsored && (
+          <TrackedAttentionLink auctionId={auctionId} url={url} />
         )}
       </div>
-
-      {url && !isHouseSponsored && (
-        <TrackedAttentionLink auctionId={auctionId} url={url} />
-      )}
     </section>
   );
 }

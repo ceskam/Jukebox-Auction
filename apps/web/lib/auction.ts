@@ -6,6 +6,7 @@ import {
 import { getHouseActivationTime } from "./house";
 import { verifySolanaUsdcPayment } from "./payment";
 import { createSupabaseServerClient } from "./supabase/server";
+import { reservePaymentReceipt } from "./payment-receipts";
 
 const LEGACY_BLOCK_LENGTH_MS = 15 * 60 * 1000;
 const BLOCK_LENGTH_MS = 30 * 60 * 1000;
@@ -334,6 +335,20 @@ export async function placeBid(
     };
   }
 
+  const paymentStore = createSupabaseServerClient();
+  const { data: sponsorPayment } = await paymentStore
+    .from("sponsor_orders")
+    .select("id")
+    .eq("payment_signature", paymentSignature)
+    .maybeSingle();
+  if (sponsorPayment) {
+    return {
+      success: false,
+      message: "This payment receipt is already attached to a sponsor package.",
+      auction: nextAuction,
+    };
+  }
+
   let requestedAuction: Auction;
 
   try {
@@ -377,18 +392,14 @@ export async function placeBid(
   }
 
   const targetAuction = isNormalNextAuction ? nextAuction : requestedAuction;
-  let bidPower;
-
-  try {
-    bidPower = await getQuietBidPower(wallet);
-  } catch {
-    return {
-      success: false,
-      message:
-        "USDC was received, but QUIET bid power could not be verified. Retry this saved receipt without sending another payment.",
-      auction: nextAuction,
-    };
-  }
+  await reservePaymentReceipt({
+    signature: verification.signature!,
+    purpose: "bid",
+    wallet,
+    amountUsdc: roundedAmount,
+    referenceKey: `bid:${targetAuction.id}`,
+  });
+  const bidPower = await getQuietBidPower(wallet);
 
   const effectiveBidUsdc = calculateEffectiveBidUsdc(
     roundedAmount,
@@ -442,7 +453,7 @@ export async function placeBid(
   return {
     success: true,
     message: isLeading
-      ? `USDC received. Your ${bidPower.bidMultiplier.toFixed(2)}x bid power produces a ${effectiveBidUsdc.toFixed(2)} USDC effective bid, and you're leading.`
+      ? `USDC received. Your ${effectiveBidUsdc.toFixed(2)} USDC bid is leading.`
       : "USDC received and your bid was recorded. Another verified bid is currently higher.",
     auction: updatedAuction,
     bidHistory: await getBidHistory(updatedAuction.id),

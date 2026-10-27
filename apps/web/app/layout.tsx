@@ -1,11 +1,12 @@
 import "./globals.css";
 import "./upload.css";
 import type { Metadata } from "next";
+import EngagementTracker from "../EngagementTracker";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://adbidcoin.com";
 const SITE_DESCRIPTION =
-  "AdBidCoin is the live 30-minute attention auction. Bid USDC on Solana, with up to 10x bid power for verified QUIET holders.";
+  "AdBidCoin is the live 30-minute attention auction. Bid USDC on Solana to win the dominant homepage feature.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -117,6 +118,7 @@ export default function RootLayout({
             ),
           }}
         />
+        <EngagementTracker />
         {children}
       </body>
     </html>

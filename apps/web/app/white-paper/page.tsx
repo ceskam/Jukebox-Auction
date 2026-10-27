@@ -5,7 +5,7 @@ import Brand from "../../Brand";
 export const metadata: Metadata = {
   title: "White Paper",
   description:
-    "Read the AdBidCoin white paper: 30-minute auction design, QUIET bid power, Solana and USDC infrastructure, company roadmap, funding approach, and risks.",
+    "Read the AdBidCoin white paper: 30-minute auction design, Solana and USDC infrastructure, company roadmap, funding approach, and risks.",
   alternates: { canonical: "/white-paper" },
 };
 
@@ -20,7 +20,7 @@ const FAQ_STRUCTURED_DATA = {
       name: "What is AdBidCoin?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "AdBidCoin is a live marketplace where USDC bidders compete to control the next 30-minute homepage attention block, with verified QUIET balances providing proportional bid power.",
+        text: "AdBidCoin is a live marketplace where verified USDC bidders compete to control the next 30-minute homepage attention block.",
       },
     },
     {
@@ -33,10 +33,10 @@ const FAQ_STRUCTURED_DATA = {
     },
     {
       "@type": "Question",
-      name: "Does QUIET bid power represent Attention Bid shares?",
+      name: "Is third-party token bid power active?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No. QUIET bid power is a product utility based on a wallet-balance snapshot. It does not represent Attention Bid equity, revenue rights, dividends, or governance.",
+        text: "No. Third-party token bid power is paused while AdBidCoin evaluates a future first-party utility token. Current bids compete at their verified USDC value.",
       },
     },
   ],
@@ -96,7 +96,7 @@ export default function WhitePaperPage() {
         <article>
           <span>02</span>
           <h2>Live infrastructure</h2>
-          <p>How Solana, USDC, and non-custodial QUIET snapshots support settlement and bid power.</p>
+          <p>How Solana and USDC support transparent settlement while current bids compete at face value.</p>
         </article>
         <article>
           <span>03</span>

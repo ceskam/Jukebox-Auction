@@ -133,7 +133,7 @@ function buildDraft(title: string, source: string) {
 
   return [
     `This may be useful for the discussion around “${clampText(title, 90)}.”`,
-    "AdBidCoin is a live 30-minute attention auction where verified bidders compete for homepage placement using USDC on Solana. QUIET holders can receive additional bid power.",
+    "AdBidCoin is a live 30-minute attention auction where verified bidders compete for dominant homepage placement using USDC on Solana.",
     `Live auction: ${campaignUrl.toString()}`,
     "Sponsored link from AdBidCoin. Please remove if it is not welcome here.",
   ].join("\n\n");

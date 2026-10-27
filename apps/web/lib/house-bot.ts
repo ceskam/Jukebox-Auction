@@ -16,6 +16,7 @@ import {
   HOUSE_BID_USDC,
   isHouseBotEnabled,
 } from "./house";
+import { getPaidSponsorForRotation, recordSponsorPlacement } from "./sponsors";
 import { verifySolanaUsdcPayment } from "./payment";
 import { createSupabaseServerClient } from "./supabase/server";
 
@@ -262,7 +263,11 @@ async function finalizeHouseBid({
   }
 
   const refreshedAuction = await getNextAuction();
-  const content = getHouseAttention(sequence);
+  const paidSponsor = await getPaidSponsorForRotation().catch((error) => {
+    console.warn("Paid sponsor rotation unavailable; using house fallback.", error);
+    return undefined;
+  });
+  const content = paidSponsor?.content ?? getHouseAttention(sequence);
 
   if (
     refreshedAuction.id === reservation.auction_id &&
@@ -274,6 +279,11 @@ async function finalizeHouseBid({
       wallet: reservation.wallet,
       ...content,
     });
+    if (paidSponsor) {
+      await recordSponsorPlacement(paidSponsor.orderId, reservation.auction_id).catch(
+        (error) => console.error("Sponsor content published but delivery ledger failed.", error)
+      );
+    }
   }
 
   return {

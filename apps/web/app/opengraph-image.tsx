@@ -125,8 +125,8 @@ export default async function OpenGraphImage() {
               lineHeight: 1.35,
             }}
           >
-            Every 30 minutes, the highest effective bidder wins. QUIET holders
-            receive up to 10x bid power.
+            Every 30 minutes, the highest verified USDC bidder wins the dominant
+            homepage feature.
           </div>
         </div>
 

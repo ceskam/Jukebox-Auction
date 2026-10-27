@@ -55,7 +55,7 @@ function toUsdcBaseUnits(amountUsdc: number) {
   return BigInt(baseUnits);
 }
 
-export async function sendUsdcBidPayment({
+export async function sendUsdcPayment({
   amountUsdc,
   wallet,
 }: {
@@ -139,3 +139,5 @@ export async function sendUsdcBidPayment({
 
   return signature;
 }
+
+export const sendUsdcBidPayment = sendUsdcPayment;

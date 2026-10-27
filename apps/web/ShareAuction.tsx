@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 const DEFAULT_SITE_URL = "https://adbidcoin.com";
 const SHARE_TEXT =
-  "AdBidCoin is live. Bid USDC on Solana for the next 30 minutes of homepage attention. QUIET holders get up to 10x bid power.";
+  "AdBidCoin is live. Bid USDC on Solana for the next 30 minutes of dominant homepage attention.";
 
 export default function ShareAuction({ auctionId }: { auctionId: string }) {
   const [shareUrl, setShareUrl] = useState(DEFAULT_SITE_URL);

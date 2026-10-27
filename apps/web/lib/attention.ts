@@ -110,6 +110,21 @@ export async function getRecentAttentionContent(limit = 25) {
   return (data ?? []).map(mapAttentionContent);
 }
 
+export async function getLatestHouseSponsoredContent() {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("attention_content")
+    .select(ATTENTION_SELECT)
+    .eq("moderation_status", "approved")
+    .like("moderation_note", "House-sponsored post:%")
+    .order("updated_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<AttentionContentRow>();
+  if (error) throw new Error(`Could not load latest sponsored content: ${error.message}`);
+  return data ? mapAttentionContent(data) : undefined;
+}
+
 function normalizeUrl(url: string) {
   if (!url) return "";
 

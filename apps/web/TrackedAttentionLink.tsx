@@ -3,9 +3,16 @@
 type Props = {
   auctionId: string;
   url: string;
+  label?: string;
+  sponsored?: boolean;
 };
 
-export default function TrackedAttentionLink({ auctionId, url }: Props) {
+export default function TrackedAttentionLink({
+  auctionId,
+  url,
+  label = "Visit link",
+  sponsored = false,
+}: Props) {
   function recordClick() {
     const body = JSON.stringify({ auctionId, url });
 
@@ -32,10 +39,10 @@ export default function TrackedAttentionLink({ auctionId, url }: Props) {
       className="primary-link"
       href={url}
       target="_blank"
-      rel="noreferrer"
+      rel={sponsored ? "sponsored noreferrer" : "noreferrer"}
       onClick={recordClick}
     >
-      Visit link
+      {label} <span aria-hidden="true">↗</span>
     </a>
   );
 }

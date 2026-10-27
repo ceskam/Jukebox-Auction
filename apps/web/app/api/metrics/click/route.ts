@@ -4,6 +4,7 @@ import { recordAttentionEvent } from "../../../../lib/metrics";
 import { getAttentionContent } from "../../../../lib/attention";
 import { checkRateLimit, rateLimitResponse } from "../../../../lib/rate-limit";
 import { isSameOriginRequest } from "../../../../lib/security";
+import { engagementCookie, touchEngagement } from "../../../../lib/engagement";
 
 export const runtime = "nodejs";
 
@@ -36,13 +37,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid attention link." }, { status: 400 });
     }
 
+    const isHouseSponsored = approvedContent.moderationNote.startsWith(
+      "House-sponsored post:"
+    );
     await recordAttentionEvent({
       auctionId,
       eventType: "link_click",
       targetUrl,
+      eventSource: isHouseSponsored ? "house" : "organic",
     });
 
-    return NextResponse.json({ ok: true });
+    const response = NextResponse.json({ ok: true });
+    if (isHouseSponsored) {
+      const engagement = await touchEngagement(request, auctionId);
+      if (engagement.isNew) {
+        response.headers.set("Set-Cookie", engagementCookie(engagement.session));
+      }
+    }
+    return response;
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Could not record link click.";
