@@ -5,6 +5,7 @@ import {
   isSameOriginRequest,
 } from "../../../../lib/security";
 import { verifyTurnstile } from "../../../../lib/turnstile";
+import { assertArtDropEngagement } from "../../../../lib/engagement";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
 
   try {
     await verifyTurnstile(request, String(body.turnstileToken ?? ""));
+    await assertArtDropEngagement(request);
     const result = await claimArtDrop({
       code: String(body.code ?? ""),
       wallet,

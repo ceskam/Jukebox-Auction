@@ -1,7 +1,6 @@
 import {
   createReferralCode,
   getGrowthAdminData,
-  publishOpportunityToTelegram,
   runGrowthScout,
   updateOpportunity,
   updateReward,
@@ -82,18 +81,6 @@ export async function POST(request: Request) {
           draftText: String(body.draftText ?? ""),
         });
         return Response.json({ success: true, message: "Opportunity updated." });
-      }
-      case "publish_telegram": {
-        const result = await publishOpportunityToTelegram(
-          Number(body.id),
-          String(body.draftText ?? "")
-        );
-        return Response.json({
-          success: true,
-          message: `Published to the configured Telegram channel${
-            result.messageId ? ` as message ${result.messageId}` : ""
-          }.`,
-        });
       }
       case "update_reward": {
         const status = String(body.status ?? "") as RewardStatus;

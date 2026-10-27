@@ -19,7 +19,7 @@ export default function ArtDropRulesPage() {
       <article className="legal-card">
         <span className="eyebrow">Beta program</span>
         <h1>AdBidCoin Art Drop Rules</h1>
-        <p className="hint">Last updated October 17, 2026</p>
+        <p className="hint">Last updated October 27, 2026</p>
 
         <h2>How a drop works</h2>
         <p>
@@ -33,6 +33,8 @@ export default function ArtDropRulesPage() {
         <h2>Eligibility and limits</h2>
         <ul>
           <li>No purchase or bid is necessary to participate.</li>
+          <li>Participants must remain active on AdBidCoin for at least five minutes before claiming.</li>
+          <li>Participants must visit the latest house-sponsored post during the eligible session.</li>
           <li>Participants must be at least 18 and legally eligible in their location.</li>
           <li>One paid Art Drop per wallet during any rolling 30-day period.</li>
           <li>Automated claiming, multiple-wallet evasion, fraud, or interference is prohibited.</li>

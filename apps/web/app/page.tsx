@@ -13,6 +13,7 @@ import SiteFooter from "../SiteFooter";
 import Brand from "../Brand";
 import ReferralCapture from "../ReferralCapture";
 import ArtDrops from "../ArtDrops";
+import SponsorSpotlight from "../SponsorSpotlight";
 import {
   getBidHistory,
   getCurrentAuction,
@@ -21,6 +22,7 @@ import {
 import {
   getAttentionContent,
   getAttentionContentForAuction,
+  getLatestHouseSponsoredContent,
 } from "../lib/attention";
 import { getPlatformMetrics, type PlatformMetrics } from "../lib/metrics";
 import {
@@ -59,6 +61,8 @@ const EMPTY_PLATFORM_METRICS: PlatformMetrics = {
   totalViews: 0,
   totalBidUsdc: 0,
   totalLinkClicks: 0,
+  houseSpendUsdc: 0,
+  houseLinkClicks: 0,
 };
 
 export default async function HomePage({
@@ -120,6 +124,11 @@ export default async function HomePage({
     getPublicArtDrops,
     { active: undefined, recent: [] }
   );
+  const latestSponsor = await loadOptional(
+    "latest sponsored content",
+    getLatestHouseSponsoredContent,
+    undefined
+  );
 
   return (
     <main className="page-shell">
@@ -135,12 +144,24 @@ export default async function HomePage({
           <a href="#how-it-works">How it works</a>
           <a href="#community">Community</a>
           <a href="#art-drops">Art drops</a>
+          <a href="/sponsor">Sponsor packages</a>
           <a href="#share">Share</a>
           <a href="/about">Company</a>
           <a href="/white-paper">White paper</a>
         </div>
         <WalletConnect />
       </nav>
+
+      <section className="featured-attention" aria-label="Winning homepage feature">
+        <AttentionDisplay
+          auctionId={currentAuction.id}
+          title={displayedAttention?.title ?? ""}
+          description={displayedAttention?.description ?? ""}
+          url={displayedAttention?.url ?? ""}
+          imageUrl={displayedAttention?.imageUrl ?? ""}
+          isHouseSponsored={isShowingHouseSponsored}
+        />
+      </section>
 
       <section className="hero-section">
         <img
@@ -154,14 +175,29 @@ export default async function HomePage({
           <span className="eyebrow">The 30-minute attention market</span>
           <h1>Own the next block.</h1>
           <p>
-            Every 30 minutes, the highest effective bidder wins the public
-            homepage attention block. QUIET holders receive up to 10x bid power.
-            Bids are final.
+            Every 30 minutes, the highest USDC bidder wins the dominant public
+            homepage feature. Bids are final.
           </p>
         </div>
       </section>
 
       <CompanyCard />
+
+      <section className="platform-stats sponsor-metrics" aria-label="AdBidCoin sponsor metrics">
+        <div><span className="eyebrow">House ad spend</span><strong>{platformMetrics.houseSpendUsdc.toFixed(2)} USDC</strong></div>
+        <div><span className="eyebrow">Sponsored clicks</span><strong>{platformMetrics.houseLinkClicks.toLocaleString()}</strong></div>
+        <div><span className="eyebrow">Available packages</span><strong><a href="/sponsor">$200 / $400</a></strong></div>
+      </section>
+
+      {latestSponsor?.url && (
+        <SponsorSpotlight
+          auctionId={latestSponsor.auctionId}
+          title={latestSponsor.title}
+          description={latestSponsor.description}
+          url={latestSponsor.url}
+          imageUrl={latestSponsor.imageUrl}
+        />
+      )}
 
       <ArtDrops active={artDrops.active} recent={artDrops.recent} />
 
@@ -203,15 +239,6 @@ export default async function HomePage({
 
       <section className="auction-grid" id="auction">
         <div className="main-column">
-          <AttentionDisplay
-            auctionId={currentAuction.id}
-            title={displayedAttention?.title ?? ""}
-            description={displayedAttention?.description ?? ""}
-            url={displayedAttention?.url ?? ""}
-            imageUrl={displayedAttention?.imageUrl ?? ""}
-            isHouseSponsored={isShowingHouseSponsored}
-          />
-
           <CountdownTimer
             startsAt={currentAuction.startsAt}
             endsAt={currentAuction.endsAt}
@@ -237,14 +264,6 @@ export default async function HomePage({
                   : nextAuction.highestBid
                 ).toFixed(2)} USDC
               </strong>
-              {!nextAuction.isHouseBid && nextAuction.highestBid > 0 && (
-                <small>
-                  {nextAuction.highestEffectiveBid.toFixed(2)} effective at{" "}
-                  {nextAuction.leadingBidMultiplier
-                    .toFixed(3)
-                    .replace(/\.?0+$/, "")}x
-                </small>
-              )}
             </div>
           </div>
 
@@ -290,9 +309,6 @@ export default async function HomePage({
           <AttentionOwner
             winner={nextAuction.winner}
             highestBid={nextAuction.highestBid}
-            highestEffectiveBid={nextAuction.highestEffectiveBid}
-            bidMultiplier={nextAuction.leadingBidMultiplier}
-            quietBalance={nextAuction.leadingQuietBalance}
             auctionId={nextAuction.id}
             isHouseBid={nextAuction.isHouseBid}
             houseBidAmount={nextAuction.houseBidAmount}
@@ -330,12 +346,6 @@ export default async function HomePage({
                     </div>
                     <strong>
                       {bid.amountUsdc.toFixed(2)} USDC
-                      {bid.bidSource === "user" && (
-                        <small className="effective-bid-label">
-                          {bid.bidMultiplier.toFixed(3).replace(/\.?0+$/, "")}x
-                          = {bid.effectiveBidUsdc.toFixed(2)} effective
-                        </small>
-                      )}
                     </strong>
                   </li>
                 ))}
@@ -356,11 +366,7 @@ export default async function HomePage({
             <ol>
               <li>Connect Phantom.</li>
               <li>Bid USDC for the next 30-minute block.</li>
-              <li>
-                Your connected wallet&apos;s verified QUIET balance adds
-                proportional bid power, up to 10x.
-              </li>
-              <li>Highest effective bid wins when the timer ends.</li>
+              <li>Highest verified USDC bid wins when the timer ends.</li>
               <li>Bids are final. Losing bids are not refunded.</li>
               <li>Approved winner content appears on the homepage.</li>
               <li>

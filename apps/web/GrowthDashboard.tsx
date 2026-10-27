@@ -222,18 +222,6 @@ export default function GrowthDashboard({ active }: { active: boolean }) {
                   Save approved draft
                 </button>
                 <button
-                  className="primary-button"
-                  onClick={() =>
-                    action({
-                      action: "publish_telegram",
-                      id: item.id,
-                      draftText: drafts[item.id],
-                    })
-                  }
-                >
-                  Post to owned Telegram
-                </button>
-                <button
                   className="ghost-button danger-button"
                   onClick={() =>
                     action({

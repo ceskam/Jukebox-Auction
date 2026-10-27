@@ -37,12 +37,26 @@ export default function ClaimDrop({
   const [message, setMessage] = useState("");
   const [signature, setSignature] = useState("");
   const [isClaiming, setIsClaiming] = useState(false);
+  const [eligibility, setEligibility] = useState({ eligible: false, visitComplete: false, sponsorClickComplete: false, secondsRemaining: 300 });
   const turnstileContainer = useRef<HTMLDivElement>(null);
   const widgetId = useRef("");
 
   useEffect(() => {
     setWallet(getStoredWallet());
     return subscribeToWallet(setWallet);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      const response = await fetch("/api/engagement", { cache: "no-store" }).catch(() => undefined);
+      if (!response?.ok) return;
+      const result = await response.json();
+      if (active) setEligibility(result);
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 10_000);
+    return () => { active = false; window.clearInterval(timer); };
   }, []);
 
   useEffect(() => {
@@ -69,6 +83,10 @@ export default function ClaimDrop({
     }
     if (!turnstileToken) {
       setMessage("Complete the human verification before claiming.");
+      return;
+    }
+    if (!eligibility.eligible) {
+      setMessage("Complete both engagement requirements before claiming.");
       return;
     }
 
@@ -129,6 +147,18 @@ export default function ClaimDrop({
           {wallet && <span className="status-pill approved">Wallet authenticated</span>}
         </div>
 
+        <div className="claim-requirements" aria-label="Claim requirements">
+          <div className={eligibility.visitComplete ? "complete" : "pending"}>
+            <strong>{eligibility.visitComplete ? "✓" : "1"}</strong>
+            <span>{eligibility.visitComplete ? "Five active minutes complete" : `Stay active for ${Math.max(1, Math.ceil(eligibility.secondsRemaining / 60))} more minute(s)`}</span>
+          </div>
+          <div className={eligibility.sponsorClickComplete ? "complete" : "pending"}>
+            <strong>{eligibility.sponsorClickComplete ? "✓" : "2"}</strong>
+            <span>{eligibility.sponsorClickComplete ? "Latest sponsored post visited" : "Visit the latest sponsored post on the homepage"}</span>
+          </div>
+          {!eligibility.sponsorClickComplete && <a href="/#sponsored">Open latest sponsored post</a>}
+        </div>
+
         {siteKey ? (
           <div ref={turnstileContainer} className="turnstile-container" />
         ) : (
@@ -140,7 +170,7 @@ export default function ClaimDrop({
         <button
           className="primary-button claim-submit"
           onClick={claim}
-          disabled={isClaiming || !siteKey}
+          disabled={isClaiming || !siteKey || !eligibility.eligible}
         >
           {isClaiming ? "Reserving and sending..." : "Claim USDC reward"}
         </button>

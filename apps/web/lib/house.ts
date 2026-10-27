@@ -13,14 +13,6 @@ export type HouseAttention = {
 
 const HOUSE_ATTENTION_ROTATION: HouseAttention[] = [
   {
-    sponsor: "Quiet Coin",
-    title: "Quiet Coin: join the conversation",
-    description:
-      "Step into the Quiet Coin Telegram for community conversation, project updates, and a closer look at what people are building together. This is a disclosed, house-sponsored post from AttentionBid.",
-    url: "https://t.me/quietcoinchat",
-    imageUrl: "/house-sponsors/quiet-coin.svg",
-  },
-  {
     sponsor: "LivePayout",
     title: "LivePayout: see what happens live",
     description:

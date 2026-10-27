@@ -451,7 +451,7 @@ textarea:focus {
 
 .attention-card {
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(220px, 0.65fr) auto;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
   gap: 1.25rem;
   align-items: center;
   min-height: 320px;
@@ -460,6 +460,77 @@ textarea:focus {
     linear-gradient(135deg, rgba(255, 46, 213, 0.16), rgba(27, 214, 255, 0.08)),
     var(--panel-strong);
 }
+
+.featured-attention {
+  margin: clamp(1rem, 3vw, 2rem) 0 clamp(2rem, 5vw, 4rem);
+}
+
+.featured-attention .attention-card {
+  min-height: min(72vh, 760px);
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  border-width: 2px;
+  box-shadow: 0 0 52px rgba(255, 46, 213, 0.24);
+}
+
+.featured-attention .attention-image {
+  max-height: 610px;
+  aspect-ratio: 16 / 10;
+}
+
+.featured-attention .attention-card h2 {
+  font-size: clamp(2.4rem, 6vw, 5.8rem);
+}
+
+.featured-attention .attention-card p {
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
+}
+
+.sponsor-metrics {
+  margin-bottom: 1rem;
+}
+
+.sponsor-metrics a { color: var(--yellow); }
+
+.sponsor-spotlight {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: clamp(1.5rem, 4vw, 3rem);
+  padding: clamp(1.2rem, 3vw, 2rem);
+  border: 1px solid rgba(255, 212, 59, 0.52);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 212, 59, 0.1), rgba(255, 46, 213, 0.08)), var(--panel);
+}
+
+.sponsor-spotlight-image { width: 100%; max-height: 280px; object-fit: cover; border-radius: 8px; }
+.sponsor-spotlight h2 { margin: .35rem 0; font-size: clamp(1.8rem, 4vw, 3.2rem); }
+.sponsor-spotlight p { color: var(--muted); line-height: 1.55; }
+.sponsor-spotlight-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+
+.sponsor-hero { max-width: 900px; margin: clamp(2rem, 7vw, 6rem) 0 2rem; }
+.sponsor-hero h1 { margin: .4rem 0; font-size: clamp(3rem, 9vw, 7rem); line-height: .9; text-transform: uppercase; }
+.sponsor-hero p { color: var(--muted); font-size: 1.15rem; line-height: 1.6; }
+.sponsor-plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.sponsor-plan { text-align: left; padding: 1.5rem; border: 1px solid var(--line); border-radius: 8px; color: white; background: var(--panel); cursor: pointer; }
+.sponsor-plan.selected { border-color: var(--yellow); box-shadow: 0 0 32px rgba(255, 212, 59, .18); }
+.sponsor-plan > strong { display: block; margin: .5rem 0; color: var(--green); font-size: clamp(2rem, 6vw, 4rem); }
+.sponsor-plan h2 { margin: 0; font-size: 2rem; }
+.sponsor-plan p { color: var(--muted); line-height: 1.5; }
+.sponsor-order-card { display: grid; grid-template-columns: .8fr 1.2fr; gap: 2rem; margin: 1rem 0 3rem; padding: clamp(1.2rem, 3vw, 2rem); border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.sponsor-order-card p { color: var(--muted); line-height: 1.55; }
+.sponsor-form { display: grid; gap: .8rem; }
+.sponsor-form label { display: grid; gap: .35rem; color: var(--muted); font-weight: 800; }
+.sponsor-form input, .sponsor-form textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: .85rem; color: white; background: #070510; font: inherit; }
+.sponsor-form textarea { min-height: 110px; resize: vertical; }
+.sponsor-form .terms-check { display: grid; grid-template-columns: auto 1fr; align-items: start; }
+.sponsor-form .terms-check input { width: auto; margin-top: .2rem; }
+
+.claim-requirements { display: grid; gap: .6rem; margin: 1rem 0; }
+.claim-requirements > div { display: grid; grid-template-columns: 2rem 1fr; gap: .6rem; align-items: center; padding: .75rem; border: 1px solid var(--line); border-radius: 6px; }
+.claim-requirements .complete { border-color: rgba(35, 240, 107, .5); color: var(--green); }
+.claim-requirements .pending { color: var(--muted); }
 
 .house-attention,
 .house-leader {
@@ -1902,6 +1973,11 @@ textarea:focus {
   .admin-actions {
     grid-template-columns: 1fr;
   }
+
+  .featured-attention .attention-card,
+  .sponsor-spotlight,
+  .sponsor-plan-grid,
+  .sponsor-order-card { grid-template-columns: 1fr; }
 
   .growth-admin-heading,
   .growth-section-heading {
