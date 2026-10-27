@@ -5,6 +5,7 @@ import { getStoredWallet, subscribeToWallet } from "./WalletConnect";
 import { getMinimumBidUsdc, OPENING_BID_USDC } from "./lib/bid-rules";
 import { sendUsdcBidPayment } from "./lib/solana-payment";
 import { getSolscanTransactionUrl } from "./lib/solscan";
+import { trackVerifiedBid } from "./lib/campaign-tracking";
 
 type Props = {
   currentHighestEffectiveBid: number;
@@ -187,6 +188,7 @@ export default function BidButton({
 
       window.localStorage.removeItem(PENDING_PAYMENT_KEY);
       setPendingPayment(null);
+      trackVerifiedBid(result);
       setStatus(result.message ?? "USDC received and bid recorded.", "success", payment.paymentSignature);
       window.setTimeout(() => window.location.reload(), 1400);
     } catch (error) {

@@ -10,7 +10,7 @@ const securityHeaders = [
     "frame-ancestors 'none'",
     "img-src 'self' data: blob: https:",
     "object-src 'none'",
-    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://mintfunnel-cdn.com https://static.bitmediacdn.com",
     "frame-src https://challenges.cloudflare.com",
     "style-src 'self' 'unsafe-inline'",
     "upgrade-insecure-requests",
