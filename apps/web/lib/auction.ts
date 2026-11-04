@@ -3,7 +3,6 @@ import {
   calculateEffectiveBidUsdc,
   getQuietBidPower,
 } from "./bid-power";
-import { getHouseActivationTime } from "./house";
 import { verifySolanaUsdcPayment } from "./payment";
 import { createSupabaseServerClient } from "./supabase/server";
 import { reservePaymentReceipt } from "./payment-receipts";
@@ -199,11 +198,7 @@ async function getHighestBidBySource(
 
 export async function getAuctionBySequence(sequence: number): Promise<Auction> {
   const auctionId = await ensureAuction(sequence);
-  const [highestUserBid, houseBid] = await Promise.all([
-    getHighestBidBySource(auctionId, "user"),
-    getHighestBidBySource(auctionId, "house"),
-  ]);
-  const winningBid = highestUserBid ?? houseBid;
+  const highestUserBid = await getHighestBidBySource(auctionId, "user");
   const highestBidAmount = Number(highestUserBid?.amount_usdc ?? 0);
   const highestEffectiveBid = Number(
     highestUserBid?.effective_bid_usdc ?? 0
@@ -217,13 +212,11 @@ export async function getAuctionBySequence(sequence: number): Promise<Auction> {
     highestEffectiveBid,
     leadingBidMultiplier: Number(highestUserBid?.bid_multiplier ?? 1),
     leadingQuietBalance: Number(highestUserBid?.quiet_balance ?? 0),
-    winner: winningBid?.wallet ?? null,
-    isHouseBid: Boolean(!highestUserBid && houseBid),
-    houseBidAmount: Number(houseBid?.amount_usdc ?? 0),
-    housePaymentSignature: houseBid?.payment_signature ?? null,
-    houseActivatesAt: getHouseActivationTime(
-      getAuctionStartTime(Math.max(1, sequence - 1))
-    ),
+    winner: highestUserBid?.wallet ?? null,
+    isHouseBid: false,
+    houseBidAmount: 0,
+    housePaymentSignature: null,
+    houseActivatesAt: Number.POSITIVE_INFINITY,
     startsAt,
     endsAt: getAuctionEndTime(sequence),
     status: getAuctionStatus(sequence),
@@ -258,6 +251,7 @@ export async function getBidHistory(auctionId: string, limit = 8): Promise<Bid[]
     )
     .eq("auction_id", auctionId)
     .eq("payment_status", "verified")
+    .eq("bid_source", "user")
     .order("created_at", { ascending: false })
     .limit(limit)
     .returns<BidRow[]>();

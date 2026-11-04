@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     });
 
     const response = NextResponse.json({ ok: true });
-    if (isHouseSponsored) {
+    if (!isHouseSponsored) {
       const engagement = await touchEngagement(request, auctionId);
       if (engagement.isNew) {
         response.headers.set("Set-Cookie", engagementCookie(engagement.session));

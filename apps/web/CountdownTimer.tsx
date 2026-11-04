@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 type Props = {
   startsAt: number;
   endsAt: number;
-  houseBidActive?: boolean;
 };
 
 type TimerPhase = "open" | "soon" | "urgent" | "final" | "closed";
@@ -47,7 +46,6 @@ const TIMER_NOTICES: Record<
 export default function CountdownTimer({
   startsAt,
   endsAt,
-  houseBidActive = false,
 }: Props) {
   const [secondsLeft, setSecondsLeft] = useState(
     Math.max(0, Math.floor((endsAt - Date.now()) / 1000))
@@ -77,14 +75,7 @@ export default function CountdownTimer({
     Math.min(100, Math.ceil((secondsLeft / totalSeconds) * 100))
   );
   const phase = getTimerPhase(secondsLeft);
-  const notice =
-    houseBidActive && (phase === "open" || phase === "soon")
-      ? {
-          label: "House sponsored bid",
-          message:
-            "Operator funded. A verified user bid of 0.25 USDC or more takes priority.",
-        }
-      : TIMER_NOTICES[phase];
+  const notice = TIMER_NOTICES[phase];
 
   return (
     <section
