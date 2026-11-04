@@ -45,9 +45,9 @@ export default function AboutPage() {
           <h2>Live beta.</h2>
           <p>
             The auction, USDC payment verification, winner publishing,
-            moderation controls, and disclosed operator-funded house activity
-            are running in production while the company measures retention,
-            bidding activity, and audience growth.
+            moderation controls, and persistent display of the latest approved
+            winning post are running in production while the company measures
+            retention, bidding activity, and audience growth.
           </p>
         </article>
         <article>

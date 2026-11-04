@@ -125,6 +125,33 @@ export async function getLatestHouseSponsoredContent() {
   return data ? mapAttentionContent(data) : undefined;
 }
 
+export async function getLatestWinnerAttentionContent({
+  requireUrl = false,
+}: { requireUrl?: boolean } = {}) {
+  const supabase = createSupabaseServerClient();
+  let query = supabase
+    .from("attention_content")
+    .select(ATTENTION_SELECT)
+    .eq("moderation_status", "approved")
+    .not("moderation_note", "like", "House-sponsored post:%");
+
+  if (requireUrl) {
+    query = query.neq("url", "");
+  }
+
+  const { data, error } = await query
+    .order("updated_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<AttentionContentRow>();
+
+  if (error) {
+    throw new Error(`Could not load latest winning content: ${error.message}`);
+  }
+
+  return data ? mapAttentionContent(data) : undefined;
+}
+
 function normalizeUrl(url: string) {
   if (!url) return "";
 

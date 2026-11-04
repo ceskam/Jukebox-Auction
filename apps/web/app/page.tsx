@@ -13,16 +13,14 @@ import SiteFooter from "../SiteFooter";
 import Brand from "../Brand";
 import ReferralCapture from "../ReferralCapture";
 import ArtDrops from "../ArtDrops";
-import SponsorSpotlight from "../SponsorSpotlight";
 import {
   getBidHistory,
   getCurrentAuction,
   getNextAuction,
 } from "../lib/auction";
 import {
-  getAttentionContent,
   getAttentionContentForAuction,
-  getLatestHouseSponsoredContent,
+  getLatestWinnerAttentionContent,
 } from "../lib/attention";
 import { getPlatformMetrics, type PlatformMetrics } from "../lib/metrics";
 import {
@@ -61,8 +59,6 @@ const EMPTY_PLATFORM_METRICS: PlatformMetrics = {
   totalViews: 0,
   totalBidUsdc: 0,
   totalLinkClicks: 0,
-  houseSpendUsdc: 0,
-  houseLinkClicks: 0,
 };
 
 export default async function HomePage({
@@ -81,19 +77,15 @@ export default async function HomePage({
   );
   const currentAuction = await getCurrentAuction();
   const nextAuction = await getNextAuction();
-  const currentAttention = await loadOptional<
-    Awaited<ReturnType<typeof getAttentionContent>>
+  const displayedAttention = await loadOptional<
+    Awaited<ReturnType<typeof getLatestWinnerAttentionContent>>
   >(
-    "current attention content",
-    () => getAttentionContent(currentAuction.id),
+    "latest winning attention content",
+    getLatestWinnerAttentionContent,
     undefined
   );
-  const displayedAttention =
-    currentAttention?.wallet === currentAuction.winner
-      ? currentAttention
-      : undefined;
-  const isShowingHouseSponsored = Boolean(
-    displayedAttention && currentAuction.isHouseBid
+  const isRepostedWinner = Boolean(
+    displayedAttention && displayedAttention.auctionId !== currentAuction.id
   );
   const loadedEditorAttention =
     authenticatedWallet && authenticatedWallet === currentAuction.winner
@@ -124,12 +116,6 @@ export default async function HomePage({
     getPublicArtDrops,
     { active: undefined, recent: [] }
   );
-  const latestSponsor = await loadOptional(
-    "latest sponsored content",
-    getLatestHouseSponsoredContent,
-    undefined
-  );
-
   return (
     <main className="page-shell">
       <ReferralCapture code={referralCode} />
@@ -144,7 +130,6 @@ export default async function HomePage({
           <a href="#how-it-works">How it works</a>
           <a href="#community">Community</a>
           <a href="#art-drops">Art drops</a>
-          <a href="/sponsor">Sponsor packages</a>
           <a href="#share">Share</a>
           <a href="/about">Company</a>
           <a href="/white-paper">White paper</a>
@@ -152,14 +137,18 @@ export default async function HomePage({
         <WalletConnect />
       </nav>
 
-      <section className="featured-attention" aria-label="Winning homepage feature">
+      <section
+        className="featured-attention"
+        id="winning-post"
+        aria-label="Winning homepage feature"
+      >
         <AttentionDisplay
-          auctionId={currentAuction.id}
+          auctionId={displayedAttention?.auctionId ?? currentAuction.id}
           title={displayedAttention?.title ?? ""}
           description={displayedAttention?.description ?? ""}
           url={displayedAttention?.url ?? ""}
           imageUrl={displayedAttention?.imageUrl ?? ""}
-          isHouseSponsored={isShowingHouseSponsored}
+          isReposted={isRepostedWinner}
         />
       </section>
 
@@ -182,22 +171,6 @@ export default async function HomePage({
       </section>
 
       <CompanyCard />
-
-      <section className="platform-stats sponsor-metrics" aria-label="AdBidCoin sponsor metrics">
-        <div><span className="eyebrow">House ad spend</span><strong>{platformMetrics.houseSpendUsdc.toFixed(2)} USDC</strong></div>
-        <div><span className="eyebrow">Sponsored clicks</span><strong>{platformMetrics.houseLinkClicks.toLocaleString()}</strong></div>
-        <div><span className="eyebrow">Available packages</span><strong><a href="/sponsor">$200 / $400</a></strong></div>
-      </section>
-
-      {latestSponsor?.url && (
-        <SponsorSpotlight
-          auctionId={latestSponsor.auctionId}
-          title={latestSponsor.title}
-          description={latestSponsor.description}
-          url={latestSponsor.url}
-          imageUrl={latestSponsor.imageUrl}
-        />
-      )}
 
       <ArtDrops active={artDrops.active} recent={artDrops.recent} />
 
@@ -242,7 +215,6 @@ export default async function HomePage({
           <CountdownTimer
             startsAt={currentAuction.startsAt}
             endsAt={currentAuction.endsAt}
-            houseBidActive={nextAuction.isHouseBid}
           />
 
           <div className="stats-grid" id="leaderboard">
@@ -255,15 +227,8 @@ export default async function HomePage({
               <strong>{nextAuction.id}</strong>
             </div>
             <div>
-              <span className="eyebrow">
-                {nextAuction.isHouseBid ? "House bid" : "Current bid"}
-              </span>
-              <strong>
-                {(nextAuction.isHouseBid
-                  ? nextAuction.houseBidAmount
-                  : nextAuction.highestBid
-                ).toFixed(2)} USDC
-              </strong>
+              <span className="eyebrow">Current bid</span>
+              <strong>{nextAuction.highestBid.toFixed(2)} USDC</strong>
             </div>
           </div>
 
@@ -310,9 +275,6 @@ export default async function HomePage({
             winner={nextAuction.winner}
             highestBid={nextAuction.highestBid}
             auctionId={nextAuction.id}
-            isHouseBid={nextAuction.isHouseBid}
-            houseBidAmount={nextAuction.houseBidAmount}
-            housePaymentSignature={nextAuction.housePaymentSignature}
           />
 
           <section className="bid-history-card">
@@ -327,13 +289,8 @@ export default async function HomePage({
                   <li key={bid.id}>
                     <div>
                       <span>
-                        {bid.bidSource === "house"
-                          ? "AdBidCoin House"
-                          : shortWallet(bid.wallet)}
+                        {shortWallet(bid.wallet)}
                       </span>
-                      {bid.bidSource === "house" && (
-                        <small className="house-bid-label">Operator funded</small>
-                      )}
                       {bid.paymentSignature && (
                         <a
                           href={getSolscanTransactionUrl(bid.paymentSignature)}
@@ -351,11 +308,7 @@ export default async function HomePage({
                 ))}
               </ol>
             ) : (
-              <p className="hint">
-                {nextAuction.isHouseBid
-                  ? "A disclosed house bid is active. A user can replace it at the normal 0.25 USDC opening price."
-                  : "No bids yet. Be first into the next block."}
-              </p>
+              <p className="hint">No bids yet. Be first into the next block.</p>
             )}
           </section>
 
@@ -370,8 +323,8 @@ export default async function HomePage({
               <li>Bids are final. Losing bids are not refunded.</li>
               <li>Approved winner content appears on the homepage.</li>
               <li>
-                Empty rounds may receive one clearly labeled, operator-funded
-                0.25 USDC house bid after ten minutes.
+                The latest approved winning post stays live until a newer winner
+                publishes a replacement.
               </li>
             </ol>
           </section>

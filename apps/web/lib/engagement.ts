@@ -1,15 +1,18 @@
 import { createHash, randomBytes } from "node:crypto";
 
+import { getLatestWinnerAttentionContent } from "./attention";
 import { createSupabaseServerClient } from "./supabase/server";
 
 export const ENGAGEMENT_COOKIE = "adbidcoin_engagement";
 export const MINIMUM_VISIT_MS = 5 * 60 * 1000;
 const ACTIVE_WINDOW_MS = 2 * 60 * 1000;
-const SPONSOR_CLICK_WINDOW_MS = 24 * 60 * 60 * 1000;
+const WINNER_POST_CLICK_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 type EngagementRow = {
   first_seen: string;
   last_seen: string;
+  // Legacy database names retained to avoid a destructive production migration.
+  // They now store the latest clicked winning-post time and auction ID.
   last_sponsor_click_at: string | null;
   sponsor_auction_id: string;
 };
@@ -17,7 +20,7 @@ type EngagementRow = {
 export type EngagementStatus = {
   eligible: boolean;
   visitComplete: boolean;
-  sponsorClickComplete: boolean;
+  winnerPostClickComplete: boolean;
   secondsRemaining: number;
 };
 
@@ -41,7 +44,7 @@ export function engagementCookie(value: string) {
 
 export async function touchEngagement(
   request: Request,
-  sponsorAuctionId = ""
+  winnerAuctionId = ""
 ) {
   const existing = normalizeSession(cookieValue(request));
   const session = existing || randomBytes(24).toString("base64url");
@@ -64,9 +67,9 @@ export async function touchEngagement(
       update.last_sponsor_click_at = null;
       update.sponsor_auction_id = "";
     }
-    if (sponsorAuctionId) {
+    if (winnerAuctionId) {
       update.last_sponsor_click_at = now;
-      update.sponsor_auction_id = sponsorAuctionId;
+      update.sponsor_auction_id = winnerAuctionId;
     }
     const { error: updateError } = await supabase
       .from("engagement_sessions")
@@ -78,8 +81,8 @@ export async function touchEngagement(
       session_hash: hash,
       first_seen: now,
       last_seen: now,
-      last_sponsor_click_at: sponsorAuctionId ? now : null,
-      sponsor_auction_id: sponsorAuctionId,
+      last_sponsor_click_at: winnerAuctionId ? now : null,
+      sponsor_auction_id: winnerAuctionId,
     });
     if (insertError) throw new Error(`Could not start engagement session: ${insertError.message}`);
   }
@@ -89,7 +92,7 @@ export async function touchEngagement(
 export async function getEngagementStatus(request: Request): Promise<EngagementStatus> {
   const session = normalizeSession(cookieValue(request));
   if (!session) {
-    return { eligible: false, visitComplete: false, sponsorClickComplete: false, secondsRemaining: 300 };
+    return { eligible: false, visitComplete: false, winnerPostClickComplete: false, secondsRemaining: 300 };
   }
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
@@ -98,7 +101,7 @@ export async function getEngagementStatus(request: Request): Promise<EngagementS
     .eq("session_hash", sessionHash(session))
     .maybeSingle<EngagementRow>();
   if (error || !data) {
-    return { eligible: false, visitComplete: false, sponsorClickComplete: false, secondsRemaining: 300 };
+    return { eligible: false, visitComplete: false, winnerPostClickComplete: false, secondsRemaining: 300 };
   }
   const now = Date.now();
   const elapsed = now - new Date(data.first_seen).getTime();
@@ -107,25 +110,17 @@ export async function getEngagementStatus(request: Request): Promise<EngagementS
   const clickTime = data.last_sponsor_click_at
     ? new Date(data.last_sponsor_click_at).getTime()
     : 0;
-  const { data: latestSponsor } = await supabase
-    .from("attention_content")
-    .select("auction_id")
-    .eq("moderation_status", "approved")
-    .like("moderation_note", "House-sponsored post:%")
-    .order("updated_at", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle<{ auction_id: string }>();
-  const sponsorClickComplete = Boolean(
-    latestSponsor?.auction_id &&
-      data.sponsor_auction_id === latestSponsor.auction_id &&
+  const latestWinnerPost = await getLatestWinnerAttentionContent({ requireUrl: true });
+  const winnerPostClickComplete = Boolean(
+    latestWinnerPost?.auctionId &&
+      data.sponsor_auction_id === latestWinnerPost.auctionId &&
       clickTime &&
-      now - clickTime <= SPONSOR_CLICK_WINDOW_MS
+      now - clickTime <= WINNER_POST_CLICK_WINDOW_MS
   );
   return {
-    eligible: visitComplete && active && sponsorClickComplete,
+    eligible: visitComplete && active && winnerPostClickComplete,
     visitComplete,
-    sponsorClickComplete,
+    winnerPostClickComplete,
     secondsRemaining: Math.max(0, Math.ceil((MINIMUM_VISIT_MS - elapsed) / 1000)),
   };
 }
@@ -135,8 +130,8 @@ export async function assertArtDropEngagement(request: Request) {
   if (!status.visitComplete) {
     throw new Error(`Stay active on AdBidCoin for ${Math.max(1, Math.ceil(status.secondsRemaining / 60))} more minute(s) before claiming.`);
   }
-  if (!status.sponsorClickComplete) {
-    throw new Error("Visit the latest sponsored post before claiming this Art Drop.");
+  if (!status.winnerPostClickComplete) {
+    throw new Error("Visit the latest winning auction post before claiming this Art Drop.");
   }
   if (!status.eligible) {
     throw new Error("Your active session expired. Keep this page open briefly, then try again.");

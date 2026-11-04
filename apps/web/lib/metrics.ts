@@ -10,16 +10,12 @@ export type PlatformMetrics = {
   totalViews: number;
   totalBidUsdc: number;
   totalLinkClicks: number;
-  houseSpendUsdc: number;
-  houseLinkClicks: number;
 };
 
 const EMPTY_PLATFORM_METRICS: PlatformMetrics = {
   totalViews: 0,
   totalBidUsdc: 0,
   totalLinkClicks: 0,
-  houseSpendUsdc: 0,
-  houseLinkClicks: 0,
 };
 
 function getErrorMessage(error: unknown) {
@@ -46,20 +42,6 @@ async function countEvents(eventType: AttentionEventType) {
   }
 }
 
-async function countHouseClicks() {
-  const supabase = createSupabaseServerClient();
-  const { count, error } = await supabase
-    .from("attention_events")
-    .select("*", { count: "exact", head: true })
-    .eq("event_type", "link_click")
-    .eq("event_source", "house");
-  if (error) {
-    console.warn(`Could not load sponsored click count: ${error.message}`);
-    return 0;
-  }
-  return count ?? 0;
-}
-
 export async function getPlatformMetrics(): Promise<PlatformMetrics> {
   try {
     const supabase = createSupabaseServerClient();
@@ -79,32 +61,15 @@ export async function getPlatformMetrics(): Promise<PlatformMetrics> {
       0
     );
 
-    const { data: houseBids, error: houseBidError } = await supabase
-      .from("bids")
-      .select("amount_usdc")
-      .eq("payment_status", "verified")
-      .eq("bid_source", "house")
-      .returns<BidAmountRow[]>();
-    if (houseBidError) {
-      console.warn(`Could not load house spend: ${houseBidError.message}`);
-    }
-    const houseSpendUsdc = (houseBidError ? [] : houseBids ?? []).reduce(
-      (total, bid) => total + Number(bid.amount_usdc ?? 0),
-      0
-    );
-
-    const [totalViews, totalLinkClicks, houseLinkClicks] = await Promise.all([
+    const [totalViews, totalLinkClicks] = await Promise.all([
       countEvents("page_view"),
       countEvents("link_click"),
-      countHouseClicks(),
     ]);
 
     return {
       totalViews,
       totalBidUsdc,
       totalLinkClicks,
-      houseSpendUsdc,
-      houseLinkClicks,
     };
   } catch (error) {
     console.warn(`Could not load platform metrics: ${getErrorMessage(error)}`);

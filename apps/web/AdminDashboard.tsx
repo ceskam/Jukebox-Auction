@@ -5,7 +5,6 @@ import AttentionImage from "./AttentionImage";
 import Brand from "./Brand";
 import GrowthDashboard from "./GrowthDashboard";
 import ArtDropAdmin from "./ArtDropAdmin";
-import SponsorAdmin from "./SponsorAdmin";
 
 type AttentionContent = {
   auctionId: string;
@@ -189,8 +188,6 @@ export default function AdminDashboard() {
       <GrowthDashboard active={isAuthenticated} />
 
       <ArtDropAdmin active={isAuthenticated} />
-
-      <SponsorAdmin active={isAuthenticated} />
 
       <section className="admin-list">
         {content.length === 0 ? (
