@@ -106,3 +106,36 @@ must refer to the same network. Redeploy after changing variables.
 Have qualified counsel review `/art-drop-rules` for promotion, sweepstakes,
 geographic eligibility, sanctions, privacy, and tax requirements. The included
 page is an operational starting point, not legal advice.
+
+## Claim eligibility audit rollout
+
+Apply `database/sponsor-engagement.sql` first if it has not already been applied.
+For both fresh installs and upgrades, run `database/art-drop-claim-evidence.sql`
+**after** the earlier migrations and **before** deploying the matching app.
+Do not rerun `art-drops.sql` afterward: it recreates the legacy reservation RPC.
+The audit migration removes that RPC, so older app instances fail closed until
+updated. Schedule the migration and deployment together during a quiet period.
+
+New reservations save `art_drops.claim_engagement` atomically with the wallet.
+This contains the hashed session identifier (never the cookie), server check
+time, first/last session timestamps, elapsed seconds, and the clicked/required
+winning auction IDs. It survives later session activity and payout errors.
+The database rechecks five minutes elapsed, a heartbeat within two minutes,
+and a matching post click within 24 hours before accepting the reservation.
+Historical payouts remain NULL; do not infer or backfill their session identity.
+
+In `/admin`, expand **Claim eligibility evidence** for a winner. These are
+server-recorded session and click signals, not proof of human attention or an
+external page visit. The session is associated with the authenticated wallet
+at claim time; this does not impose one wallet per device/session or prevent
+session sharing. The snapshot is absent from public reward and eligibility APIs.
+
+Run the isolated PostgreSQL regression suite with:
+
+```bash
+npm install --prefix /tmp/art-drop-db-test @electric-sql/pglite
+NODE_PATH=/tmp/art-drop-db-test/node_modules node tests/art-drop-claim-evidence.cjs
+```
+
+Rollback: keep the new snapshot column/data, pause claims, and roll forward with
+corrected code. Restoring the old RPC enables reservations without audit evidence.

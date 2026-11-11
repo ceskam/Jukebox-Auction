@@ -27,6 +27,19 @@ export type ArtDropStatus =
   | "cancelled"
   | "payout_review";
 
+export type ClaimEngagement = {
+  version: number;
+  wallet: string;
+  session_hash: string;
+  checked_at: string;
+  first_seen: string;
+  last_seen: string;
+  elapsed_seconds: number;
+  last_sponsor_click_at: string;
+  sponsor_auction_id: string;
+  required_auction_id: string;
+};
+
 type ArtDropRow = {
   id: string;
   public_id: string;
@@ -44,6 +57,7 @@ type ArtDropRow = {
   paid_at: string | null;
   created_at: string;
   updated_at: string | null;
+  claim_engagement: ClaimEngagement | null;
 };
 
 export type PublicArtDrop = {
@@ -65,6 +79,7 @@ export type AdminArtDrop = Omit<PublicArtDrop, "status"> & {
   reservedAt: string | null;
   payoutError: string;
   createdAt: string;
+  claimEngagement: ClaimEngagement | null;
 };
 
 function requiredEnv(name: string) {
@@ -188,6 +203,7 @@ function mapAdminDrop(row: ArtDropRow): AdminArtDrop {
     reservedAt: row.reserved_at,
     payoutError: row.payout_error,
     createdAt: row.created_at,
+    claimEngagement: row.claim_engagement ?? null,
   };
 }
 
@@ -544,7 +560,11 @@ async function sendRewardUsdc(recipientAddress: string, amountUsdc: number) {
   return { connection, signature, latest };
 }
 
-export async function claimArtDrop({ code, wallet }: { code: string; wallet: string }) {
+export async function claimArtDrop({ code, wallet, engagement }: {
+  code: string;
+  wallet: string;
+  engagement: { sessionHash: string; winnerAuctionId: string };
+}) {
   if (!isArtDropsEnabled()) throw new Error("Art Drops are not accepting claims yet.");
   const control = await getControl();
   if (control.paused) throw new Error("Art Drops are temporarily paused.");
@@ -577,6 +597,8 @@ export async function claimArtDrop({ code, wallet }: { code: string; wallet: str
     .rpc("reserve_art_drop", {
       requested_code_hash: hashCode(normalizedCode),
       requested_wallet: wallet,
+      requested_session_hash: engagement.sessionHash,
+      requested_auction_id: engagement.winnerAuctionId,
     })
     .returns<ArtDropRow[]>();
   if (error) throw new Error(`Could not reserve this Art Drop: ${error.message}`);

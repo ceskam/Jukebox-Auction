@@ -22,6 +22,8 @@ export type EngagementStatus = {
   visitComplete: boolean;
   winnerPostClickComplete: boolean;
   secondsRemaining: number;
+  sessionHash?: string;
+  winnerAuctionId?: string;
 };
 
 function cookieValue(request: Request) {
@@ -118,6 +120,8 @@ export async function getEngagementStatus(request: Request): Promise<EngagementS
       now - clickTime <= WINNER_POST_CLICK_WINDOW_MS
   );
   return {
+    sessionHash: sessionHash(session),
+    winnerAuctionId: latestWinnerPost?.auctionId,
     eligible: visitComplete && active && winnerPostClickComplete,
     visitComplete,
     winnerPostClickComplete,
@@ -136,4 +140,5 @@ export async function assertArtDropEngagement(request: Request) {
   if (!status.eligible) {
     throw new Error("Your active session expired. Keep this page open briefly, then try again.");
   }
+  return { sessionHash: status.sessionHash!, winnerAuctionId: status.winnerAuctionId! };
 }

@@ -31,5 +31,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  return NextResponse.json(await getEngagementStatus(request));
+  const { sessionHash: _sessionHash, winnerAuctionId: _winnerAuctionId, ...status } =
+    await getEngagementStatus(request);
+  return NextResponse.json(status);
 }
