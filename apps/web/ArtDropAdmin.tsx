@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ClaimEngagement } from "./lib/art-drops";
 
 type Drop = {
   id: string;
@@ -13,6 +14,7 @@ type Drop = {
   claimWallet: string;
   payoutSignature: string;
   payoutError: string;
+  claimEngagement: ClaimEngagement | null;
 };
 
 type Data = {
@@ -168,6 +170,26 @@ export default function ArtDropAdmin({ active }: { active: boolean }) {
                   <span>{drop.rewardUsdc.toFixed(2)} USDC</span>
                   <span>Scheduled {new Date(drop.scheduledFor).toLocaleString()}</span>
                   <span>Wallet {short(drop.claimWallet)}</span>
+                  {drop.claimWallet && (
+                    <details>
+                      <summary>Claim eligibility evidence</summary>
+                      {drop.claimEngagement ? (
+                        <div>
+                          <p>Wallet: <code>{drop.claimEngagement.wallet}</code></p>
+                          <p>Session hash: <code>{drop.claimEngagement.session_hash}</code></p>
+                          <p>Checked: {new Date(drop.claimEngagement.checked_at).toLocaleString()}</p>
+                          <p>Session started: {new Date(drop.claimEngagement.first_seen).toLocaleString()}</p>
+                          <p>Last heartbeat: {new Date(drop.claimEngagement.last_seen).toLocaleString()}</p>
+                          <p>Elapsed session time: {Math.floor(drop.claimEngagement.elapsed_seconds)} seconds</p>
+                          <p>Sponsored-post click required: {drop.claimEngagement.click_required === false ? "No" : "Legacy claim"}</p>
+                          {drop.claimEngagement.last_sponsor_click_at && (
+                            <p>Legacy post click: {new Date(drop.claimEngagement.last_sponsor_click_at).toLocaleString()}</p>
+                          )}
+                          <small>Server-recorded eligibility at reservation. Session evidence is an anti-abuse signal and does not prove a person's identity.</small>
+                        </div>
+                      ) : <p>No eligibility snapshot was recorded for this claim.</p>}
+                    </details>
+                  )}
                   {drop.payoutSignature && (
                     <a
                       href={`https://solscan.io/tx/${encodeURIComponent(drop.payoutSignature)}`}

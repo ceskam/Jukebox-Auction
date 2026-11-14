@@ -41,12 +41,13 @@ export async function POST(request: Request) {
 
   try {
     await verifyTurnstile(request, String(body.turnstileToken ?? ""));
-    await assertArtDropEngagement(request);
+    const engagement = await assertArtDropEngagement(request);
     const identity = getArtDropClaimIdentity(request);
     const result = await claimArtDrop({
       code: String(body.code ?? ""),
       wallet,
       ...identity,
+      engagement,
     });
     return Response.json({
       ...result,

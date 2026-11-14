@@ -31,5 +31,6 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  return NextResponse.json(await getEngagementStatus(request));
+  const { sessionHash: _sessionHash, ...status } = await getEngagementStatus(request);
+  return NextResponse.json(status);
 }

@@ -8,6 +8,8 @@ alter table public.art_drops
   add column if not exists claimant_hash text not null default '';
 alter table public.art_drops
   add column if not exists engagement_session_hash text not null default '';
+alter table public.art_drops
+  add column if not exists claim_engagement jsonb;
 
 create index if not exists art_drops_claimant_cooldown_idx
   on public.art_drops (claimant_hash, reserved_at desc)
@@ -20,6 +22,7 @@ create index if not exists art_drops_wallet_cooldown_idx
   where claim_wallet <> '' and status in ('reserved', 'paid', 'payout_review');
 
 drop function if exists public.reserve_art_drop(text, text);
+drop function if exists public.reserve_art_drop(text, text, text, text);
 
 create or replace function public.reserve_art_drop(
   requested_code_hash text,
@@ -35,7 +38,9 @@ set search_path = public
 as $$
 declare
   selected_drop public.art_drops%rowtype;
-  day_start timestamptz := date_trunc('day', now() at time zone 'UTC') at time zone 'UTC';
+  engagement public.engagement_sessions%rowtype;
+  checked_at timestamptz;
+  day_start timestamptz;
   allocated_today numeric := 0;
 begin
   perform pg_advisory_xact_lock(hashtext('adbidcoin-art-drop-reserve'));
@@ -44,49 +49,79 @@ begin
     raise exception 'Art Drops are temporarily paused.';
   end if;
 
-  if exists (
-    select 1 from public.art_drops
-    where status in ('reserved', 'paid', 'payout_review')
-      and coalesce(paid_at, reserved_at, created_at) >= now() - interval '24 hours'
-      and (
-        claim_wallet = requested_wallet
-        or (requested_claimant_hash <> '' and claimant_hash = requested_claimant_hash)
-        or (requested_session_hash <> '' and engagement_session_hash = requested_session_hash)
-      )
-  ) then
-    raise exception 'A wallet or viewer associated with this session has already received an Art Drop during the rolling 24-hour period.';
-  end if;
-
-  select coalesce(sum(reward_usdc), 0) into allocated_today
-  from public.art_drops
-  where status in ('reserved', 'paid', 'payout_review')
-    and coalesce(reserved_at, created_at) >= day_start;
-
   select * into selected_drop
   from public.art_drops
   where code_hash = requested_code_hash
   for update;
 
   if not found then return; end if;
+  checked_at := clock_timestamp();
+  if selected_drop.status <> 'active'
+     or selected_drop.expires_at is null
+     or selected_drop.expires_at <= checked_at then
+    return;
+  end if;
 
-  if allocated_today + selected_drop.reward_usdc > least(requested_daily_limit, 70) then
+  -- Recheck the five-minute viewing requirement inside the same transaction
+  -- that reserves the funds. Browser state and preflight API checks are never
+  -- trusted as the final eligibility authority.
+  select * into engagement
+  from public.engagement_sessions
+  where session_hash = requested_session_hash
+  for share;
+  if not found
+     or requested_wallet is null or requested_wallet = ''
+     or requested_claimant_hash is null or requested_claimant_hash = ''
+     or requested_session_hash is null or requested_session_hash = ''
+     or engagement.first_seen > checked_at - interval '5 minutes'
+     or engagement.last_seen < checked_at - interval '2 minutes'
+     or engagement.last_seen > checked_at then
+    raise exception 'Claim engagement is missing, expired, or incomplete.';
+  end if;
+
+  if exists (
+    select 1 from public.art_drops
+    where status in ('reserved', 'paid', 'payout_review')
+      and coalesce(paid_at, reserved_at, created_at) >= checked_at - interval '24 hours'
+      and (
+        claim_wallet = requested_wallet
+        or claimant_hash = requested_claimant_hash
+        or engagement_session_hash = requested_session_hash
+      )
+  ) then
+    raise exception 'A wallet or viewer associated with this session has already received an Art Drop during the rolling 24-hour period.';
+  end if;
+
+  day_start := date_trunc('day', checked_at at time zone 'UTC') at time zone 'UTC';
+  select coalesce(sum(reward_usdc), 0) into allocated_today
+  from public.art_drops
+  where status in ('reserved', 'paid', 'payout_review')
+    and coalesce(reserved_at, created_at) >= day_start;
+  if allocated_today + selected_drop.reward_usdc > least(coalesce(requested_daily_limit, 70), 70) then
     raise exception 'The 70 USDC daily Art Drop budget has been reached. Please return after 00:00 UTC.';
   end if;
 
-  if selected_drop.status = 'active'
-     and selected_drop.expires_at is not null
-     and selected_drop.expires_at > now() then
-    update public.art_drops
-    set status = 'reserved',
-        claim_wallet = requested_wallet,
-        claimant_hash = requested_claimant_hash,
-        engagement_session_hash = requested_session_hash,
-        reserved_at = now(),
-        payout_error = ''
-    where id = selected_drop.id
-    returning * into selected_drop;
-    return next selected_drop;
-  end if;
+  update public.art_drops
+  set status = 'reserved',
+      claim_wallet = requested_wallet,
+      claimant_hash = requested_claimant_hash,
+      engagement_session_hash = requested_session_hash,
+      reserved_at = checked_at,
+      claim_engagement = jsonb_build_object(
+        'version', 2,
+        'wallet', requested_wallet,
+        'session_hash', requested_session_hash,
+        'claimant_hash', requested_claimant_hash,
+        'checked_at', checked_at,
+        'first_seen', engagement.first_seen,
+        'last_seen', engagement.last_seen,
+        'elapsed_seconds', extract(epoch from checked_at - engagement.first_seen),
+        'click_required', false
+      ),
+      payout_error = ''
+  where id = selected_drop.id
+  returning * into selected_drop;
+  return next selected_drop;
 end;
 $$;
 

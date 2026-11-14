@@ -27,6 +27,21 @@ export type ArtDropStatus =
   | "cancelled"
   | "payout_review";
 
+export type ClaimEngagement = {
+  version: number;
+  wallet: string;
+  session_hash: string;
+  claimant_hash?: string;
+  checked_at: string;
+  first_seen: string;
+  last_seen: string;
+  elapsed_seconds: number;
+  click_required?: boolean;
+  last_sponsor_click_at?: string | null;
+  sponsor_auction_id?: string;
+  required_auction_id?: string;
+};
+
 type ArtDropRow = {
   id: string;
   public_id: string;
@@ -44,6 +59,7 @@ type ArtDropRow = {
   paid_at: string | null;
   created_at: string;
   updated_at: string | null;
+  claim_engagement: ClaimEngagement | null;
 };
 
 export type PublicArtDrop = {
@@ -65,6 +81,7 @@ export type AdminArtDrop = Omit<PublicArtDrop, "status"> & {
   reservedAt: string | null;
   payoutError: string;
   createdAt: string;
+  claimEngagement: ClaimEngagement | null;
 };
 
 function requiredEnv(name: string) {
@@ -184,6 +201,7 @@ function mapAdminDrop(row: ArtDropRow): AdminArtDrop {
     reservedAt: row.reserved_at,
     payoutError: row.payout_error,
     createdAt: row.created_at,
+    claimEngagement: row.claim_engagement ?? null,
   };
 }
 
@@ -558,11 +576,13 @@ export async function claimArtDrop({
   wallet,
   claimantHash,
   engagementSessionHash,
+  engagement,
 }: {
   code: string;
   wallet: string;
   claimantHash: string;
   engagementSessionHash: string;
+  engagement: { sessionHash: string };
 }) {
   if (!isArtDropsEnabled()) throw new Error("Art Drops are not accepting claims yet.");
   const control = await getControl();
@@ -581,7 +601,7 @@ export async function claimArtDrop({
       requested_code_hash: hashCode(normalizedCode),
       requested_wallet: wallet,
       requested_claimant_hash: claimantHash,
-      requested_session_hash: engagementSessionHash,
+      requested_session_hash: engagement.sessionHash || engagementSessionHash,
       requested_daily_limit: getDailyLimitUsdc(),
     })
     .returns<ArtDropRow[]>();

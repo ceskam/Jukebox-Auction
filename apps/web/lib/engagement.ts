@@ -18,6 +18,7 @@ export type EngagementStatus = {
   eligible: boolean;
   visitComplete: boolean;
   secondsRemaining: number;
+  sessionHash?: string;
 };
 
 function cookieValue(request: Request) {
@@ -125,6 +126,7 @@ export async function getEngagementStatus(request: Request): Promise<EngagementS
   const visitComplete = elapsed >= MINIMUM_VISIT_MS;
   const active = now - new Date(data.last_seen).getTime() <= ACTIVE_WINDOW_MS;
   return {
+    sessionHash: sessionHash(session),
     eligible: visitComplete && active,
     visitComplete,
     secondsRemaining: Math.max(0, Math.ceil((MINIMUM_VISIT_MS - elapsed) / 1000)),
@@ -139,4 +141,5 @@ export async function assertArtDropEngagement(request: Request) {
   if (!status.eligible) {
     throw new Error("Your active session expired. Keep this page open briefly, then try again.");
   }
+  return { sessionHash: status.sessionHash! };
 }
