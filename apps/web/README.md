@@ -77,13 +77,30 @@ but the admin must still review likely multi-wallet abuse before paying.
 
 The homepage Art Drops section and `/claim` implement first-valid-claim USDC
 rewards without exposing a funded private key. Claims require the existing signed
-Phantom session, Cloudflare Turnstile, an unexpired code, a 30-day wallet cooldown,
+Phantom session, Cloudflare Turnstile, an unexpired code, a rolling 24-hour wallet/viewer cooldown,
 and an atomic Supabase reservation. A dedicated server-side signer pays the winner
 and records a public Solscan receipt. Admin controls live under `/admin`; the
 randomized scheduler runs from `/api/cron/art-drops`.
 
 Run `../../database/art-drops.sql` and follow
 `../../docs/art-drops-runbook.md` before enabling the feature.
+
+## Platform credits and performance reports
+
+Email-authenticated users can hold internal, non-transferable platform credits
+and bid at 1 credit = 1 USDC of auction value. Stripe Checkout is implemented
+behind test/live approval gates; only signed webhook confirmation issues
+credits. Credit purchases, refunds, balances, bid reservations, releases, and
+spend events are recorded in the server-only ledger. Live Stripe processing must
+not be enabled without written approval for this specific auction-credit model.
+
+Every ended 30-minute block receives an idempotent performance snapshot with
+first-party impressions, reliable session-based unique viewers when available,
+clicks, CTR, and paid CPC when applicable. Reports render as branded PNGs, have
+download/share pages, distinguish repeat appearances from new wins, and can be
+posted to the official X account. Follow
+`../../docs/credits-and-reports-launch-runbook.md` and run
+`../../database/credits-reports-and-art-drop-limits.sql` before deployment.
 
 `SOLANA_RPC_URL`, `USDC_MINT_ADDRESS`, and `TREASURY_WALLET_ADDRESS` are used by
 the server to verify USDC transfer signatures before saving bids. The

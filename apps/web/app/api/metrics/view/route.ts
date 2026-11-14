@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { recordAttentionEvent } from "../../../../lib/metrics";
 import { checkRateLimit, rateLimitResponse } from "../../../../lib/rate-limit";
 import { isSameOriginRequest } from "../../../../lib/security";
+import { getArtDropClaimIdentity } from "../../../../lib/engagement";
+import { getCurrentAuction } from "../../../../lib/auction";
 
 export const runtime = "nodejs";
 
@@ -21,16 +23,26 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json().catch(() => ({}))) as {
       auctionId?: string;
+      featuredContentAuctionId?: string;
     };
 
     const auctionId = String(body.auctionId ?? "");
+    const featuredContentAuctionId = String(body.featuredContentAuctionId ?? "");
     if (!/^attention-\d+$/.test(auctionId)) {
       return NextResponse.json({ error: "Invalid auction ID." }, { status: 400 });
+    }
+    const currentAuction = await getCurrentAuction();
+    if (auctionId !== currentAuction.id) {
+      return NextResponse.json({ error: "That attention block is not live." }, { status: 409 });
     }
 
     await recordAttentionEvent({
       auctionId,
       eventType: "page_view",
+      featuredContentAuctionId: /^attention-\d+$/.test(featuredContentAuctionId)
+        ? featuredContentAuctionId
+        : "",
+      viewerHash: getArtDropClaimIdentity(request).engagementSessionHash,
     });
 
     return NextResponse.json({ ok: true });

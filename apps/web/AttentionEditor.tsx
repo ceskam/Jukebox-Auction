@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getStoredWallet, subscribeToWallet } from "./WalletConnect";
+import { createSupabaseBrowserClient } from "./lib/supabase/client";
 
 type Props = {
   auctionId: string;
@@ -25,6 +26,8 @@ export default function AttentionEditor({
   initialModerationNote = "",
 }: Props) {
   const [wallet, setWallet] = useState("");
+  const [creditIdentity, setCreditIdentity] = useState("");
+  const [accessToken, setAccessToken] = useState("");
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [url, setUrl] = useState(initialUrl);
@@ -42,6 +45,39 @@ export default function AttentionEditor({
   }, []);
 
   useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    void supabase.auth.getSession().then(({ data }) => {
+      const userId = data.session?.user.id ?? "";
+      setCreditIdentity(userId ? `credit:${userId}` : "");
+      setAccessToken(data.session?.access_token ?? "");
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCreditIdentity(session?.user.id ? `credit:${session.user.id}` : "");
+      setAccessToken(session?.access_token ?? "");
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!accessToken || !winner?.startsWith("credit:") || creditIdentity !== winner) return;
+    void fetch(`/api/attention?auctionId=${encodeURIComponent(auctionId)}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    })
+      .then((response) => response.json())
+      .then((content) => {
+        if (!content || content.wallet !== winner) return;
+        setTitle(content.title ?? "");
+        setDescription(content.description ?? "");
+        setUrl(content.url ?? "");
+        setImageUrl(content.imageUrl ?? "");
+        setModerationStatus(content.moderationStatus);
+        setModerationNote(content.moderationNote ?? "");
+      })
+      .catch(() => undefined);
+  }, [accessToken, auctionId, creditIdentity, winner]);
+
+  useEffect(() => {
     if (!imageFile) {
       setImagePreviewUrl("");
       return;
@@ -53,7 +89,12 @@ export default function AttentionEditor({
     return () => URL.revokeObjectURL(objectUrl);
   }, [imageFile]);
 
-  const isWinner = Boolean(winner && wallet === winner);
+  const ownerIdentity = wallet === winner
+    ? wallet
+    : creditIdentity === winner
+      ? creditIdentity
+      : "";
+  const isWinner = Boolean(winner && ownerIdentity);
 
   if (!isWinner) {
     return (
@@ -61,11 +102,15 @@ export default function AttentionEditor({
         <span className="eyebrow">Create attention block</span>
         <h2>Winner controls the live homepage</h2>
         <p>
-          The winning wallet for the current block can add the headline,
+          The winning wallet or signed-in credit account for the current block can add the headline,
           description, image, and link shown in the public attention space.
         </p>
         {winner ? (
-          <p className="hint">Winning wallet: {winner.slice(0, 4)}...{winner.slice(-4)}</p>
+          <p className="hint">
+            Winning bidder: {winner.startsWith("credit:")
+              ? "signed-in credit account"
+              : `${winner.slice(0, 4)}...${winner.slice(-4)}`}
+          </p>
         ) : (
           <p className="hint">No winner has been recorded for this block yet.</p>
         )}
@@ -80,7 +125,7 @@ export default function AttentionEditor({
     try {
       const body = new FormData();
       body.append("auctionId", auctionId);
-      body.append("wallet", wallet);
+      body.append("wallet", ownerIdentity);
       body.append("title", title);
       body.append("description", description);
       body.append("url", url);
@@ -92,6 +137,10 @@ export default function AttentionEditor({
 
       const res = await fetch("/api/attention", {
         method: "POST",
+        headers:
+          accessToken && ownerIdentity.startsWith("credit:")
+            ? { Authorization: `Bearer ${accessToken}` }
+            : undefined,
         body,
       });
 

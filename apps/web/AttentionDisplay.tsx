@@ -3,6 +3,7 @@ import TrackedAttentionLink from "./TrackedAttentionLink";
 
 type Props = {
   auctionId: string;
+  blockAuctionId: string;
   title: string;
   description: string;
   url: string;
@@ -12,6 +13,7 @@ type Props = {
 
 export default function AttentionDisplay({
   auctionId,
+  blockAuctionId,
   title,
   description,
   url,
@@ -41,7 +43,11 @@ export default function AttentionDisplay({
         </p>
 
         {url && (
-          <TrackedAttentionLink auctionId={auctionId} url={url} />
+          <TrackedAttentionLink
+            auctionId={blockAuctionId}
+            featuredContentAuctionId={auctionId}
+            url={url}
+          />
         )}
       </div>
     </section>

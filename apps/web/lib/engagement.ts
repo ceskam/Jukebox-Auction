@@ -1,12 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
-
-import { getLatestWinnerAttentionContent } from "./attention";
 import { createSupabaseServerClient } from "./supabase/server";
 
 export const ENGAGEMENT_COOKIE = "adbidcoin_engagement";
 export const MINIMUM_VISIT_MS = 5 * 60 * 1000;
 const ACTIVE_WINDOW_MS = 2 * 60 * 1000;
-const WINNER_POST_CLICK_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 type EngagementRow = {
   first_seen: string;
@@ -20,10 +17,8 @@ type EngagementRow = {
 export type EngagementStatus = {
   eligible: boolean;
   visitComplete: boolean;
-  winnerPostClickComplete: boolean;
   secondsRemaining: number;
   sessionHash?: string;
-  winnerAuctionId?: string;
 };
 
 function cookieValue(request: Request) {
@@ -34,6 +29,27 @@ function cookieValue(request: Request) {
 
 function sessionHash(value: string) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function normalizedNetwork(request: Request) {
+  const raw = (request.headers.get("x-forwarded-for") ?? "")
+    .split(",")[0]
+    .trim();
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(raw)) {
+    return raw.split(".").slice(0, 3).join(".");
+  }
+  return raw.split(":").slice(0, 4).join(":");
+}
+
+export function getArtDropClaimIdentity(request: Request) {
+  const session = normalizeSession(cookieValue(request));
+  const userAgent = (request.headers.get("user-agent") ?? "").slice(0, 300);
+  const language = (request.headers.get("accept-language") ?? "").slice(0, 80);
+  const network = normalizedNetwork(request);
+  return {
+    engagementSessionHash: session ? sessionHash(session) : "",
+    claimantHash: sessionHash(`${network}|${userAgent}|${language}`),
+  };
 }
 
 function normalizeSession(value: string) {
@@ -94,7 +110,7 @@ export async function touchEngagement(
 export async function getEngagementStatus(request: Request): Promise<EngagementStatus> {
   const session = normalizeSession(cookieValue(request));
   if (!session) {
-    return { eligible: false, visitComplete: false, winnerPostClickComplete: false, secondsRemaining: 300 };
+    return { eligible: false, visitComplete: false, secondsRemaining: 300 };
   }
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
@@ -103,28 +119,16 @@ export async function getEngagementStatus(request: Request): Promise<EngagementS
     .eq("session_hash", sessionHash(session))
     .maybeSingle<EngagementRow>();
   if (error || !data) {
-    return { eligible: false, visitComplete: false, winnerPostClickComplete: false, secondsRemaining: 300 };
+    return { eligible: false, visitComplete: false, secondsRemaining: 300 };
   }
   const now = Date.now();
   const elapsed = now - new Date(data.first_seen).getTime();
   const visitComplete = elapsed >= MINIMUM_VISIT_MS;
   const active = now - new Date(data.last_seen).getTime() <= ACTIVE_WINDOW_MS;
-  const clickTime = data.last_sponsor_click_at
-    ? new Date(data.last_sponsor_click_at).getTime()
-    : 0;
-  const latestWinnerPost = await getLatestWinnerAttentionContent({ requireUrl: true });
-  const winnerPostClickComplete = Boolean(
-    latestWinnerPost?.auctionId &&
-      data.sponsor_auction_id === latestWinnerPost.auctionId &&
-      clickTime &&
-      now - clickTime <= WINNER_POST_CLICK_WINDOW_MS
-  );
   return {
     sessionHash: sessionHash(session),
-    winnerAuctionId: latestWinnerPost?.auctionId,
-    eligible: visitComplete && active && winnerPostClickComplete,
+    eligible: visitComplete && active,
     visitComplete,
-    winnerPostClickComplete,
     secondsRemaining: Math.max(0, Math.ceil((MINIMUM_VISIT_MS - elapsed) / 1000)),
   };
 }
@@ -134,11 +138,8 @@ export async function assertArtDropEngagement(request: Request) {
   if (!status.visitComplete) {
     throw new Error(`Stay active on AdBidCoin for ${Math.max(1, Math.ceil(status.secondsRemaining / 60))} more minute(s) before claiming.`);
   }
-  if (!status.winnerPostClickComplete) {
-    throw new Error("Visit the latest winning auction post before claiming this Art Drop.");
-  }
   if (!status.eligible) {
     throw new Error("Your active session expired. Keep this page open briefly, then try again.");
   }
-  return { sessionHash: status.sessionHash!, winnerAuctionId: status.winnerAuctionId! };
+  return { sessionHash: status.sessionHash! };
 }

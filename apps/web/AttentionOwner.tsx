@@ -6,6 +6,7 @@ interface Props {
 
 function shortWallet(wallet: string | null) {
   if (!wallet) return "No leading bidder yet";
+  if (wallet.startsWith("credit:")) return "Signed-in credit bidder";
   return `${wallet.slice(0, 4)}...${wallet.slice(-5)}`;
 }
 

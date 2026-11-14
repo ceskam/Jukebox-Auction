@@ -1,5 +1,6 @@
 import {
   getAttentionContent,
+  getAttentionContentForAuction,
   saveAttentionContent,
 } from "../../../lib/attention";
 import { checkRateLimit, rateLimitResponse } from "../../../lib/rate-limit";
@@ -7,6 +8,7 @@ import {
   getAuthenticatedWallet,
   isSameOriginRequest,
 } from "../../../lib/security";
+import { creditBidderIdentity, getAuthenticatedUser } from "../../../lib/user-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +21,15 @@ export async function GET(request: Request) {
     return Response.json(null);
   }
 
+  const authenticatedWallet = getAuthenticatedWallet(request);
+  const authenticatedUser = await getAuthenticatedUser(request);
+  const authenticatedBidder =
+    authenticatedWallet ||
+    (authenticatedUser ? creditBidderIdentity(authenticatedUser.id) : "");
+  if (authenticatedBidder) {
+    const owned = await getAttentionContentForAuction(auctionId);
+    if (owned?.wallet === authenticatedBidder) return Response.json(owned);
+  }
   return Response.json((await getAttentionContent(auctionId)) ?? null);
 }
 
@@ -31,12 +42,16 @@ export async function POST(request: Request) {
   }
 
   const authenticatedWallet = getAuthenticatedWallet(request);
+  const authenticatedUser = await getAuthenticatedUser(request);
+  const authenticatedBidder =
+    authenticatedWallet ||
+    (authenticatedUser ? creditBidderIdentity(authenticatedUser.id) : "");
 
-  if (!authenticatedWallet) {
+  if (!authenticatedBidder) {
     return Response.json(
       {
         success: false,
-        message: "Reconnect and sign with the winning wallet before publishing.",
+        message: "Authenticate with the winning wallet or signed-in credit account before publishing.",
       },
       { status: 401 }
     );
@@ -66,7 +81,7 @@ export async function POST(request: Request) {
 
     const result = await saveAttentionContent({
       auctionId: String(form.get("auctionId") ?? ""),
-      wallet: authenticatedWallet,
+      wallet: authenticatedBidder,
       title: String(form.get("title") ?? ""),
       description: String(form.get("description") ?? ""),
       url: String(form.get("url") ?? ""),
@@ -82,7 +97,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const result = await saveAttentionContent({
     auctionId: String(body.auctionId ?? ""),
-    wallet: authenticatedWallet,
+    wallet: authenticatedBidder,
     title: String(body.title ?? ""),
     description: String(body.description ?? ""),
     url: String(body.url ?? ""),
