@@ -79,12 +79,16 @@ export async function getPlatformMetrics(): Promise<PlatformMetrics> {
 
 export async function recordAttentionEvent({
   auctionId,
+  featuredContentAuctionId = "",
+  viewerHash = "",
   eventType,
   wallet = "",
   targetUrl = "",
   eventSource = "organic",
 }: {
   auctionId: string;
+  featuredContentAuctionId?: string;
+  viewerHash?: string;
   eventType: AttentionEventType;
   wallet?: string;
   targetUrl?: string;
@@ -98,6 +102,8 @@ export async function recordAttentionEvent({
     const supabase = createSupabaseServerClient();
     const { error } = await supabase.from("attention_events").insert({
       auction_id: auctionId,
+      featured_content_auction_id: featuredContentAuctionId,
+      viewer_hash: viewerHash,
       event_type: eventType,
       wallet,
       target_url: targetUrl,

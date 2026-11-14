@@ -73,27 +73,23 @@ function requiredEnv(name: string) {
   return value;
 }
 
-function positiveNumber(name: string, fallback: number) {
-  const value = Number(process.env[name] ?? fallback);
-  return Number.isFinite(value) && value > 0 ? value : fallback;
-}
-
 function getRewardUsdc() {
-  return Math.min(100, positiveNumber("ART_DROP_REWARD_USDC", 10));
+  return 2;
 }
 
 function getDailyLimitUsdc() {
-  return Math.max(getRewardUsdc(), positiveNumber("ART_DROP_DAILY_LIMIT_USDC", 50));
+  return 70;
 }
 
 function getExpiryMinutes() {
-  return Math.max(5, positiveNumber("ART_DROP_EXPIRY_MINUTES", 60));
+  return 30;
 }
 
 function getIntervalHours() {
-  const minimum = Math.max(0.25, positiveNumber("ART_DROP_MIN_INTERVAL_HOURS", 4));
-  const maximum = Math.max(minimum, positiveNumber("ART_DROP_MAX_INTERVAL_HOURS", 12));
-  return { minimum, maximum };
+  // A uniform 30–52.5 minute cadence averages 41.25 minutes, or roughly
+  // 35 opportunities per day, while the database-enforced 70 USDC ceiling
+  // remains the final authority.
+  return { minimum: 0.5, maximum: 0.875 };
 }
 
 export function isArtDropsEnabled() {
@@ -335,7 +331,8 @@ async function getOpenDrop() {
 }
 
 async function getAllocatedLast24Hours() {
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const now = new Date();
+  const since = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from("art_drops")
@@ -363,7 +360,19 @@ async function createDrop(activateNow: boolean) {
         Math.round(minimum * 60 * 60 * 1000),
         Math.round(maximum * 60 * 60 * 1000) + 1
       );
-  const scheduledFor = new Date(now + delayMs);
+  let scheduleBase = now;
+  if (!activateNow) {
+    const { data: latest } = await createSupabaseServerClient()
+      .from("art_drops")
+      .select("scheduled_for")
+      .order("scheduled_for", { ascending: false })
+      .limit(1)
+      .maybeSingle<{ scheduled_for: string }>();
+    if (latest?.scheduled_for) {
+      scheduleBase = Math.max(now - delayMs, new Date(latest.scheduled_for).getTime());
+    }
+  }
+  const scheduledFor = new Date(activateNow ? now : Math.max(now, scheduleBase + delayMs));
   const code = generateClaimCode();
   const status: ArtDropStatus = activateNow ? "active" : "scheduled";
   const supabase = createSupabaseServerClient();
@@ -544,7 +553,17 @@ async function sendRewardUsdc(recipientAddress: string, amountUsdc: number) {
   return { connection, signature, latest };
 }
 
-export async function claimArtDrop({ code, wallet }: { code: string; wallet: string }) {
+export async function claimArtDrop({
+  code,
+  wallet,
+  claimantHash,
+  engagementSessionHash,
+}: {
+  code: string;
+  wallet: string;
+  claimantHash: string;
+  engagementSessionHash: string;
+}) {
   if (!isArtDropsEnabled()) throw new Error("Art Drops are not accepting claims yet.");
   const control = await getControl();
   if (control.paused) throw new Error("Art Drops are temporarily paused.");
@@ -557,29 +576,16 @@ export async function claimArtDrop({ code, wallet }: { code: string; wallet: str
   }
 
   const supabase = createSupabaseServerClient();
-  const cooldownSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const { data: previousReward, error: cooldownError } = await supabase
-    .from("art_drops")
-    .select("id")
-    .eq("status", "paid")
-    .eq("claim_wallet", wallet)
-    .gte("paid_at", cooldownSince)
-    .limit(1)
-    .maybeSingle<{ id: string }>();
-  if (cooldownError) {
-    throw new Error(`Could not verify reward eligibility: ${cooldownError.message}`);
-  }
-  if (previousReward) {
-    throw new Error("This wallet has already received an Art Drop in the last 30 days.");
-  }
-
   const { data, error } = await supabase
     .rpc("reserve_art_drop", {
       requested_code_hash: hashCode(normalizedCode),
       requested_wallet: wallet,
+      requested_claimant_hash: claimantHash,
+      requested_session_hash: engagementSessionHash,
+      requested_daily_limit: getDailyLimitUsdc(),
     })
     .returns<ArtDropRow[]>();
-  if (error) throw new Error(`Could not reserve this Art Drop: ${error.message}`);
+  if (error) throw new Error(error.message || "Could not reserve this Art Drop.");
   const drop = data?.[0];
   if (!drop) throw new Error("This code is invalid, expired, or already claimed.");
   if (drop.payout_signature) {

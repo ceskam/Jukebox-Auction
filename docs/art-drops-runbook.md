@@ -12,17 +12,19 @@ logs.
 - A signed Phantom login proves control of the receiving wallet.
 - Cloudflare Turnstile adds a human-verification step.
 - `reserve_art_drop` uses a PostgreSQL row lock so only one wallet can reserve a code.
-- One paid reward per wallet is allowed in a rolling 30-day period.
+- One paid reward per wallet or associated viewer session is allowed in a rolling 24-hour period.
 - A dedicated, low-balance hot wallet funds rewards and token-account creation
   fees. Do not reuse the auction treasury, company treasury, or house bot.
-- Rolling 24-hour limits include scheduled, active, reserved, paid, and
-  manual-review drops.
+- The 70 USDC UTC-day ceiling is enforced again inside the atomic reservation
+  function, so concurrent claims cannot overspend it.
 - A payout with uncertain state becomes `payout_review`; it is never retried automatically.
 
 ## 1. Apply the database migration
 
-Open the production Supabase SQL editor and run `database/art-drops.sql`.
-Confirm `art_drop_control`, `art_drops`, and `reserve_art_drop` exist. Leave the
+Open the production Supabase SQL editor and run
+`database/credits-reports-and-art-drop-limits.sql` after the original
+`database/art-drops.sql` migration. Confirm `art_drop_control`, `art_drops`,
+the hashed claimant fields, and the five-argument `reserve_art_drop` exist. Leave the
 initial `art_drop_control.paused` value set to `true` during setup.
 
 ## 2. Create the dedicated reward wallet
@@ -58,11 +60,11 @@ Claims fail closed if either key is missing.
 ```text
 ART_DROPS_ENABLED=false
 ART_DROP_TREASURY_SECRET_KEY_BASE64=<base64 64-byte keypair>
-ART_DROP_REWARD_USDC=10
-ART_DROP_DAILY_LIMIT_USDC=50
-ART_DROP_MIN_INTERVAL_HOURS=4
-ART_DROP_MAX_INTERVAL_HOURS=12
-ART_DROP_EXPIRY_MINUTES=60
+ART_DROP_REWARD_USDC=2
+ART_DROP_DAILY_LIMIT_USDC=70
+ART_DROP_MIN_INTERVAL_HOURS=0.5
+ART_DROP_MAX_INTERVAL_HOURS=0.875
+ART_DROP_EXPIRY_MINUTES=30
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=<Turnstile site key>
 TURNSTILE_SECRET_KEY=<Turnstile secret key>
 ```
@@ -81,7 +83,7 @@ must refer to the same network. Redeploy after changing variables.
 5. Click **Publish drop now** with only the minimum test balance funded.
 6. Open the homepage separately, confirm the branded image, and open `/claim`.
 7. Authenticate a test wallet, complete Turnstile, enter the graphic code, and
-   verify exactly one 10 USDC transfer.
+   verify exactly one 2 USDC transfer.
 8. Confirm a second wallet receives an already-claimed response and no transfer.
 9. Confirm `/admin` shows `paid`, the recipient, and the Solscan receipt.
 10. Pause Art Drops again until the company has approved the public rules.
@@ -90,8 +92,8 @@ must refer to the same network. Redeploy after changing variables.
 
 - Use `/admin` to pause/resume, create an immediate drop, cancel an unclaimed
   drop, inspect failures, and open payment receipts.
-- Vercel calls `/api/cron/art-drops` every 15 minutes. With no open drop, it
-  schedules the next one randomly within the configured range.
+- Vercel calls `/api/cron/art-drops` every five minutes. The 30–52.5 minute
+  randomized cadence averages about 35 opportunities per day.
 - Active drops expire after `ART_DROP_EXPIRY_MINUTES`. The next cron marks them
   expired and schedules another.
 - Never retry a `payout_review` row. When it has a signature, use **Verify
