@@ -374,9 +374,9 @@ export default async function HomePage({
             <span className="eyebrow">How it works</span>
             <ol>
               <li>Connect Phantom for a USDC escrow bid, or sign in to authorize a card bid.</li>
-              <li>Bid wallet USDC or credits for the next 30-minute block.</li>
+              <li>Authorize a card bid or deposit wallet USDC into the audited auction escrow.</li>
               <li>Highest verified USDC bid wins when the timer ends.</li>
-              <li>Bids are final. Losing bids are not refunded.</li>
+              <li>Only the winning bid is collected. Losing card holds and wallet escrows are released.</li>
               <li>Approved winner content appears on the homepage.</li>
               <li>
                 The latest approved winning post stays live until a newer winner
