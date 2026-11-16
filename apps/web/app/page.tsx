@@ -13,7 +13,7 @@ import SiteFooter from "../SiteFooter";
 import Brand from "../Brand";
 import ReferralCapture from "../ReferralCapture";
 import ArtDrops from "../ArtDrops";
-import CreditAccount from "../CreditAccount";
+import CardBidAccount from "../CardBidAccount";
 import { getMinimumBidUsdc } from "../lib/bid-rules";
 import {
   getBidHistory,
@@ -32,6 +32,7 @@ import {
 import { getSolscanTransactionUrl } from "../lib/solscan";
 import { getPublicArtDrops } from "../lib/art-drops";
 import { getRecentAttentionBlockReports } from "../lib/reports";
+import { getEscrowAvailability } from "../lib/solana-escrow-server";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -125,6 +126,7 @@ export default async function HomePage({
     () => getRecentAttentionBlockReports(3),
     []
   );
+  const walletEscrow = getEscrowAvailability();
   return (
     <main className="page-shell">
       <ReferralCapture code={referralCode} />
@@ -190,8 +192,9 @@ export default async function HomePage({
           <span className="eyebrow">The 30-minute attention market</span>
           <h1>Own the next block.</h1>
           <p>
-            Every 30 minutes, the highest USDC bidder wins the dominant public
-            homepage feature. Bids are final.
+            Every 30 minutes, the highest bidder wins the dominant public
+            homepage feature. Only the winner pays; losing card holds and wallet
+            escrows are released.
           </p>
         </div>
       </section>
@@ -302,9 +305,11 @@ export default async function HomePage({
           <BidButton
             currentHighestEffectiveBid={nextAuction.highestEffectiveBid}
             auctionId={nextAuction.id}
+            escrowEnabled={walletEscrow.enabled}
+            escrowUnavailableReason={walletEscrow.reason}
           />
 
-          <CreditAccount
+          <CardBidAccount
             auctionId={nextAuction.id}
             minimumBid={getMinimumBidUsdc(nextAuction.highestEffectiveBid, 1)}
           />
@@ -368,7 +373,7 @@ export default async function HomePage({
           <section className="how-card" id="how-it-works">
             <span className="eyebrow">How it works</span>
             <ol>
-              <li>Connect Phantom, or sign in and purchase internal platform credits.</li>
+              <li>Connect Phantom for a USDC escrow bid, or sign in to authorize a card bid.</li>
               <li>Bid wallet USDC or credits for the next 30-minute block.</li>
               <li>Highest verified USDC bid wins when the timer ends.</li>
               <li>Bids are final. Losing bids are not refunded.</li>

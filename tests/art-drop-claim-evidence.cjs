@@ -55,6 +55,12 @@ const assert = require('node:assert/strict');
   );
   await db.exec(migration);
   await db.exec(migration);
+  const winnerOnlyMigration = readFileSync(
+    path.join(root, 'database/winner-only-auctions.sql'),
+    'utf8'
+  );
+  await db.exec(winnerOnlyMigration);
+  await db.exec(winnerOnlyMigration);
   assert.equal((await db.query(`select to_regprocedure('reserve_art_drop(text,text)') legacy`)).rows[0].legacy, null);
   assert.equal((await db.query(`select to_regprocedure('reserve_art_drop(text,text,text,text)') legacy`)).rows[0].legacy, null);
 
@@ -155,6 +161,28 @@ const assert = require('node:assert/strict');
   assert.equal(account.deficit_credits, '0.00');
   assert.equal(account.status, 'active');
 
+  const authorization = (await db.query(
+    `insert into card_bid_authorizations
+      (user_id,auction_id,amount_usd,fee_usd,bid_value_usdc,status)
+     values ($1,'attention-test',4,0,4,'pending') returning id`,
+    [user]
+  )).rows[0].id;
+  const cardBidId = (await db.query(
+    `select record_card_authorized_bid($1,'pi_manual_capture') id`,
+    [authorization]
+  )).rows[0].id;
+  let bid = (await db.query(`select funding_source,settlement_status from bids where id=$1`, [cardBidId])).rows[0];
+  assert.deepEqual(bid, { funding_source: 'card_authorization', settlement_status: 'reserved' });
+  const walletBidId = (await db.query(
+    `select record_wallet_escrow_bid('attention-test','wallet-escrow',5.25,'escrow-pda','deposit-signature') id`
+  )).rows[0].id;
+  bid = (await db.query(`select funding_source,settlement_status from bids where id=$1`, [walletBidId])).rows[0];
+  assert.deepEqual(bid, { funding_source: 'wallet_escrow', settlement_status: 'reserved' });
+  const lowerRaceBid = (await db.query(
+    `select record_wallet_escrow_bid('attention-test','wallet-2',4.50,'escrow-pda-2','deposit-signature-2') id`
+  )).rows[0].id;
+  assert.ok(lowerRaceBid, 'a confirmed concurrent escrow remains recorded for refund');
+
   const grants = (await db.query(`
     select
       has_function_privilege('anon','reserve_art_drop(text,text,text,text,numeric)','execute') anon,
@@ -162,6 +190,13 @@ const assert = require('node:assert/strict');
       has_function_privilege('service_role','reserve_art_drop(text,text,text,text,numeric)','execute') service
   `)).rows[0];
   assert.deepEqual(grants, { anon: false, authenticated: false, service: true });
+  const settlementGrants = (await db.query(`
+    select
+      has_function_privilege('anon','record_card_authorized_bid(uuid,text)','execute') card_anon,
+      has_function_privilege('authenticated','record_wallet_escrow_bid(text,text,numeric,text,text)','execute') wallet_authenticated,
+      has_function_privilege('service_role','record_card_authorized_bid(uuid,text)','execute') card_service
+  `)).rows[0];
+  assert.deepEqual(settlementGrants, { card_anon: false, wallet_authenticated: false, card_service: true });
   await db.close();
-  console.log('PASS: five-minute eligibility without click, atomic evidence, rolling cooldowns, 70 USDC cap, credit bid ledger, refund freeze, and grants');
+  console.log('PASS: Art Drop limits, rolling eligibility, legacy credit ledger, card authorization bids, wallet escrow bids, and grants');
 })().catch((error) => { console.error(error); process.exit(1); });

@@ -3,13 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { getStoredWallet, subscribeToWallet } from "./WalletConnect";
 import { getMinimumBidUsdc, OPENING_BID_USDC } from "./lib/bid-rules";
-import { sendUsdcBidPayment } from "./lib/solana-payment";
+import { depositUsdcBidEscrow } from "./lib/solana-payment";
 import { getSolscanTransactionUrl } from "./lib/solscan";
 import { trackVerifiedBid } from "./lib/campaign-tracking";
 
 type Props = {
   currentHighestEffectiveBid: number;
   auctionId: string;
+  escrowEnabled: boolean;
+  escrowUnavailableReason?: string;
 };
 
 type PendingPayment = {
@@ -17,6 +19,10 @@ type PendingPayment = {
   amountUsdc: number;
   wallet: string;
   paymentSignature: string;
+  escrowPda: string;
+  escrowNonce: string;
+  auctionPda: string;
+  sequence: number;
 };
 
 const PENDING_PAYMENT_KEY = "attention-bid-pending-payment";
@@ -25,6 +31,8 @@ const LARGE_BID_CONFIRMATION_USDC = 100;
 export default function BidButton({
   currentHighestEffectiveBid,
   auctionId,
+  escrowEnabled,
+  escrowUnavailableReason,
 }: Props) {
   const minimumBid = useMemo(
     () => getMinimumBidUsdc(currentHighestEffectiveBid, 1),
@@ -131,7 +139,7 @@ export default function BidButton({
     if (
       bidAmount >= LARGE_BID_CONFIRMATION_USDC &&
       !window.confirm(
-        `This will send ${bidAmount.toFixed(2)} USDC. Bids are final and are not refundable. Continue?`
+        `This will lock ${bidAmount.toFixed(2)} USDC in the auction escrow. Only the winning bid is paid; losing deposits are returned. Continue?`
       )
     ) {
       setStatus("Bid canceled. No USDC was sent.");
@@ -141,17 +149,18 @@ export default function BidButton({
     setIsSubmitting(true);
 
     try {
-      setStatus("Approve the USDC transfer in Phantom...");
-      const paymentSignature = await sendUsdcBidPayment({
+      setStatus("Approve the USDC escrow deposit in Phantom...");
+      const escrow = await depositUsdcBidEscrow({
         amountUsdc: bidAmount,
         wallet,
+        auctionId,
       });
 
       const payment = {
         auctionId,
         amountUsdc: bidAmount,
         wallet,
-        paymentSignature,
+        ...escrow,
       };
       window.localStorage.setItem(PENDING_PAYMENT_KEY, JSON.stringify(payment));
       setPendingPayment(payment);
@@ -164,7 +173,7 @@ export default function BidButton({
   }
 
   async function recordPayment(payment: PendingPayment) {
-    setStatus("USDC sent. Verifying on Solana...", "info", payment.paymentSignature);
+    setStatus("USDC locked in escrow. Verifying on Solana...", "info", payment.paymentSignature);
 
     try {
       const res = await fetch("/api/bid", {
@@ -189,7 +198,7 @@ export default function BidButton({
       window.localStorage.removeItem(PENDING_PAYMENT_KEY);
       setPendingPayment(null);
       trackVerifiedBid(result);
-      setStatus(result.message ?? "USDC received and bid recorded.", "success", payment.paymentSignature);
+      setStatus(result.message ?? "Escrow deposit verified and bid recorded.", "success", payment.paymentSignature);
       window.setTimeout(() => window.location.reload(), 1400);
     } catch (error) {
       setStatus(
@@ -215,9 +224,14 @@ export default function BidButton({
     <section className="bid-card">
       <span className="eyebrow">Place your bid</span>
       <p className="hint">
-        Every verified USDC bid competes at face value. Token-based bid power is
-        paused while AdBidCoin prepares its own future utility.
+        Every verified USDC escrow bid competes at face value. Token-based bid
+        power is paused while AdBidCoin prepares its own future utility.
       </p>
+      {!escrowEnabled && (
+        <p className="form-message info">
+          Wallet bidding is temporarily unavailable while the Solana escrow program is deployed and audited. {escrowUnavailableReason}
+        </p>
+      )}
       <div className="quick-bids">
         {(currentHighestEffectiveBid > 0
           ? [minimumBid, minimumBid + 1, minimumBid + 5, minimumBid + 10]
@@ -230,7 +244,7 @@ export default function BidButton({
               key={bidAmount}
               className="quick-bid-button"
               onClick={() => placeBid(bidAmount)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !escrowEnabled}
             >
               {bidAmount.toFixed(2)}
               <span>USDC</span>
@@ -254,7 +268,7 @@ export default function BidButton({
       <button
         className="primary-button"
         onClick={() => placeBid()}
-        disabled={isSubmitting || !wallet}
+        disabled={isSubmitting || !wallet || !escrowEnabled}
       >
         {isSubmitting ? "Processing USDC..." : "Place bid"}
       </button>
@@ -265,8 +279,8 @@ export default function BidButton({
           : `Opening bid starts at ${OPENING_BID_USDC.toFixed(2)} USDC.`}
       </p>
       <p className="fine-print">
-        Winner takes the attention block. All verified bids are final and are
-        not refunded.
+        Only the winning bid is paid to AdBidCoin. Losing USDC escrows are
+        returned automatically after settlement.
       </p>
       {pendingPayment && (
         <button

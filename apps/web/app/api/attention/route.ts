@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         success: false,
-        message: "Authenticate with the winning wallet or signed-in credit account before publishing.",
+        message: "Authenticate with the winning wallet or signed-in card bidder before publishing.",
       },
       { status: 401 }
     );

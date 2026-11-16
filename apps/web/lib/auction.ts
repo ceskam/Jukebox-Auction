@@ -1,15 +1,9 @@
 import { OPENING_BID_USDC } from "./bid-rules";
-import {
-  calculateEffectiveBidUsdc,
-  getQuietBidPower,
-} from "./bid-power";
-import { verifySolanaUsdcPayment } from "./payment";
+import { verifyEscrowDeposit } from "./solana-escrow-server";
 import { createSupabaseServerClient } from "./supabase/server";
-import { reservePaymentReceipt } from "./payment-receipts";
 
 const LEGACY_BLOCK_LENGTH_MS = 15 * 60 * 1000;
 const BLOCK_LENGTH_MS = 30 * 60 * 1000;
-const PAYMENT_RECOVERY_GRACE_MS = 5 * 60 * 1000;
 const START_TIME = Date.UTC(2026, 0, 1, 0, 0, 0);
 const THIRTY_MINUTE_SCHEDULE_START = Date.UTC(2026, 8, 21, 7, 0, 0);
 const FIRST_THIRTY_MINUTE_SEQUENCE =
@@ -172,17 +166,24 @@ async function ensureAuction(sequence: number) {
 
 async function getHighestBidBySource(
   auctionId: string,
-  bidSource: "user" | "house"
+  bidSource: "user" | "house",
+  requireSettled = false
 ) {
   const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("bids")
     .select(
       "wallet, amount_usdc, effective_bid_usdc, bid_multiplier, quiet_balance, payment_signature, bid_source"
     )
     .eq("auction_id", auctionId)
     .eq("payment_status", "verified")
-    .eq("bid_source", bidSource)
+    .eq("bid_source", bidSource);
+  if (
+    requireSettled &&
+    bidSource === "user" &&
+    process.env.WINNER_ONLY_AUCTIONS_ENABLED === "true"
+  ) query = query.eq("settlement_status", "captured");
+  const { data, error } = await query
     .order("effective_bid_usdc", { ascending: false })
     .order("amount_usdc", { ascending: false })
     .order("created_at", { ascending: true })
@@ -198,7 +199,11 @@ async function getHighestBidBySource(
 
 export async function getAuctionBySequence(sequence: number): Promise<Auction> {
   const auctionId = await ensureAuction(sequence);
-  const highestUserBid = await getHighestBidBySource(auctionId, "user");
+  const highestUserBid = await getHighestBidBySource(
+    auctionId,
+    "user",
+    sequence <= getAuctionNumber()
+  );
   const highestBidAmount = Number(highestUserBid?.amount_usdc ?? 0);
   const highestEffectiveBid = Number(
     highestUserBid?.effective_bid_usdc ?? 0
@@ -280,7 +285,11 @@ export async function placeBid(
   amountUsdc: number,
   wallet: string,
   requestedAuctionId: string,
-  paymentSignature?: string | null
+  paymentSignature?: string | null,
+  escrowPda = "",
+  escrowNonce = "",
+  auctionPda = "",
+  escrowSequence = 0
 ) {
   const nextAuction = await getNextAuction();
   const roundedAmount = Math.round(amountUsdc * 100) / 100;
@@ -343,119 +352,50 @@ export async function placeBid(
     };
   }
 
-  let requestedAuction: Auction;
-
+  if (!escrowPda || !escrowNonce || !auctionPda || !Number.isSafeInteger(escrowSequence)) {
+    return { success: false, message: "Complete Solana escrow evidence is required.", auction: nextAuction };
+  }
   try {
-    requestedAuction = await getAuctionById(requestedAuctionId);
-  } catch {
-    return {
-      success: false,
-      message: "This bid has an invalid auction ID.",
-      auction: nextAuction,
-    };
-  }
-
-  const verification = await verifySolanaUsdcPayment({
-    amountUsdc: roundedAmount,
-    wallet,
-    paymentSignature,
-  });
-
-  if (!verification.ok) {
-    return {
-      success: false,
-      message: verification.message ?? "Payment verification failed.",
-      auction: nextAuction,
-    };
-  }
-
-  const isNormalNextAuction = requestedAuction.id === nextAuction.id;
-  const isRecoverableCurrentAuction =
-    requestedAuction.sequence === nextAuction.sequence - 1 &&
-    Boolean(verification.blockTimeMs) &&
-    verification.blockTimeMs! < requestedAuction.startsAt &&
-    Date.now() <= requestedAuction.startsAt + PAYMENT_RECOVERY_GRACE_MS;
-
-  if (!isNormalNextAuction && !isRecoverableCurrentAuction) {
-    return {
-      success: false,
-      message:
-        "That auction has closed. Keep the transaction receipt and contact the administrator for review.",
-      auction: nextAuction,
-    };
-  }
-
-  const targetAuction = isNormalNextAuction ? nextAuction : requestedAuction;
-  await reservePaymentReceipt({
-    signature: verification.signature!,
-    purpose: "bid",
-    wallet,
-    amountUsdc: roundedAmount,
-    referenceKey: `bid:${targetAuction.id}`,
-  });
-  const bidPower = await getQuietBidPower(wallet);
-
-  const effectiveBidUsdc = calculateEffectiveBidUsdc(
-    roundedAmount,
-    bidPower.bidMultiplier
-  );
-  const supabase = createSupabaseServerClient();
-  const { error } = await supabase.from("bids").insert({
-    auction_id: targetAuction.id,
-    wallet,
-    amount_usdc: roundedAmount,
-    quiet_balance: bidPower.quietBalance,
-    quiet_balance_slot: bidPower.snapshotSlot,
-    bid_multiplier: bidPower.bidMultiplier,
-    effective_bid_usdc: effectiveBidUsdc,
-    payment_status: verification.status,
-    payment_signature: verification.signature,
-    verification_provider: verification.provider,
-    bid_source: "user",
-    created_at: new Date().toISOString(),
-  });
-
-  if (error) {
-    if (error.code === "23505" && verification.signature) {
-      const concurrentPayment = await getExistingPayment(verification.signature);
-      if (
-        concurrentPayment?.wallet === wallet &&
-        Number(concurrentPayment.amount_usdc) === roundedAmount &&
-        concurrentPayment.auction_id === targetAuction.id
-      ) {
-        return {
-          success: true,
-          message: "This payment was already verified and recorded.",
-          auction: await getAuctionById(targetAuction.id),
-          bidHistory: await getBidHistory(targetAuction.id),
-        };
-      }
+    const targetAuction = await getAuctionBySequence(escrowSequence);
+    if (targetAuction.id !== requestedAuctionId || escrowSequence > nextAuction.sequence) {
+      return { success: false, message: "This escrow does not belong to an active auction.", auction: nextAuction };
     }
-
+    await verifyEscrowDeposit({
+      sequence: escrowSequence,
+      auctionPda,
+      escrowPda,
+      wallet,
+      amountUsdc: roundedAmount,
+      nonce: escrowNonce,
+      signature: paymentSignature,
+    });
+    const supabase = createSupabaseServerClient();
+    const { data: bidId, error } = await supabase.rpc("record_wallet_escrow_bid", {
+      requested_auction_id: requestedAuctionId,
+      requested_wallet: wallet,
+      requested_amount: roundedAmount,
+      requested_escrow_pda: escrowPda,
+      requested_deposit_signature: paymentSignature,
+    });
+    if (error) throw new Error(error.message);
+    const updatedAuction = await getAuctionBySequence(escrowSequence);
+    return {
+      success: true,
+      bidId: Number(bidId),
+      message: updatedAuction.winner === wallet
+        ? `Your ${roundedAmount.toFixed(2)} USDC escrow bid is leading.`
+        : "Your USDC escrow was recorded. A higher bid will cause it to be refunded after settlement.",
+      auction: updatedAuction,
+      bidHistory: await getBidHistory(updatedAuction.id),
+      campaignConversion: { event: "verified_user_bid" as const, value_usd: roundedAmount },
+    };
+  } catch (error) {
     return {
       success: false,
-      message: `Could not save bid: ${error.message}`,
+      message: error instanceof Error ? error.message : "Could not verify the Solana escrow deposit.",
       auction: nextAuction,
     };
   }
-
-  const updatedAuction = await getAuctionById(targetAuction.id);
-  const isLeading =
-    updatedAuction.winner === wallet &&
-    updatedAuction.highestEffectiveBid === effectiveBidUsdc;
-
-  return {
-    success: true,
-    message: isLeading
-      ? `USDC received. Your ${effectiveBidUsdc.toFixed(2)} USDC bid is leading.`
-      : "USDC received and your bid was recorded. Another verified bid is currently higher.",
-    auction: updatedAuction,
-    bidHistory: await getBidHistory(updatedAuction.id),
-    // Replayed receipts and demo payments do not create paid conversions.
-    ...(verification.provider === "solana-usdc"
-      ? { campaignConversion: { event: "verified_user_bid" as const, value_usd: roundedAmount } }
-      : {}),
-  };
 }
 
 export const auctionTiming = {

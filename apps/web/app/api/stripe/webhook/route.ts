@@ -1,5 +1,5 @@
 import { applyStripeEvent } from "../../../../lib/stripe-webhook";
-import { verifyStripeSignature } from "../../../../lib/credits";
+import { verifyStripeSignature } from "../../../../lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

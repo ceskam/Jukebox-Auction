@@ -1,5 +1,3 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 import { getMinimumBidUsdc } from "./bid-rules";
 import { getBidHistory, getNextAuction } from "./auction";
 import { createSupabaseServerClient } from "./supabase/server";
@@ -158,22 +156,6 @@ export async function createCreditCheckout({
     await supabase.from("credit_purchases").update({ status: "failed", updated_at: new Date().toISOString() }).eq("id", purchase.id);
     throw checkoutError;
   }
-}
-
-export function verifyStripeSignature(payload: string, signatureHeader: string) {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
-  if (!secret) throw new Error("Stripe webhook signing is not configured.");
-  const pieces = signatureHeader.split(",").map((part) => part.split("="));
-  const timestamp = pieces.find(([key]) => key === "t")?.[1] ?? "";
-  const signatures = pieces.filter(([key]) => key === "v1").map(([, value]) => value);
-  if (!timestamp || Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) throw new Error("Expired Stripe webhook signature.");
-  const expected = createHmac("sha256", secret).update(`${timestamp}.${payload}`).digest("hex");
-  const expectedBytes = Buffer.from(expected);
-  const valid = signatures.some((candidate) => {
-    const bytes = Buffer.from(candidate ?? "");
-    return bytes.length === expectedBytes.length && timingSafeEqual(bytes, expectedBytes);
-  });
-  if (!valid) throw new Error("Invalid Stripe webhook signature.");
 }
 
 export async function placeCreditBid(userId: string, amountInput: number, requestedAuctionId: string) {

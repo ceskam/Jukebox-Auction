@@ -3,7 +3,11 @@
 The web app is the public interface for AdBidCoin, operated by Attention Bid,
 Inc.
 
-Users connect Phantom, bid USDC for the next 30-minute attention block, and the winning wallet controls the public homepage content for the block it won. The server snapshots the bidder wallet's QUIET balance and applies proportional bid power from 1x to 10x. Winner content is auto-approved so auctions can run continuously, while admins can still hide or reject content when needed. Bids are final and are not refunded.
+Users bid for the next 30-minute attention block with a card authorization or a
+Solana USDC program escrow. Only the winner pays; losing card holds are canceled
+and losing wallet deposits are returned. Winner content is auto-approved so
+auctions can run continuously, while admins can still hide or reject content.
+Token-based bid power remains paused.
 
 ## Persistence
 
@@ -34,7 +38,13 @@ NEXT_PUBLIC_USDC_MINT_ADDRESS=...
 USDC_MINT_ADDRESS=...
 NEXT_PUBLIC_TREASURY_WALLET_ADDRESS=...
 TREASURY_WALLET_ADDRESS=...
-QUIET_MINT_ADDRESS=JCfSVdmBNKwMnMUMccfNbQQVVJKYsQNbXCqhdRuZpump
+STRIPE_CARD_BIDS_ENABLED=false
+STRIPE_APPROVAL_CONFIRMED=false
+STRIPE_SECRET_KEY=...
+STRIPE_WEBHOOK_SECRET=...
+WALLET_ESCROW_ENABLED=false
+SOLANA_ESCROW_PROGRAM_ID=...
+SOLANA_ESCROW_AUTHORITY_SECRET_KEY_BASE64=...
 ADMIN_TOKEN=...
 GROWTH_SCOUT_ENABLED=false
 BRAVE_SEARCH_API_KEY=...
@@ -85,14 +95,15 @@ randomized scheduler runs from `/api/cron/art-drops`.
 Run `../../database/art-drops.sql` and follow
 `../../docs/art-drops-runbook.md` before enabling the feature.
 
-## Platform credits and performance reports
+## Winner-only payments and performance reports
 
-Email-authenticated users can hold internal, non-transferable platform credits
-and bid at 1 credit = 1 USDC of auction value. Stripe Checkout is implemented
-behind test/live approval gates; only signed webhook confirmation issues
-credits. Credit purchases, refunds, balances, bid reservations, releases, and
-spend events are recorded in the server-only ledger. Live Stripe processing must
-not be enabled without written approval for this specific auction-credit model.
+Email-authenticated card bidders authorize their maximum bid with Stripe manual
+capture. The winning PaymentIntent is captured after close and losing holds are
+canceled. Phantom bidders deposit their maximum bid in a per-bid Anchor escrow;
+the program pays the winner's deposit to the treasury and returns losing
+deposits. Both paths have independent production gates. Prepaid platform-credit
+sales and bids are retired, while their historical ledger remains available for
+reconciliation.
 
 Every ended 30-minute block receives an idempotent performance snapshot with
 first-party impressions, reliable session-based unique viewers when available,
@@ -100,28 +111,32 @@ clicks, CTR, and paid CPC when applicable. Reports render as branded PNGs, have
 download/share pages, distinguish repeat appearances from new wins, and can be
 posted to the official X account. Follow
 `../../docs/credits-and-reports-launch-runbook.md` and run
-`../../database/credits-reports-and-art-drop-limits.sql` before deployment.
+`../../database/credits-reports-and-art-drop-limits.sql` and
+`../../database/winner-only-auctions.sql` before deployment. Follow
+`../../docs/winner-only-auction-runbook.md` before enabling either payment path.
 
-`SOLANA_RPC_URL`, `USDC_MINT_ADDRESS`, and `TREASURY_WALLET_ADDRESS` are used by
-the server to verify USDC transfer signatures before saving bids. The
-`NEXT_PUBLIC_` versions are used by the browser to build the Phantom payment
-transaction. All Solana values must point to the same network.
+`SOLANA_RPC_URL`, `USDC_MINT_ADDRESS`, `TREASURY_WALLET_ADDRESS`, and the escrow
+program settings are used to initialize, verify, and settle program escrows. The
+`NEXT_PUBLIC_` RPC and mint values are used by the browser to build the Phantom
+deposit transaction. All Solana values must point to the same network.
 
 ## Current Flow
 
 1. The homepage shows the current attention block.
-2. Bids are placed in USDC for the next 30-minute block.
-3. The server verifies the connected wallet's current QUIET balance and saves a
-   bid-power snapshot. Tokens remain in the holder's wallet; they are not locked.
-4. The highest effective bid wins when the current block closes.
-5. Bids are winner-takes-all. Losing bids are not refunded.
+2. Card bidders authorize a maximum amount; wallet bidders deposit USDC into a
+   per-bid program escrow.
+3. Card and wallet bids compete at the same face value without token multipliers.
+4. The highest bid wins when the block closes.
+5. The settlement worker captures or transfers only the winner's bid, cancels
+   losing card holds, and refunds losing wallet escrows.
 6. When that auction becomes current, the winning wallet can publish the title, description, uploaded image or image URL, and link.
 7. New content is auto-approved so blocks can run without manual review every 30 minutes; admins can still hide or reject content in `/admin`. Editing blocked content does not automatically unhide it.
 8. If a round has no new winner content, the latest approved winning post stays
    live automatically until a newer winning post is published.
 
-The snapshot design is non-custodial but does not lock QUIET. A true deposited
-vault would require a separately deployed and audited Solana program.
+Wallet escrow must remain disabled until its separately deployed Solana program
+has passed independent review. Sanitized settlement status and on-chain refund
+receipts are exposed at `/api/settlements/attention-N`.
 
 ## Homepage Metrics
 

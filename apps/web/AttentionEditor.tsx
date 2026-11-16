@@ -102,13 +102,13 @@ export default function AttentionEditor({
         <span className="eyebrow">Create attention block</span>
         <h2>Winner controls the live homepage</h2>
         <p>
-          The winning wallet or signed-in credit account for the current block can add the headline,
+          The winning wallet or signed-in card bidder for the current block can add the headline,
           description, image, and link shown in the public attention space.
         </p>
         {winner ? (
           <p className="hint">
             Winning bidder: {winner.startsWith("credit:")
-              ? "signed-in credit account"
+              ? "signed-in card bidder"
               : `${winner.slice(0, 4)}...${winner.slice(-4)}`}
           </p>
         ) : (
