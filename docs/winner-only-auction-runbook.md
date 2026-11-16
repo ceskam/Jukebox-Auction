@@ -4,6 +4,10 @@ This release replaces prepaid card credits and direct-to-treasury wallet bids.
 Card bidders authorize a maximum amount and wallet bidders deposit USDC in a
 per-bid Solana program escrow. Only the winning bid is collected.
 
+Card bids have a server- and database-enforced minimum of 5 USD. Runner-up
+authorizations remain available until one winning authorization has been
+captured successfully; only then are all remaining card holds released.
+
 ## Safety gates
 
 Do not enable either funding path merely because the application builds.

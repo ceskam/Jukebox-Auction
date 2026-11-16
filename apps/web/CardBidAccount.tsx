@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "./lib/supabase/client";
+import { MIN_CARD_BID_USD } from "./lib/bid-rules";
 
 type Props = { auctionId: string; minimumBid: number };
 type Authorization = {
@@ -13,11 +14,12 @@ type Authorization = {
 };
 
 export default function CardBidAccount({ auctionId, minimumBid }: Props) {
+  const cardMinimumBid = Math.max(MIN_CARD_BID_USD, minimumBid);
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [accessToken, setAccessToken] = useState("");
   const [email, setEmail] = useState("");
   const [signedInEmail, setSignedInEmail] = useState("");
-  const [bidAmount, setBidAmount] = useState(String(minimumBid));
+  const [bidAmount, setBidAmount] = useState(String(cardMinimumBid));
   const [feePercent, setFeePercent] = useState(0);
   const [authorizations, setAuthorizations] = useState<Authorization[]>([]);
   const [stripe, setStripe] = useState<any>({ enabled: false, reason: "Card bidding is loading." });
@@ -36,7 +38,7 @@ export default function CardBidAccount({ auctionId, minimumBid }: Props) {
     return () => data.subscription.unsubscribe();
   }, [supabase]);
 
-  useEffect(() => setBidAmount(String(minimumBid)), [minimumBid]);
+  useEffect(() => setBidAmount(String(cardMinimumBid)), [cardMinimumBid]);
 
   async function refresh(token = accessToken) {
     if (!token) return;
@@ -93,6 +95,7 @@ export default function CardBidAccount({ auctionId, minimumBid }: Props) {
         Your maximum bid is placed as a temporary card hold. AdBidCoin captures the
         winner only after the 30-minute auction closes and releases every losing hold.
         Card bids and wallet bids compete at the same face value: 1 USD = 1 USDC of bid value.
+        The minimum card bid is ${MIN_CARD_BID_USD.toFixed(2)}.
       </p>
       {!accessToken ? (
         <div className="credit-signin">
@@ -109,14 +112,14 @@ export default function CardBidAccount({ auctionId, minimumBid }: Props) {
           <div className="credit-actions-grid">
             <div>
               <h3>Maximum bid</h3>
-              <label><span>Bid value</span><input type="number" min={minimumBid} max="2000" step="0.01" value={bidAmount} onChange={(event) => setBidAmount(event.target.value)} /></label>
+              <label><span>Bid value</span><input type="number" min={cardMinimumBid} max="2000" step="0.01" value={bidAmount} onChange={(event) => setBidAmount(event.target.value)} /></label>
               <div className="credit-quote">
                 <span>Auction bid value <strong>{amount.toFixed(2)} USDC</strong></span>
                 <span>Platform/card fee <strong>{feeUsd.toFixed(2)} USD</strong></span>
                 <span>Maximum authorization <strong>{totalUsd.toFixed(2)} USD</strong></span>
                 <span>If you lose <strong>Hold released</strong></span>
               </div>
-              <button className="primary-button" onClick={authorizeBid} disabled={busy || !stripe.enabled || amount < minimumBid}>{busy ? "Starting authorization..." : "Authorize maximum bid"}</button>
+              <button className="primary-button" onClick={authorizeBid} disabled={busy || !stripe.enabled || amount < cardMinimumBid}>{busy ? "Starting authorization..." : "Authorize maximum bid"}</button>
               {!stripe.enabled && <p className="form-message info">{stripe.reason} Live use remains off until Stripe confirms support in writing.</p>}
               {stripe.testMode && <p className="hint">Stripe test mode—no live charge will be made.</p>}
             </div>

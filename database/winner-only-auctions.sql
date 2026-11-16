@@ -98,7 +98,7 @@ declare
   auth_record public.card_bid_authorizations%rowtype;
   auction public.auctions%rowtype;
   current_highest numeric := 0;
-  minimum_bid numeric := 0.25;
+  minimum_bid numeric := 5.00;
   inserted_bid_id bigint;
 begin
   perform pg_advisory_xact_lock(hashtext('auction-bid:' || requested_authorization_id::text));
@@ -123,7 +123,9 @@ begin
   from public.bids
   where auction_id = auth_record.auction_id
     and payment_status = 'verified' and bid_source = 'user';
-  if current_highest > 0 then minimum_bid := ceil((current_highest + 1) * 100) / 100; end if;
+  if current_highest > 0 then
+    minimum_bid := greatest(5.00, ceil((current_highest + 1) * 100) / 100);
+  end if;
   if auth_record.bid_value_usdc < minimum_bid then
     raise exception 'The minimum bid is %.', to_char(minimum_bid, 'FM999999990.00');
   end if;

@@ -1,4 +1,4 @@
-import { getMinimumBidUsdc } from "./bid-rules";
+import { getMinimumBidUsdc, MIN_CARD_BID_USD } from "./bid-rules";
 import { getNextAuction } from "./auction";
 import { createSupabaseServerClient } from "./supabase/server";
 import { stripePost } from "./stripe";
@@ -40,8 +40,8 @@ export function getCardBidAvailability() {
 
 export function quoteCardBid(amountInput: number) {
   const bidValueUsdc = Math.round(amountInput * 100) / 100;
-  if (!Number.isFinite(bidValueUsdc) || bidValueUsdc <= 0 || bidValueUsdc > MAX_CARD_BID_USD) {
-    throw new Error(`Choose a bid from 0.25 to ${MAX_CARD_BID_USD.toLocaleString()} USD.`);
+  if (!Number.isFinite(bidValueUsdc) || bidValueUsdc < MIN_CARD_BID_USD || bidValueUsdc > MAX_CARD_BID_USD) {
+    throw new Error(`Choose a card bid from ${MIN_CARD_BID_USD.toFixed(2)} to ${MAX_CARD_BID_USD.toLocaleString()} USD.`);
   }
   const feeUsd = Math.round(bidValueUsdc * getCardBidFeePercent()) / 100;
   return {
@@ -91,7 +91,10 @@ export async function createCardBidCheckout({
   const quote = quoteCardBid(amount);
   const nextAuction = await getNextAuction();
   if (auctionId !== nextAuction.id) throw new Error("That auction has closed. Refresh and try again.");
-  const minimum = getMinimumBidUsdc(nextAuction.highestEffectiveBid, 1);
+  const minimum = Math.max(
+    MIN_CARD_BID_USD,
+    getMinimumBidUsdc(nextAuction.highestEffectiveBid, 1)
+  );
   if (quote.bidValueUsdc < minimum) throw new Error(`Enter a bid of at least ${minimum.toFixed(2)} USD.`);
 
   const supabase = createSupabaseServerClient();
