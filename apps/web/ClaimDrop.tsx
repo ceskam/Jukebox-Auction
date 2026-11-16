@@ -37,7 +37,7 @@ export default function ClaimDrop({
   const [message, setMessage] = useState("");
   const [signature, setSignature] = useState("");
   const [isClaiming, setIsClaiming] = useState(false);
-  const [eligibility, setEligibility] = useState({ eligible: false, visitComplete: false, winnerPostClickComplete: false, secondsRemaining: 300 });
+  const [eligibility, setEligibility] = useState({ eligible: false, visitComplete: false, secondsRemaining: 300 });
   const turnstileContainer = useRef<HTMLDivElement>(null);
   const widgetId = useRef("");
 
@@ -86,7 +86,7 @@ export default function ClaimDrop({
       return;
     }
     if (!eligibility.eligible) {
-      setMessage("Complete both engagement requirements before claiming.");
+      setMessage("Complete the five-minute active viewing requirement before claiming.");
       return;
     }
 
@@ -152,11 +152,9 @@ export default function ClaimDrop({
             <strong>{eligibility.visitComplete ? "✓" : "1"}</strong>
             <span>{eligibility.visitComplete ? "Five active minutes complete" : `Stay active for ${Math.max(1, Math.ceil(eligibility.secondsRemaining / 60))} more minute(s)`}</span>
           </div>
-          <div className={eligibility.winnerPostClickComplete ? "complete" : "pending"}>
-            <strong>{eligibility.winnerPostClickComplete ? "✓" : "2"}</strong>
-            <span>{eligibility.winnerPostClickComplete ? "Latest winning post visited" : "Visit the latest winning auction post on the homepage"}</span>
-          </div>
-          {!eligibility.winnerPostClickComplete && <a href="/#winning-post">Open latest winning post</a>}
+          <p className="hint">
+            No sponsored-link click is required. Eligibility is verified on the server.
+          </p>
         </div>
 
         {siteKey ? (

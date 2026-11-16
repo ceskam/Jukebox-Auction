@@ -1,5 +1,6 @@
 export const OPENING_BID_USDC = 0.25;
 export const BID_INCREMENT_EFFECTIVE_USDC = 1;
+export const MIN_CARD_BID_USD = 5;
 
 export function getMinimumBidUsdc(
   currentHighestEffectiveBid: number,

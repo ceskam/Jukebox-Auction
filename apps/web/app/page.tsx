@@ -13,6 +13,8 @@ import SiteFooter from "../SiteFooter";
 import Brand from "../Brand";
 import ReferralCapture from "../ReferralCapture";
 import ArtDrops from "../ArtDrops";
+import CardBidAccount from "../CardBidAccount";
+import { getMinimumBidUsdc } from "../lib/bid-rules";
 import {
   getBidHistory,
   getCurrentAuction,
@@ -29,12 +31,15 @@ import {
 } from "../lib/security";
 import { getSolscanTransactionUrl } from "../lib/solscan";
 import { getPublicArtDrops } from "../lib/art-drops";
+import { getRecentAttentionBlockReports } from "../lib/reports";
+import { getEscrowAvailability } from "../lib/solana-escrow-server";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 function shortWallet(wallet: string) {
+  if (wallet.startsWith("credit:")) return "Credit bidder";
   return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
 }
 
@@ -116,11 +121,20 @@ export default async function HomePage({
     getPublicArtDrops,
     { active: undefined, recent: [] }
   );
+  const recentReports = await loadOptional(
+    "attention block reports",
+    () => getRecentAttentionBlockReports(3),
+    []
+  );
+  const walletEscrow = getEscrowAvailability();
   return (
     <main className="page-shell">
       <ReferralCapture code={referralCode} />
       <AutoRefresh />
-      <TrackPageView auctionId={currentAuction.id} />
+      <TrackPageView
+        auctionId={currentAuction.id}
+        featuredContentAuctionId={displayedAttention?.auctionId ?? ""}
+      />
 
       <nav className="top-nav">
         <Brand />
@@ -137,6 +151,19 @@ export default async function HomePage({
         <WalletConnect />
       </nav>
 
+      <section className="featured-explainer" aria-labelledby="featured-explainer-title">
+        <div>
+          <span className="eyebrow">Win the homepage</span>
+          <h2 id="featured-explainer-title">Your post could be featured here!</h2>
+          <p>
+            Bid in the current AdBidCoin auction for a chance to win a 30-minute attention
+            block showcasing your content, image, and link. The last winning post continues
+            to appear until a new auction winner takes its place.
+          </p>
+        </div>
+        <a className="primary-link" href="#auction">Bid in the Current Auction</a>
+      </section>
+
       <section
         className="featured-attention"
         id="winning-post"
@@ -144,6 +171,7 @@ export default async function HomePage({
       >
         <AttentionDisplay
           auctionId={displayedAttention?.auctionId ?? currentAuction.id}
+          blockAuctionId={currentAuction.id}
           title={displayedAttention?.title ?? ""}
           description={displayedAttention?.description ?? ""}
           url={displayedAttention?.url ?? ""}
@@ -164,8 +192,9 @@ export default async function HomePage({
           <span className="eyebrow">The 30-minute attention market</span>
           <h1>Own the next block.</h1>
           <p>
-            Every 30 minutes, the highest USDC bidder wins the dominant public
-            homepage feature. Bids are final.
+            Every 30 minutes, the highest bidder wins the dominant public
+            homepage feature. Only the winner pays; losing card holds and wallet
+            escrows are released.
           </p>
         </div>
       </section>
@@ -175,6 +204,26 @@ export default async function HomePage({
       <ArtDrops active={artDrops.active} recent={artDrops.recent} />
 
       <ShareAuction auctionId={currentAuction.id} />
+
+      {recentReports.length > 0 && (
+        <section className="recent-reports" aria-labelledby="recent-reports-title">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Verified performance</span>
+              <h2 id="recent-reports-title">Recent attention-block reports</h2>
+            </div>
+          </div>
+          <div className="report-card-grid">
+            {recentReports.map((report) => (
+              <a href={`/reports/${report.blockAuctionId}`} key={report.blockAuctionId}>
+                <img src={`/api/reports/${report.blockAuctionId}/image`} alt={`Performance report for block ${report.blockSequence}`} />
+                <strong>Block #{report.blockSequence}</strong>
+                <span>{report.isRepeat ? "Repeat appearance" : "New auction win"}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section
         className="white-paper-banner"
@@ -256,6 +305,13 @@ export default async function HomePage({
           <BidButton
             currentHighestEffectiveBid={nextAuction.highestEffectiveBid}
             auctionId={nextAuction.id}
+            escrowEnabled={walletEscrow.enabled}
+            escrowUnavailableReason={walletEscrow.reason}
+          />
+
+          <CardBidAccount
+            auctionId={nextAuction.id}
+            minimumBid={getMinimumBidUsdc(nextAuction.highestEffectiveBid, 1)}
           />
 
           <AttentionEditor
@@ -317,10 +373,10 @@ export default async function HomePage({
           <section className="how-card" id="how-it-works">
             <span className="eyebrow">How it works</span>
             <ol>
-              <li>Connect Phantom.</li>
-              <li>Bid USDC for the next 30-minute block.</li>
+              <li>Connect Phantom for a USDC escrow bid, or sign in to authorize a card bid.</li>
+              <li>Authorize a card bid or deposit wallet USDC into the audited auction escrow.</li>
               <li>Highest verified USDC bid wins when the timer ends.</li>
-              <li>Bids are final. Losing bids are not refunded.</li>
+              <li>Only the winning bid is collected. Losing card holds and wallet escrows are released.</li>
               <li>Approved winner content appears on the homepage.</li>
               <li>
                 The latest approved winning post stays live until a newer winner

@@ -181,10 +181,11 @@ export default function ArtDropAdmin({ active }: { active: boolean }) {
                           <p>Session started: {new Date(drop.claimEngagement.first_seen).toLocaleString()}</p>
                           <p>Last heartbeat: {new Date(drop.claimEngagement.last_seen).toLocaleString()}</p>
                           <p>Elapsed session time: {Math.floor(drop.claimEngagement.elapsed_seconds)} seconds</p>
-                          <p>Post click: {new Date(drop.claimEngagement.last_sponsor_click_at).toLocaleString()}</p>
-                          <p>Required post: <code>{drop.claimEngagement.required_auction_id}</code></p>
-                          <p>Clicked post: <code>{drop.claimEngagement.sponsor_auction_id}</code></p>
-                          <small>Server-recorded eligibility at reservation. Elapsed session time and a reported click do not prove human attention or an external page visit.</small>
+                          <p>Sponsored-post click required: {drop.claimEngagement.click_required === false ? "No" : "Legacy claim"}</p>
+                          {drop.claimEngagement.last_sponsor_click_at && (
+                            <p>Legacy post click: {new Date(drop.claimEngagement.last_sponsor_click_at).toLocaleString()}</p>
+                          )}
+                          <small>Server-recorded eligibility at reservation. Session evidence is an anti-abuse signal and does not prove a person's identity.</small>
                         </div>
                       ) : <p>No eligibility snapshot was recorded for this claim.</p>}
                     </details>

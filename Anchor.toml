@@ -1,0 +1,16 @@
+[toolchain]
+anchor_version = "0.30.1"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+adbidcoin_escrow = "4uGLaaP4KGHMPHya2YuakkrbnuaGMvo37N88nZCrEFyA"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test -p adbidcoin-escrow"

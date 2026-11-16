@@ -19,7 +19,7 @@ export default function ArtDropRulesPage() {
       <article className="legal-card">
         <span className="eyebrow">Beta program</span>
         <h1>AdBidCoin Art Drop Rules</h1>
-        <p className="hint">Last updated November 4, 2026</p>
+        <p className="hint">Last updated November 13, 2026</p>
 
         <h2>How a drop works</h2>
         <p>
@@ -34,9 +34,11 @@ export default function ArtDropRulesPage() {
         <ul>
           <li>No purchase or bid is necessary to participate.</li>
           <li>Participants must remain active on AdBidCoin for at least five minutes before claiming.</li>
-          <li>Participants must visit the latest winning auction post during the eligible session.</li>
+          <li>No sponsored-link or featured-post click is required.</li>
           <li>Participants must be at least 18 and legally eligible in their location.</li>
-          <li>One paid Art Drop per wallet during any rolling 30-day period.</li>
+          <li>Each reward is 2 USDC, with a strict maximum budget of 70 USDC per UTC day.</li>
+          <li>One paid Art Drop per wallet or associated viewer session during any rolling 24-hour period.</li>
+          <li>Server-side wallet, session, device/network risk signals, rate limits, and human verification help prevent multi-account abuse.</li>
           <li>Automated claiming, multiple-wallet evasion, fraud, or interference is prohibited.</li>
           <li>AdBidCoin may pause, cancel, expire, or review a drop for security or legal reasons.</li>
         </ul>

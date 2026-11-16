@@ -57,7 +57,11 @@ export async function POST(request: Request) {
       Number(body.amountUsdc ?? body.amount),
       authenticatedWallet,
       String(body.auctionId ?? ""),
-      body.paymentSignature ?? null
+      body.paymentSignature ?? null,
+      String(body.escrowPda ?? ""),
+      String(body.escrowNonce ?? ""),
+      String(body.auctionPda ?? ""),
+      Number(body.sequence ?? 0)
     );
 
     if (result.success && body.paymentSignature) {
@@ -81,7 +85,7 @@ export async function POST(request: Request) {
       {
         success: false,
         message:
-          "Could not record the bid right now. Your payment receipt can be retried.",
+          "Could not record the bid right now. Your escrow receipt can be retried.",
       },
       { status: 500 }
     );

@@ -465,6 +465,52 @@ textarea:focus {
   margin: clamp(1rem, 3vw, 2rem) 0 clamp(2rem, 5vw, 4rem);
 }
 
+.featured-explainer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem;
+  align-items: center;
+  margin: 1.25rem 0 0;
+  padding: clamp(1.1rem, 3vw, 1.8rem);
+  border: 1px solid rgba(255, 212, 59, 0.5);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 212, 59, 0.12), rgba(255, 46, 213, 0.1));
+}
+
+.featured-explainer h2 { margin: 0.25rem 0 0.5rem; font-size: clamp(1.7rem, 4vw, 2.8rem); }
+.featured-explainer p { max-width: 800px; margin: 0; color: var(--muted); line-height: 1.55; }
+
+.credit-card {
+  margin-top: 1rem;
+  padding: clamp(1.2rem, 3vw, 2rem);
+  border: 1px solid var(--line-blue);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(27, 214, 255, 0.1), rgba(255, 46, 213, 0.08)), var(--panel);
+}
+
+.credit-card h2 { margin: 0.35rem 0; font-size: clamp(1.8rem, 4vw, 3rem); }
+.credit-card > p { color: var(--muted); line-height: 1.55; }
+.credit-signin { display: grid; grid-template-columns: minmax(220px, 1fr) auto; gap: 0.75rem; align-items: end; }
+.credit-signin label, .credit-actions-grid label { display: grid; gap: 0.4rem; }
+.credit-balance-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 0.75rem; align-items: center; margin: 1rem 0; }
+.credit-balance-row > div { display: grid; gap: 0.25rem; padding: 0.85rem; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; }
+.credit-balance-row span { color: var(--muted); font-size: .75rem; text-transform: uppercase; }
+.credit-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.credit-actions-grid > div { padding: 1rem; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; }
+.credit-actions-grid h3 { margin-top: 0; }
+.credit-quote { display: grid; gap: 0.35rem; margin: 0.75rem 0; padding: 0.8rem; background: rgba(0,0,0,.24); border-radius: 8px; }
+.credit-quote span { display: flex; justify-content: space-between; gap: 1rem; color: var(--muted); }
+.credit-quote strong { color: var(--text); }
+
+.report-page h1 { font-size: clamp(3rem, 9vw, 7rem); margin: 2rem 0 .5rem; text-transform: uppercase; }
+.report-preview { display: block; width: 100%; max-width: 1200px; margin: 2rem 0; border: 2px solid var(--line); border-radius: 16px; }
+.report-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.recent-reports { margin: clamp(2rem, 5vw, 4rem) 0; }
+.report-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.report-card-grid a { display: grid; gap: .5rem; padding: .75rem; border: 1px solid var(--line-blue); border-radius: 10px; background: var(--panel); }
+.report-card-grid img { width: 100%; border-radius: 8px; }
+.report-card-grid span { color: var(--muted); }
+
 .featured-attention .attention-card {
   min-height: min(72vh, 760px);
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
@@ -1960,6 +2006,15 @@ textarea:focus {
 }
 
 @media (max-width: 900px) {
+  .featured-explainer,
+  .credit-signin,
+  .credit-balance-row,
+  .credit-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-card-grid { grid-template-columns: 1fr; }
+
   .top-nav,
   .hero-section,
   .auction-grid,

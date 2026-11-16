@@ -25,7 +25,7 @@ export default function SiteFooter() {
         </a>
       </nav>
       <p className="footer-legal">
-        © 2026 Attention Bid, Inc. Bids are final. Nothing on this site is an
+        © 2026 Attention Bid, Inc. Only winning bids are collected. Nothing on this site is an
         offer to sell securities or tokens.
       </p>
     </footer>

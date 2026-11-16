@@ -2,6 +2,7 @@
 
 type Props = {
   auctionId: string;
+  featuredContentAuctionId?: string;
   url: string;
   label?: string;
   sponsored?: boolean;
@@ -9,12 +10,13 @@ type Props = {
 
 export default function TrackedAttentionLink({
   auctionId,
+  featuredContentAuctionId = "",
   url,
   label = "Visit link",
   sponsored = false,
 }: Props) {
   function recordClick() {
-    const body = JSON.stringify({ auctionId, url });
+    const body = JSON.stringify({ auctionId, featuredContentAuctionId, url });
 
     if (navigator.sendBeacon) {
       navigator.sendBeacon(
