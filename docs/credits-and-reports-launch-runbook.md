@@ -40,7 +40,8 @@ Create a Stripe webhook endpoint for
 - `checkout.session.expired`
 - `charge.refunded`
 
-Only after written approval and successful test-mode verification may the
+Only after documented, account-specific Stripe clearance and successful
+test-mode verification may the
 secret be replaced by an `sk_live_...` key and
 `STRIPE_APPROVAL_CONFIRMED=true`. Checkout credits are issued only by verified,
 signed webhooks. Redirects never change balances.

@@ -15,8 +15,10 @@ Do not enable either funding path merely because the application builds.
 - Keep the master `WINNER_ONLY_AUCTIONS_ENABLED=false` gate off until the
   database migration is applied and at least one funding path is ready.
 
-- Obtain written confirmation from Stripe that manual-capture card
-  authorizations are approved for AdBidCoin's exact auction flow. Keep
+- Obtain and archive documented, account-specific Stripe support or compliance
+  clearance for AdBidCoin's exact manual-capture auction flow. A support case
+  record, dated call notes, and a healthy account status may be used when Stripe
+  states that it does not issue separate approval letters. Keep
   `STRIPE_CARD_BIDS_ENABLED=false` and `STRIPE_APPROVAL_CONFIRMED=false` until
   that confirmation is archived.
 - Have the Solana program in `programs/adbidcoin_escrow` independently audited,
@@ -50,8 +52,9 @@ public settlement-receipt view. Re-running it is safe.
    status `requires_capture`.
 5. Test three auctions: card winner, card loser, and no bids. Confirm the winner
    is captured once and every losing hold is canceled once.
-6. Before live mode, set `STRIPE_APPROVAL_CONFIRMED=true` only after written
-   approval and replace the test keys with live keys.
+6. Before live mode, set `STRIPE_APPROVAL_CONFIRMED=true` only after the
+   account-specific clearance record is archived and replace the test keys with
+   live keys.
 
 ## Solana escrow
 

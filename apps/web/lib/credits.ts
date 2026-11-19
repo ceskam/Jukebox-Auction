@@ -30,7 +30,7 @@ export function getStripeCreditAvailability() {
       : !key
         ? "Stripe is not configured."
         : liveMode && !approvalConfirmed
-          ? "Live purchases require written Stripe approval for this auction-credit model."
+          ? "Live purchases require documented Stripe account clearance for this auction-credit model."
           : "",
   };
 }
