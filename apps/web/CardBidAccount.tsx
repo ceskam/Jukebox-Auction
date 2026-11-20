@@ -111,7 +111,7 @@ export default function CardBidAccount({ auctionId, minimumBid }: Props) {
       </div>
       <p className="card-bid-rate">
         Card and wallet bids compete at the same face value: <strong>1 USD = 1 USDC</strong>
-        of bid value. Minimum card bid: <strong>${MIN_CARD_BID_USD.toFixed(2)}</strong>.
+        {" "}of bid value. Minimum card bid: <strong>${MIN_CARD_BID_USD.toFixed(2)}</strong>.
       </p>
       {!accessToken ? (
         <div className="credit-signin">
