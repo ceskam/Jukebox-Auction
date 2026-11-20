@@ -191,14 +191,17 @@ export async function settleAuction(auctionId: string) {
 
 export async function runAuctionSettlementScheduler() {
   const supabase = createSupabaseServerClient();
-  // Allow confirmed wallet deposits and signed Stripe webhooks a short period
-  // to reach the database before winner selection becomes final.
+  // Bidding for an attention block closes when that block starts. Give
+  // confirmed wallet deposits and signed Stripe webhooks a short period to
+  // reach the database, then capture the winner before the block is far under
+  // way. Waiting for `ends_at` would make the winner pay only after their
+  // 30-minute placement had already expired.
   const nowMs = Date.now() - 2 * 60 * 1000;
   const { data: auctions, error } = await supabase
     .from("auctions")
-    .select("id,ends_at")
-    .lte("ends_at", nowMs)
-    .order("ends_at", { ascending: false })
+    .select("id,starts_at")
+    .lte("starts_at", nowMs)
+    .order("starts_at", { ascending: false })
     .limit(12);
   if (error) throw new Error(error.message);
   const results = [];

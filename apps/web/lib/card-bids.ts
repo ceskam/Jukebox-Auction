@@ -33,7 +33,7 @@ export function getCardBidAvailability() {
       : !key
         ? "Stripe is not configured."
         : liveMode && !approvalConfirmed
-          ? "Live card bidding requires documented Stripe account clearance for this exact winner-only auction flow."
+          ? "Live card bidding requires Stripe account clearance for this winner-only auction flow."
           : "",
   };
 }

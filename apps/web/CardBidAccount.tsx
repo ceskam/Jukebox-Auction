@@ -86,16 +86,32 @@ export default function CardBidAccount({ auctionId, minimumBid }: Props) {
   const amount = Number(bidAmount) || 0;
   const feeUsd = Math.round(amount * feePercent) / 100;
   const totalUsd = Math.round((amount + feeUsd) * 100) / 100;
+  const quickBids = [5, 10, 25, 50].filter((value) => value >= cardMinimumBid);
 
   return (
     <section className="credit-card" id="card-bidding">
-      <span className="eyebrow">No Phantom required</span>
-      <h2>Authorize a card bid</h2>
-      <p>
-        Your maximum bid is placed as a temporary card hold. AdBidCoin captures the
-        winner only after the 30-minute auction closes and releases every losing hold.
-        Card bids and wallet bids compete at the same face value: 1 USD = 1 USDC of bid value.
-        The minimum card bid is ${MIN_CARD_BID_USD.toFixed(2)}.
+      <div className="card-bid-heading">
+        <div>
+          <span className="eyebrow">Fastest way to bid · No Phantom required</span>
+          <h2>Bid securely with your card</h2>
+          <p>
+            Place a temporary card authorization through Stripe. When bidding closes,
+            only the winner is charged and every losing hold is released.
+          </p>
+        </div>
+        <div className="stripe-checkout-badge" aria-label="Secure card checkout powered by Stripe">
+          <span>Secure checkout</span>
+          <strong>Powered by Stripe</strong>
+        </div>
+      </div>
+      <div className="card-bid-steps" aria-label="How card bidding works">
+        <div><strong>1</strong><span>Sign in by email</span></div>
+        <div><strong>2</strong><span>Authorize your maximum bid</span></div>
+        <div><strong>3</strong><span>Only the winner pays</span></div>
+      </div>
+      <p className="card-bid-rate">
+        Card and wallet bids compete at the same face value: <strong>1 USD = 1 USDC</strong>
+        of bid value. Minimum card bid: <strong>${MIN_CARD_BID_USD.toFixed(2)}</strong>.
       </p>
       {!accessToken ? (
         <div className="credit-signin">
@@ -112,6 +128,20 @@ export default function CardBidAccount({ auctionId, minimumBid }: Props) {
           <div className="credit-actions-grid">
             <div>
               <h3>Maximum bid</h3>
+              {quickBids.length > 0 && (
+                <div className="card-quick-bids" aria-label="Quick card bid amounts">
+                  {quickBids.map((value) => (
+                    <button
+                      type="button"
+                      className={amount === value ? "selected" : ""}
+                      key={value}
+                      onClick={() => setBidAmount(String(value))}
+                    >
+                      ${value}
+                    </button>
+                  ))}
+                </div>
+              )}
               <label><span>Bid value</span><input type="number" min={cardMinimumBid} max="2000" step="0.01" value={bidAmount} onChange={(event) => setBidAmount(event.target.value)} /></label>
               <div className="credit-quote">
                 <span>Auction bid value <strong>{amount.toFixed(2)} USDC</strong></span>
@@ -119,8 +149,8 @@ export default function CardBidAccount({ auctionId, minimumBid }: Props) {
                 <span>Maximum authorization <strong>{totalUsd.toFixed(2)} USD</strong></span>
                 <span>If you lose <strong>Hold released</strong></span>
               </div>
-              <button className="primary-button" onClick={authorizeBid} disabled={busy || !stripe.enabled || amount < cardMinimumBid}>{busy ? "Starting authorization..." : "Authorize maximum bid"}</button>
-              {!stripe.enabled && <p className="form-message info">{stripe.reason} Live use remains off until Stripe confirms support in writing.</p>}
+              <button className="primary-button card-authorize-button" onClick={authorizeBid} disabled={busy || !stripe.enabled || amount < cardMinimumBid}>{busy ? "Opening Stripe..." : `Continue to Stripe · $${totalUsd.toFixed(2)} max`}</button>
+              {!stripe.enabled && <p className="form-message info">{stripe.reason} Card bidding is currently unavailable.</p>}
               {stripe.testMode && <p className="hint">Stripe test mode—no live charge will be made.</p>}
             </div>
             <div>

@@ -140,6 +140,7 @@ export default async function HomePage({
         <Brand />
         <div className="nav-links" aria-label="Primary navigation">
           <a href="#auction">Auction</a>
+          <a href="#card-bidding">Bid with card</a>
           <a href="#leaderboard">Leaderboard</a>
           <a href="#how-it-works">How it works</a>
           <a href="#community">Community</a>
@@ -161,7 +162,10 @@ export default async function HomePage({
             to appear until a new auction winner takes its place.
           </p>
         </div>
-        <a className="primary-link" href="#auction">Bid in the Current Auction</a>
+        <div className="featured-explainer-actions">
+          <a className="primary-link" href="#card-bidding">Bid with Card</a>
+          <a className="secondary-link" href="#auction">View Current Auction</a>
+        </div>
       </section>
 
       <section
@@ -216,9 +220,18 @@ export default async function HomePage({
           <div className="report-card-grid">
             {recentReports.map((report) => (
               <a href={`/reports/${report.blockAuctionId}`} key={report.blockAuctionId}>
-                <img src={`/api/reports/${report.blockAuctionId}/image`} alt={`Performance report for block ${report.blockSequence}`} />
-                <strong>Block #{report.blockSequence}</strong>
-                <span>{report.isRepeat ? "Repeat appearance" : "New auction win"}</span>
+                <img
+                  src={`/api/reports/${report.blockAuctionId}/image`}
+                  alt={`Performance report for block ${report.blockSequence}`}
+                  loading="lazy"
+                />
+                <div className="report-card-summary">
+                  <div>
+                    <strong>Block #{report.blockSequence}</strong>
+                    <span>{report.isRepeat ? "Repeat appearance" : "New auction win"}</span>
+                  </div>
+                  <span className="report-card-cta">View report</span>
+                </div>
               </a>
             ))}
           </div>
@@ -302,16 +315,16 @@ export default async function HomePage({
             </div>
           </section>
 
+          <CardBidAccount
+            auctionId={nextAuction.id}
+            minimumBid={getMinimumBidUsdc(nextAuction.highestEffectiveBid, 1)}
+          />
+
           <BidButton
             currentHighestEffectiveBid={nextAuction.highestEffectiveBid}
             auctionId={nextAuction.id}
             escrowEnabled={walletEscrow.enabled}
             escrowUnavailableReason={walletEscrow.reason}
-          />
-
-          <CardBidAccount
-            auctionId={nextAuction.id}
-            minimumBid={getMinimumBidUsdc(nextAuction.highestEffectiveBid, 1)}
           />
 
           <AttentionEditor
