@@ -59,7 +59,10 @@ export default function CardBidAccount({ auctionId, minimumBid }: Props) {
     setMessage("");
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/#card-bidding` },
+      // Supabase returns the session in the URL hash. Do not include our own
+      // hash here or the browser will receive two fragments and the client
+      // will be unable to consume the session.
+      options: { emailRedirectTo: window.location.origin },
     });
     setMessage(error ? error.message : "Check your email for the secure sign-in link.");
     setBusy(false);
