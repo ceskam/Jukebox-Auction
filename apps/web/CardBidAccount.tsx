@@ -27,15 +27,48 @@ export default function CardBidAccount({ auctionId, minimumBid }: Props) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => {
+    let active = true;
+
+    async function loadSession() {
+      const hash = new URLSearchParams(window.location.hash.slice(1));
+      const returnedAccessToken = hash.get("access_token");
+      const returnedRefreshToken = hash.get("refresh_token");
+
+      if (returnedAccessToken && returnedRefreshToken) {
+        const { data, error } = await supabase.auth.setSession({
+          access_token: returnedAccessToken,
+          refresh_token: returnedRefreshToken,
+        });
+        if (!active) return;
+        if (error) {
+          setMessage(error.message);
+          return;
+        }
+        setAccessToken(data.session?.access_token ?? "");
+        setSignedInEmail(data.session?.user.email ?? "");
+        window.history.replaceState(
+          {},
+          document.title,
+          `${window.location.pathname}${window.location.search}#card-bidding`
+        );
+        return;
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (!active) return;
       setAccessToken(data.session?.access_token ?? "");
       setSignedInEmail(data.session?.user.email ?? "");
-    });
+    }
+
+    void loadSession();
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setAccessToken(session?.access_token ?? "");
       setSignedInEmail(session?.user.email ?? "");
     });
-    return () => data.subscription.unsubscribe();
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
   }, [supabase]);
 
   useEffect(() => setBidAmount(String(cardMinimumBid)), [cardMinimumBid]);
