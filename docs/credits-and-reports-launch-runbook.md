@@ -53,6 +53,7 @@ It needs user-context write access and media upload access. Configure:
 
 ```text
 X_REPORTS_ENABLED=false
+X_REPORTS_MIN_SEQUENCE=1
 X_API_KEY=...
 X_API_SECRET=...
 X_ACCESS_TOKEN=...
@@ -60,6 +61,10 @@ X_ACCESS_TOKEN_SECRET=...
 ```
 
 Keep `X_REPORTS_ENABLED=false` while testing report generation and downloads.
+Before the first live post, set `X_REPORTS_MIN_SEQUENCE` to the first block that
+should be eligible for X publishing. Reports from earlier blocks remain visible
+on the site but are excluded from the retry queue, preventing a launch-time
+backlog from flooding the account.
 After a test post from the official account succeeds, set it to `true` and
 redeploy. A unique database row prevents duplicate reports. Explicit X failures
 are retried by cron; ambiguous post outcomes remain locked in `publishing` for

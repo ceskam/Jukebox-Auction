@@ -116,8 +116,19 @@ function reportCaption(report: AttentionBlockReport) {
   return `📊 AdBidCoin block #${report.blockSequence}: ${report.title} — ${report.impressions} impressions, ${report.linkClicks} clicks, ${ctr} (${appearance}). Bid for the current block: https://adbidcoin.com/#auction`;
 }
 
+function minimumXReportSequence() {
+  const configured = Number.parseInt(process.env.X_REPORTS_MIN_SEQUENCE ?? "1", 10);
+  return Number.isSafeInteger(configured) && configured > 0 ? configured : 1;
+}
+
 async function publishReport(report: AttentionBlockReport) {
-  if (process.env.X_REPORTS_ENABLED !== "true" || report.xPostId || report.publicationStatus === "published" || report.publicationStatus === "publishing") return report;
+  if (
+    process.env.X_REPORTS_ENABLED !== "true" ||
+    report.blockSequence < minimumXReportSequence() ||
+    report.xPostId ||
+    report.publicationStatus === "published" ||
+    report.publicationStatus === "publishing"
+  ) return report;
   const supabase = createSupabaseServerClient();
   const { data: claimed, error: claimError } = await supabase
     .from("attention_block_reports")
@@ -187,6 +198,7 @@ export async function runAttentionReportScheduler() {
     .select("*")
     .in("publication_status", ["pending", "failed"])
     .eq("x_post_id", "")
+    .gte("block_sequence", minimumXReportSequence())
     .order("ends_at", { ascending: true })
     .limit(5);
   if (error) throw new Error(`Could not load report publication queue: ${error.message}`);
